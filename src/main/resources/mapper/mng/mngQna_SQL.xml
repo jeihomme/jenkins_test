@@ -1,0 +1,301 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd"> 
+<mapper namespace="mngQna">
+
+	<!-- 로그인 체크 -->
+	<select id="selectMngQnaList" parameterType="hashmap" resultType="hashmap">
+		<![CDATA[
+				]]>
+			<if test="status not in {'LIST'}">
+				<![CDATA[
+SELECT C.*, REPLACE(CONVERT(C.NUM_DESC, CHAR),'.0','') AS NUM_DESC_ORDER FROM (
+  SELECT B.*, (@rownumB:=@rownumB+1) as NUM_ASC FROM(  
+    SELECT A.*, (@rownumA:=@rownumA+1) as NUM_DESC FROM (
+				]]>
+			</if>
+		<![CDATA[
+			
+			SELECT
+				*
+			FROM (
+			    SELECT 
+					QNA_IDX, 
+					(
+						CASE 
+							WHEN LENGTH(QNA_TITL) > 45 THEN CONCAT(SUBSTR(QNA_CNTN,1,45),'...')
+							ELSE QNA_TITL
+						END
+					) AS QNA_TITL,
+					QNA_USER_UUID,
+					QNA_CD,
+					(SELECT CODE_NM FROM PPM_CODE WHERE CODE_ID = QNA_CD ) QNA_CDNM,
+					
+					( SELECT COUNT(*) FROM UNIT_FILES UF WHERE UF.UNIT_UUID = QNA_USER_UUID ) FILE_YN,
+					QNA_USE_YN,
+					(
+						CASE
+							WHEN QNA_REPL IS NULL THEN 'N'
+							WHEN QNA_REPL = '' THEN 'N'
+							ELSE 'Y'
+						END
+					) AS QNA_REPL,
+					QNA_MNG_UUID, 
+					(
+						CASE
+							WHEN SQ.SYS_REG_IDX != 0 THEN ( SELECT USER_NM FROM PPM_USER WHERE USER_IDX = SQ.SYS_REG_IDX )
+							ELSE QNA_NAME
+						END
+					) AS SYS_REG_IDX,
+					DATE_FORMAT(SYS_REG_DTM, '%Y-%m-%d ') AS SYS_REG_DTM,
+					(
+						CASE
+							WHEN SYS_REG_DTM = SYS_MOD_DTM THEN ''
+							ELSE ( SELECT MNG_NM FROM PPM_MNG WHERE MNG_IDX = SQ.SYS_MOD_IDX )
+						END
+					 ) AS SYS_MOD_IDX,
+					DATE_FORMAT(SYS_MOD_DTM, '%Y-%m-%d ') AS SYS_MOD_DTM,
+					(
+						CASE
+							WHEN SQ.SYS_REG_IDX != 0 THEN ( SELECT USER_EMAIL FROM PPM_USER WHERE USER_IDX = SQ.SYS_REG_IDX )
+							ELSE QNA_EMAIL
+						END
+					) AS USER_EMAIL,
+					SQ.QNA_CNTN 
+				FROM 
+					PPM_SITE_QNA SQ
+			) TEMP
+			
+			]]>
+		<where>
+			<if test="qnaTitl not in {null, ''}">
+				<![CDATA[
+					AND (QNA_TITL LIKE '%${qnaTitl}%' 
+						OR QNA_CNTN LIKE '%${qnaTitl}%'
+					)
+				]]>
+			</if>
+			<if test="sysRegIdx not in {null, ''}">
+				<![CDATA[
+					AND (SYS_REG_IDX LIKE '%${sysRegIdx}%'
+						OR USER_EMAIL LIKE '%${sysRegIdx}%'
+					)
+				]]>
+			</if>
+			<if test="sysModIdx not in {null, ''}">
+				<![CDATA[
+					AND SYS_MOD_IDX LIKE '%${sysModIdx}%'
+				]]>
+			</if>
+			<if test="qnaRepl not in {null, ''}">
+				<![CDATA[
+					AND QNA_REPL = '${qnaRepl}'
+				]]>
+			</if>
+			<if test="qnaCd not in {null, ''}">
+				<![CDATA[
+					AND QNA_CD = '${qnaCd}'
+				]]>
+			</if>
+		</where>
+		
+			<if test="status not in {'LIST'}">
+				<![CDATA[
+						) A JOIN (SELECT @rownumA:=0) rownumA
+  ) B JOIN (SELECT @rownumB:=0) rownumB ORDER BY QNA_IDX DESC
+) C WHERE NUM_ASC BETWEEN '${startRow }' AND '${endRow }'
+				]]>
+			</if>
+		<![CDATA[
+		]]>
+	</select>
+	
+	<!-- 로그인 체크 -->
+	<select id="selectMngQnaListCnt" parameterType="hashmap" resultType="java.lang.Integer">
+		<![CDATA[
+		    SELECT
+				COUNT(0)
+			FROM (
+			    SELECT 
+					QNA_IDX, 
+					(
+						CASE 
+							WHEN LENGTH(QNA_TITL) > 45 THEN CONCAT(SUBSTR(QNA_CNTN,1,45),'...')
+							ELSE QNA_TITL
+						END
+					) AS QNA_TITL,
+					QNA_USER_UUID,
+					QNA_CD,
+					(SELECT CODE_NM FROM PPM_CODE WHERE CODE_ID = QNA_CD ) QNA_CDNM,
+					
+					( SELECT COUNT(*) FROM UNIT_FILES UF WHERE UF.UNIT_UUID = QNA_USER_UUID ) FILE_YN,
+					QNA_USE_YN,
+					(
+						CASE
+							WHEN QNA_REPL IS NULL THEN 'N'
+							WHEN QNA_REPL = '' THEN 'N'
+							ELSE 'Y'
+						END
+					) AS QNA_REPL,
+					QNA_MNG_UUID, 
+					(
+						CASE
+							WHEN SQ.SYS_REG_IDX != 0 THEN ( SELECT USER_NM FROM PPM_USER WHERE USER_IDX = SQ.SYS_REG_IDX )
+							ELSE QNA_NAME
+						END
+					) AS SYS_REG_IDX,
+					DATE_FORMAT(SYS_REG_DTM, '%Y-%m-%d ') AS SYS_REG_DTM,
+					(
+						CASE
+							WHEN SYS_REG_DTM = SYS_MOD_DTM THEN ''
+							ELSE ( SELECT MNG_NM FROM PPM_MNG WHERE MNG_IDX = SQ.SYS_MOD_IDX )
+						END
+					 ) AS SYS_MOD_IDX,
+					SYS_MOD_DTM,
+					(
+						CASE
+							WHEN SQ.SYS_REG_IDX != 0 THEN ( SELECT USER_EMAIL FROM PPM_USER WHERE USER_IDX = SQ.SYS_REG_IDX )
+							ELSE QNA_EMAIL
+						END
+					) AS USER_EMAIL,
+					SQ.QNA_CNTN
+				FROM 
+					PPM_SITE_QNA SQ
+			) TEMP
+			
+			]]>
+		<where>
+			<if test="qnaTitl not in {null, ''}">
+				<![CDATA[
+					AND (QNA_TITL LIKE '%${qnaTitl}%' 
+						OR QNA_CNTN LIKE '%${qnaTitl}%'
+					)
+				]]>
+			</if>
+			<if test="sysRegIdx not in {null, ''}">
+				<![CDATA[
+					AND (SYS_REG_IDX LIKE '%${sysRegIdx}%'
+						OR USER_EMAIL LIKE '%${sysRegIdx}%'
+					)
+				]]>
+			</if>
+			<if test="sysModIdx not in {null, ''}">
+				<![CDATA[
+					AND SYS_MOD_IDX LIKE '%${sysModIdx}%'
+				]]>
+			</if>
+			<if test="qnaRepl not in {null, ''}">
+				<![CDATA[
+					AND QNA_REPL = '${qnaRepl}'
+				]]>
+			</if>
+			<if test="qnaCd not in {null, ''}">
+				<![CDATA[
+					AND QNA_CD = '${qnaCd}'
+				]]>
+			</if>
+		</where>
+	</select>
+	
+	<select id="selectMngQnaDetail" parameterType="hashmap" resultType="hashmap">
+		<![CDATA[
+			SELECT
+				QNA_IDX, 
+				QNA_TITL,
+				QNA_CNTN,
+				QNA_USER_UUID,
+				
+				QNA_CD,
+				(SELECT CODE_NM FROM PPM_CODE WHERE CODE_ID = QNA_CD ) QNA_CDNM,
+				
+				QNA_REPL,
+				QNA_MNG_UUID,
+				QNA_USE_YN,
+				
+				( SELECT USER_NM FROM PPM_USER WHERE USER_IDX = SQ.SYS_MOD_IDX ) MASTER_NM,
+				(
+					CASE
+						WHEN SQ.SYS_REG_IDX != 0 THEN ( SELECT USER_NM FROM PPM_USER WHERE USER_IDX = SQ.SYS_REG_IDX )
+						ELSE QNA_NAME
+					END
+				) AS USER_NM,
+				(
+					CASE
+						WHEN SQ.SYS_REG_IDX != 0 THEN ( SELECT USER_EMAIL FROM PPM_USER WHERE USER_IDX = SQ.SYS_REG_IDX )
+						ELSE QNA_EMAIL
+					END
+				) AS USER_EMAIL,
+				
+				SYS_REG_IDX,
+				DATE_FORMAT(SYS_REG_DTM, '%Y-%m-%d') AS SYS_REG_DTM,
+				SYS_MOD_IDX, 
+				DATE_FORMAT(SYS_MOD_DTM, '%Y-%m-%d %H:%i:%S') AS SYS_MOD_DTM
+			FROM 
+				PPM_SITE_QNA SQ
+			WHERE
+				QNA_IDX = #{qnaIdx}
+		]]>
+	</select>
+	
+	<insert id="insertMngQnaData" parameterType="hashmap">
+		<![CDATA[
+			INSERT INTO 
+				PPM_SITE_QNA
+			(
+				QNA_TITL, 
+				QNA_CD,
+				QNA_CNTN, 
+				QNA_USER_UUID, 
+				QNA_USE_YN, 
+				
+				SYS_REG_IDX, 
+				SYS_REG_DTM, 
+				SYS_MOD_IDX, 
+				SYS_MOD_DTM
+			) VALUES (
+				'${qnaTitl} ', 
+				'${qnaCd}', 
+				'${qnaCntn}',
+				'${qnaUserUuid} ',
+				'Y ', 
+				
+				#{mngLoginIdx}, 
+				DATE_FORMAT(NOW(), '%Y%m%d%H%i%S'), 
+				#{mngLoginIdx}, 
+				DATE_FORMAT(NOW(), '%Y%m%d%H%i%S')
+			)
+		]]>
+	</insert>
+	
+	<update id="updateMngQnaData" parameterType="hashmap">
+		<![CDATA[
+			 UPDATE
+		    	PPM_SITE_QNA 
+    		SET 
+    			QNA_REPL = #{qnaRepl},
+    			QNA_MNG_UUID = '${qnaMngUuid}',
+    			SYS_MOD_IDX =#{mngLoginIdx}, 
+				SYS_MOD_DTM = DATE_FORMAT(NOW(), '%Y%m%d%H%i%S')
+	    	WHERE 
+	    		QNA_IDX = #{qnaIdx}
+
+		]]>
+	</update>
+
+	<update id="deleteMngQnaData" parameterType="hashmap" >
+		<![CDATA[
+			    
+		    UPDATE
+		    	PPM_SITE_QNA 
+		    		SET 
+		    			QNA_USE_YN = 'N',
+		    			SYS_MOD_IDX =#{mngLoginIdx}, 
+						SYS_MOD_DTM = DATE_FORMAT(NOW(), '%Y%m%d%H%i%S')
+		    	
+		    	WHERE 
+		    		QNA_IDX = #{qnaIdx}
+		]]>
+	</update>
+	
+	
+	
+</mapper>

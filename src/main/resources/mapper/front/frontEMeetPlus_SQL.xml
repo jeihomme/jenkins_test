@@ -1,0 +1,153 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd"> 
+<mapper namespace="frontEMeetPlus">
+
+	<!-- 채팅 > 이미지 등록 -->
+	<insert id="insertFrontChatPicture" parameterType="hashmap" >
+		<selectKey resultType="hashmap" keyProperty="cateIdx,masterUserIdx,userIdx" order="BEFORE" >
+		<![CDATA[
+				SELECT 
+					PU.USER_IDX AS masterUserIdx,
+					PUB.CATE_IDX AS cateIdx, 
+					PUB.USER_IDX AS userIdx 
+					
+					FROM 
+						PPM_USER_BUY PUB,
+						PPM_CATE PC ,
+						PPM_USER PU
+						
+						WHERE 
+							BUY_IDX = #{buyIdx}
+							AND PU.USER_IDX = PC.USER_IDX
+							AND PUB.CATE_IDX  = PC.CATE_IDX 
+		]]>
+		</selectKey>
+	
+		<![CDATA[
+			INSERT INTO 
+				PPM_USER_BUY_CONS
+					(
+					BUY_IDX,
+					CATE_IDX,
+					MAST_USER_IDX,
+					USER_IDX,
+					HIST_END_TIME,
+					HIST_VOD_ADDR,
+					HIST_FLAG,
+					SYS_REG_IDX,
+					SYS_REG_DTM,
+					SYS_MOD_IDX,
+					SYS_MOD_DTM
+					)
+				VALUES
+					(
+					#{buyIdx},
+					#{cateIdx},
+					#{masterUserIdx},
+					#{userIdx},
+		]]>
+		<choose>
+			<when test="histEndTime not in {'', null}">
+			<![CDATA[
+						DATE_FORMAT(#{histEndTime},'%Y-%m-%d %H:%i:%S'),
+			]]>
+			</when>
+			<otherwise>
+			<![CDATA[
+						'',
+						]]>
+			</otherwise>
+		</choose>
+		
+		<choose>
+			<when test="histVodAddr not in {'', null} ">
+			<![CDATA[
+						#{histVodAddr},
+			]]>
+			</when>
+			<otherwise>
+			<![CDATA[
+						'',
+						]]>
+			</otherwise>
+		</choose>
+		
+		<choose>
+			<when test="histVodAddr not in {'', null} ">
+			<![CDATA[
+						'V',
+			]]>
+			</when>
+			<when test="histEndTime not in {'', null} ">
+			<![CDATA[
+						'T',
+			]]>
+			</when>
+			<otherwise>
+			<![CDATA[
+						'',
+						]]>
+			</otherwise>
+		</choose>
+		<![CDATA[
+					#{masterUserIdx},
+					DATE_FORMAT(NOW(),'%Y-%m-%d %H:%i:%S'),
+					#{masterUserIdx},
+					DATE_FORMAT(NOW(),'%Y-%m-%d %H:%i:%S')
+					)
+		]]>
+	</insert>
+	
+	
+	
+	
+	<select id="selectPaySmsList" parameterType="hashmap" resultType="hashmap">
+	<![CDATA[
+			SELECT
+				PUB.BUY_IDX,
+				PU_M.USER_NM AS M_USER_NM,
+				PU_M.USER_PHONE AS M_USER_PHONE,
+				PU_U.USER_NM,
+				PU_U.USER_PHONE,
+				
+				PUB.BUY_PRDT_CD,
+				(
+					CASE
+						WHEN PUB.BUY_PRDT_CD LIKE '%VL%' THEN 'VOD'
+						WHEN PUB.BUY_PRDT_CD LIKE '%FN%' THEN '1:1화상코칭'
+						WHEN PUB.BUY_PRDT_CD LIKE '%CN%' THEN '1:1채팅코칭'
+						WHEN PUB.BUY_PRDT_CD LIKE '%LN%' THEN 'LIVE CLASS'
+						WHEN PUB.BUY_PRDT_CD LIKE '%EN%' THEN '1:1이메일코칭'
+					END
+				) AS PRDT_TYPE,
+				(
+					CASE
+						WHEN PUB.BUY_PRDT_CD LIKE '%EN%' THEN DATE_FORMAT( ( SELECT DATE_ADD(DATE_FORMAT( PUB.BUY_COMP_DTM, '%Y-%m-%d' ), INTERVAL MAIL_CNT DAY) FROM PPM_PRDT_MAIL WHERE MAIL_CD = PUB.BUY_PRDT_CD ), '%m월 %d일' )
+						ELSE ''
+					END
+				) AS PRDT_TERM,
+				PUB.TIME_IDX,
+				PPT.TIME_DTM,
+				DATE_FORMAT(PPT.TIME_DTM, '%m월 %d일') TIME_DTM_NM,
+				PPT.TIME_STR
+			FROM 
+				PPM_USER_BUY PUB
+					LEFT OUTER JOIN PPM_PRDT_TIME PPT ON PUB.TIME_IDX = PPT.TIME_IDX
+					LEFT JOIN PPM_CATE PC ON PUB.CATE_IDX = PC.CATE_IDX	
+					LEFT JOIN PPM_USER PU_M ON PC.USER_IDX = PU_M.USER_IDX				
+					LEFT JOIN PPM_USER PU_U ON PUB.USER_IDX = PU_U.USER_IDX					
+			WHERE 
+			]]>
+		<if test='buyNo not in {null, ""}'>
+		<![CDATA[
+				BUY_NO = #{buyNo} 
+		]]>
+		</if>
+		<if test='buyNo in {null, ""}'>
+		<![CDATA[
+				PUB.BUY_IDX = #{buyIdx} 
+		]]>
+		</if>
+	</select>
+	
+</mapper>

@@ -1,0 +1,184 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd"> 
+<mapper namespace="frontMypay">
+
+	
+	
+	<update id="updateFrontUserPaymentData" parameterType="hashmap">
+		<![CDATA[
+			UPDATE PPM_USER_BUY
+				SET
+					
+					BUY_NO = #{buyNo},
+					BUY_TYPE = #{buyType},
+					BUY_PRIC = #{buyPric},
+					BUY_ACCO_NO = #{buyAccoNo},
+					BUY_BANK_CD = #{buyBankCd},
+					
+					BUY_CD =(  SELECT S FROM (
+											SELECT
+													CONCAT(
+														CONCAT(
+															'${buyCd}',
+															(
+																CASE
+																	WHEN COUNT(PPL.BUY_IDX) BETWEEN 0 AND 9999 THEN 'A'
+																	WHEN COUNT(PPL.BUY_IDX) > 9999 THEN CHAR(ASCII('A') + FLOOR(COUNT(PPL.BUY_IDX)/10000))
+																	WHEN COUNT(PPL.BUY_IDX) = 0 THEN 'A'
+																END
+															)
+														),
+														(
+															CASE 
+																WHEN COUNT(PPL.BUY_IDX) BETWEEN 0 AND 9999 THEN LPAD( COUNT(PPL.BUY_IDX)+1 , 4 , 0)
+																WHEN COUNT(PPL.BUY_IDX) > 9999 THEN LPAD( COUNT(PPL.BUY_IDX)+1 - 9999 , 4 , 0)
+																WHEN COUNT(PPL.BUY_IDX) = 0 THEN '0001'
+															END
+														)
+													) AS S
+											FROM
+												PPM_USER_BUY PPL
+											WHERE
+												BUY_CD LIKE '%${buyCd}%'
+					) AS A ),
+					
+					BUY_HALBU = #{buyHalbu},
+					BUY_CARD_NO = #{buyCardNo},
+		]]>
+		<if test="buyStat not in {'', null}">
+		<![CDATA[
+					BUY_STAT = #{buyStat},
+		]]>
+		</if>
+		<if test="cashReceNo not in {'', null}">
+		<![CDATA[
+					CASH_RECE_NO = #{cashReceNo},
+		]]>
+		</if>
+		<![CDATA[
+		
+					CASH_RECEIPT = #{cashReceipt},
+					BUY_COMP_YN = #{buyCompYn},
+					BUY_COMP_DTM = DATE_FORMAT(NOW(), '%Y-%m-%d %H:%i:%S'),
+					SYS_MOD_IDX = '${frontLoginIdx}', 
+					SYS_MOD_DTM = DATE_FORMAT(NOW(), '%Y-%m-%d %H:%i:%S')
+					
+					WHERE 
+						BUY_ORDER_NUMBER = 	#{buyOrderNumber}
+						AND BUY_PRDT_CD = #{prdtCd}
+						AND BUY_NO IS NULL
+						AND SYS_REG_IDX = '${frontLoginIdx}'
+						AND BUY_STAT = '입금대기'
+		]]>
+	
+	</update>
+	
+	<update id="updateFrontUserSvcTknData" parameterType="hashmap">
+		<![CDATA[
+			UPDATE PPM_USER
+				SET
+		]]>
+		<if test="ksnetSvcTkn not in {'', null}">
+		<![CDATA[
+					KSNET_SVC_TKN = #{ksnetSvcTkn},
+		]]>
+		</if>
+		<![CDATA[
+					SYS_MOD_IDX = '${frontLoginIdx}', 
+					SYS_MOD_DTM = DATE_FORMAT(NOW(), '%Y%m%d%H%i%S')
+					
+					WHERE 
+						USER_IDX = '${frontLoginIdx}'
+		]]>
+		
+	</update>
+
+	<select id="selectFrontUserPaymentData" parameterType="hashmap" resultType="hashmap">
+		<![CDATA[
+			SELECT 
+				COUNT(*) CNT
+				FROM 
+			
+					PPM_USER_BUY
+					
+						WHERE 
+							
+						BUY_PRDT_CD = #{prdtCd}
+						AND BUY_ORDER_NUMBER = 	#{buyOrderNumber}
+						AND BUY_NO IS NULL
+						AND BUY_STAT = '입금대기'
+						AND BUY_TYPE = #{buyType}
+						AND BUY_PRIC = #{buyPric}
+						AND SYS_REG_IDX = '${frontLoginIdx}'
+						
+		]]>
+	
+	</select>
+
+	<update id="deleteFrontPaymentBask" parameterType="hashmap" >
+		<![CDATA[
+			UPDATE PPM_PRDT_BASK		
+				SET BASK_USE_YN = 'N',
+				SYS_MOD_IDX = #{frontLoginIdx},
+				SYS_MOD_DTM = DATE_FORMAT(NOW(), '%Y%m%d%H%i%S')
+				WHERE 
+					BASK_PRDT_CD IN ( ${payArr} )
+					AND USER_IDX = 	#{frontLoginIdx}
+					AND BASK_TYPE = 'B'
+						
+		]]>
+	
+	</update>
+	
+	<update id="deleteFrontPaymentCoup" parameterType="hashmap" >
+		<![CDATA[
+			UPDATE PPM_USER_COUP		
+				SET COUP_USE_YN = 'Y',
+				SYS_MOD_IDX = #{frontLoginIdx},
+				SYS_MOD_DTM = DATE_FORMAT(NOW(), '%Y%m%d%H%i%S')
+				WHERE 
+					COUP_IDX IN ( ${coupArr} )
+						
+		]]>
+	
+	</update>
+	
+	<select id="selectFrontPaymentBankList" parameterType="hashmap" resultType="hashmap">
+		<![CDATA[
+			SELECT
+						CODE_ID,
+						CODE_NM
+					FROM
+						PPM_CODE CODE
+					WHERE
+						CODE_ID LIKE 'BK%'
+		]]>	
+	</select>
+	
+	
+<insert id="updatePrdtQuesDataData" parameterType="hashmap">
+	<selectKey order="BEFORE" resultType="java.lang.Integer" keyProperty="BUY_IDX">	
+		<![CDATA[
+			SELECT 
+				PUB.BUY_IDX AS BUY_IDX
+				FROM 
+					PPM_SALE_CD_VIEW PSCV,
+					PPM_USER_BUY PUB 
+					WHERE 
+						PUB.BUY_PRDT_CD = PSCV.PRDT_CD
+						AND PUB.BUY_NO = #{buyNo}
+						AND PSCV.PRDT_CD = #{prdtCd}
+		]]>
+	</selectKey>
+		<![CDATA[
+				UPDATE PPM_PRDT_QUES_DATA  
+					SET BUY_IDX = #{BUY_IDX}
+							WHERE 
+								BUY_IDX IS NULL 
+								AND USER_IDX = #{frontLoginIdx}
+								AND QUES_IDX IN (${quesQuesIdxs})
+				
+		]]>
+</insert>
+	
+</mapper>

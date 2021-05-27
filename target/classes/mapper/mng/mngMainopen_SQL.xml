@@ -1,0 +1,169 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd"> 
+<mapper namespace="mngMainopen">
+
+	<!-- 로그인 체크 -->
+	<select id="selectMngMainopenList" parameterType="hashmap" resultType="hashmap">
+		<![CDATA[
+SELECT C.*, REPLACE(CONVERT(C.NUM_DESC, CHAR),'.0','') AS NUM_DESC_ORDER FROM (
+  SELECT B.*, (@rownumB:=@rownumB+1) as NUM_ASC FROM(  
+    SELECT A.*, (@rownumA:=@rownumA+1) as NUM_DESC FROM (
+			    
+    
+    			SELECT
+					P_CATE.CATE_IDX,
+					(
+						CASE
+							WHEN P_CATE.CATE_USE_YN = 'Y' AND P_CATE.CATE_READ_YN = 'Y' THEN '오픈준비완료'
+							WHEN P_CATE.CATE_USE_YN = 'Y' AND P_CATE.CATE_READ_YN = 'N' THEN '오픈준비중'
+						END
+					) AS OPEN_TYPE,
+					P_CODE.CODE_NM AS P_CODE_NM,
+					M_CODE.CODE_NM AS M_CODE_NM,
+					PU.USER_NM,
+					P_CATE.CATE_ORDR AS CATE_ORDR,
+					P_CATE.CATE_ORDR*1 AS CATE_ORDR_FOR_ORDER,
+					PMI.PRDT_CD 
+				FROM
+					PPM_MAIN_INDEX PMI
+					
+						LEFT JOIN PPM_CATE P_CATE ON PMI.CATE_IDX = P_CATE.CATE_IDX 
+						LEFT JOIN PPM_USER PU ON P_CATE.USER_IDX = PU.USER_IDX
+						LEFT JOIN PPM_CODE P_CODE ON P_CATE.CODE_ID = P_CODE.CODE_ID
+						LEFT JOIN PPM_CODE M_CODE ON M_CODE.CODE_ID = SUBSTR(P_CODE.CODE_ID, 1, 5)
+						
+						LEFT OUTER JOIN PPM_PRDT_VIEW PPV ON PPV.CATE_IDX = PMI.CATE_IDX
+				WHERE
+					PU.USER_USE_YN = 'Y'
+					AND P_CATE.CATE_USE_YN = 'Y'
+					AND PMI.PRDT_TYPE IS NOT NULL	
+					
+					GROUP BY 
+						PPV.CATE_IDX 
+				ORDER BY CATE_ORDR
+				
+				
+				
+				
+    ) A JOIN (SELECT @rownumA:=0) rownumA
+  ) B JOIN (SELECT @rownumB:=0) rownumB ORDER BY CATE_ORDR_FOR_ORDER, P_CODE_NM, M_CODE_NM
+) C WHERE NUM_ASC BETWEEN '1' AND '999999999'
+
+		]]>
+	</select>
+	<select id="selectMngMainopenList_old" parameterType="hashmap" resultType="hashmap">
+		<![CDATA[
+SELECT C.*, REPLACE(CONVERT(C.NUM_DESC, CHAR),'.0','') AS NUM_DESC_ORDER FROM (
+  SELECT B.*, (@rownumB:=@rownumB+1) as NUM_ASC FROM(  
+    SELECT A.*, (@rownumA:=@rownumA+1) as NUM_DESC FROM (
+			    SELECT
+					P_CATE.CATE_IDX,
+					(
+						CASE
+							WHEN P_CATE.CATE_USE_YN = 'Y' AND P_CATE.CATE_READ_YN = 'Y' THEN '오픈준비완료'
+							WHEN P_CATE.CATE_USE_YN = 'Y' AND P_CATE.CATE_READ_YN = 'N' THEN '오픈준비중'
+						END
+					) AS OPEN_TYPE,
+					P_CODE.CODE_NM AS P_CODE_NM,
+					M_CODE.CODE_NM AS M_CODE_NM,
+					PU.USER_NM,
+					P_CATE.CATE_ORDR AS CATE_ORDR,
+					P_CATE.CATE_ORDR*1 AS CATE_ORDR_FOR_ORDER
+				FROM
+					PPM_CATE P_CATE
+						LEFT JOIN PPM_USER PU ON P_CATE.USER_IDX = PU.USER_IDX
+						LEFT JOIN PPM_CODE P_CODE ON P_CATE.CODE_ID = P_CODE.CODE_ID
+						LEFT JOIN PPM_CODE M_CODE ON M_CODE.CODE_ID = SUBSTR(P_CODE.CODE_ID, 1, 5)
+				WHERE
+					PU.USER_USE_YN = 'Y'
+					AND P_CATE.CATE_USE_YN = 'Y'
+				ORDER BY CATE_ORDR
+    ) A JOIN (SELECT @rownumA:=0) rownumA
+  ) B JOIN (SELECT @rownumB:=0) rownumB ORDER BY CATE_ORDR_FOR_ORDER, P_CODE_NM, M_CODE_NM
+) C WHERE NUM_ASC BETWEEN '1' AND '999999999'
+		]]>
+	</select>
+	
+	<select id="selectMngMainopenListCnt" parameterType="hashmap" resultType="int">
+		<![CDATA[
+			    SELECT
+					999999999 AS CNT
+		]]>
+	</select>
+	
+	
+	<update id="updateMngMainopenData" parameterType="hashmap">
+		<![CDATA[
+			UPDATE
+				PPM_CATE
+			SET 
+				]]>
+			<if test="cateOrdr not in {null, ''}">
+				<![CDATA[
+					CATE_ORDR = ${cateOrdr},
+				]]>
+			</if>
+				<![CDATA[
+				
+				SYS_MOD_IDX = #{mngLoginIdx}, 
+				SYS_MOD_DTM=DATE_FORMAT(NOW(), '%Y%m%d%H%i%S')
+			WHERE 
+				CATE_IDX = #{cateIdx}
+		]]>
+	</update>
+	
+	<select id="selectFrontMainMasterTimeCnt" parameterType="hashmap" resultType="hashmap" >
+		<![CDATA[
+		SELECT
+			CATE_IDX,
+			TIME_CNT,
+			PRDT_CD
+		FROM (
+				SELECT
+					PMI.CATE_IDX,
+					CONVERT (
+						GROUP_CONCAT(
+					    	( SELECT COUNT(0) FROM PPM_PRDT_TIME
+					    		WHERE
+										(
+											CHAT_IDX = PSCV.PRDT_IDX
+											OR FACE_IDX = PSCV.PRDT_IDX
+											OR LIVE_IDX = PSCV.PRDT_IDX
+										)
+										AND DATEDIFF(TIME_DTM, NOW()) >= 0
+										AND TIME_USE_YN = 'Y'
+										AND ( DATE_FORMAT(CONCAT( TIME_DTM, ' ' ,TIME_STR ), '%Y-%m-%d %H:%i') < DATE_FORMAT(NOW(), '%Y-%m-%d %H:%i') ) = 0
+										
+									ORDER BY TIME_DTM, TIME_STR
+					    	)
+					     ORDER BY PSCV.PRDT_CD ASC SEPARATOR ',' )
+					, CHAR ) AS TIME_CNT,
+					(
+						CASE
+							WHEN PC.CATE_ORDR IS NULL THEN '9999'
+							WHEN PC.CATE_ORDR = '' THEN '9999'
+							ELSE PC.CATE_ORDR
+						END
+					) AS CATE_ORDR,
+					PMI.PRDT_CD,
+					P_CODE_NM
+					
+					FROM
+					PPM_MAIN_INDEX PMI
+					LEFT JOIN PPM_SALE_CD_VIEW PSCV  ON PSCV.CATE_IDX = PMI.CATE_IDX
+					LEFT JOIN PPM_CATE PC ON PMI.CATE_IDX = PC.CATE_IDX
+					LEFT JOIN PPM_USER PU ON PC.USER_IDX = PU.USER_IDX
+					
+					WHERE 
+						PC.CATE_USE_YN = 'Y'
+						AND PMI.PRDT_TYPE IS NOT NULL	
+					GROUP BY 
+						PSCV.CATE_IDX
+		) MAIN
+		ORDER BY 
+			CAST( CATE_ORDR AS SIGNED ), P_CODE_NM
+		]]>
+	</select>
+	
+	
+</mapper>

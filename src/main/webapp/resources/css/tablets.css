@@ -1,0 +1,16 @@
+@charset "utf-8";
+
+@media screen
+and (min-device-width : 800px)
+and (max-device-width : 1200px) {
+/* 	로딩바 수정 */
+	.tablets_now_loading{left:0px !important;}
+
+
+
+
+
+
+
+
+}

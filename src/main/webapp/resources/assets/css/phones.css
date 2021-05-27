@@ -1,0 +1,122 @@
+@charset "utf-8";
+
+@media screen
+and (min-device-width : 320px)
+and (max-device-width : 800px) {
+	/* SNS 버튼 위치 */
+	.phones_popup-alert{max-width: 255px;}
+	
+	/* 탑 바로가기 버튼 */
+/* 	.phones_top_btn{width: 60px;height: 60px;position: relative;top: -10px;right: 10px;} */
+	.phones_alert_content{    height: 45%;} 
+	
+	/* 로그인 버튼 */
+	#naverIdLogin_loginButton{left: 100px !important;top: -10px;}
+	.phones_google_btn{padding-left:10px;}
+	
+	/* 팝업 */
+	.phones_register_popup_content{    height: auto;    top: 215px;padding:10px 15px 20px;}
+	.phones_register_popup_content2{    height: auto;    top: 155px;padding-bottom:25px;}
+	.phones_rp_box_item{margin-top: 0px;display:flow-root;}
+	.phones_rp_label{margin-bottom: 0px !important;float: left; width: 60px;}
+	.phones_popup_bottom{margin-top: 10px;}
+	.phones_rp_box{    padding: 0 15px 15px !important;}
+	
+	/* FAQ 네비게이션 */
+	.phones_breadcrumb{bottom:100px;}
+	
+	/* 메인 마스터카드 이미지 */
+	.phones_mf_thumb{    height: 212px;}
+	
+	/* 검색 상품상세 가격표 */
+	.phones_pp_price{    margin: 10px;}
+	
+	/* 상품신청팝업 */
+	.phones_apply_popup_content{height:auto !important;overflow-y: auto;}
+	.phones_acb_list dt{    margin-left: 10px !important;margin-right: 10px !important;text-align: center; }
+	.phones_acb_list dd{    margin-left: 10px;margin-right: 10px;    width: 50%; }
+	.phones_asd_date_box{left: 10px;width: 100%;}
+/* 	.phones_prdt_title_area span{font-size: 90%;} */
+/* 	.phones_prdt_title_area h3{font-size: 90%;} */
+/* 	.phones_prdt_title_area p{font-size: 90%;} */
+	.phones_prdt_apply_btn{position:relative;right: 80px !important;bottom: 0px !important;}
+	.phones_applyStep2TextPop{position:relative;left: 130px !important;bottom: 0px !important;}
+	
+	/* 장바구니 목록 */
+	.phones_payment_button_area{    width: 100% !important;top: 10px !important;}
+	.phones_payment_info{    padding-top: 20px !important;    left: -30px;}
+	
+	/* 1:1문의 */
+	.phones_mltd_state{bottom: 20px !important;left: 7px !important;}
+	.phones_mltd_state_day {top: 20px;right: 6%;}
+	
+	/* 찜 목록 */
+	.phones_board_list_img{height:150px !important;}
+	.phones_like_btn{right:10px;}
+	
+	/* 	쿠폰 다운로드버튼 */
+	.phones_coup_down{bottom: 40px;}
+	
+	/* 	마스터홈/상품상세/서브메인 네비게이션 바  */
+	.phones_prdt_tab_lists.is-sticky{padding: 0 25px;}
+	.phones_container{overflow-x:hidden;}
+	
+	/* 	마스터홈 추천대상 */
+	.phones_mdc_il_box{width: 100%;padding-left: 10px;padding-top: 20px;}
+	
+	/* 	엠디픽 타임딜 카드 */
+/* 	.phones_mdpickThumb{width:255px;} 210520 수정 : 이미지가 카드 영역 크기를 벗어나서 좌우 겹쳐버림 */
+	.phones_mdpickThumb{width:100%;}
+	.phones_timeDealThumb{width:255px;}
+	.phones_mdPick{right: 15px; /* 210526 추가 */padding-right: 0;margin-right: -16px;}
+	.phones_timeDeal{right: 15px;}
+
+	/* 210526 추가 */
+	.phones_mdPick .slick-list{padding-right: 36px;}
+
+	
+/* -------------- -------------- -------------- -------------- -------------- -------------- -------------- -------------- -------------- */
+.phone_board_detail_content iframe{ width: 100%!important; height: auto; }
+.phone_review_content{ height: auto!important }
+.phone_mf_tag_box{ height: auto; }
+
+/* 전체팝업 스크롤 */
+.phone_popup_content{	overflow-y: auto; }
+
+.phone_popup_interest_free .popup_container{ /* margin-top: 5rem; */transform: translateX(0%) translateY(50%); }
+
+.phone_my_network_box { margin-bottom: 0; }
+
+.phone_review_content { height: auto; }
+
+/* 모바일서 팝업창 안뜸 내인맥 */
+.phone_my_network_circle{ z-index: inherit; }
+
+/* 내정보관리 */
+.phone_register_item { padding-right:  0!important; width: 100%!important; }
+
+.footer{ padding-top: 40px; }
+
+.totalCnt{ position: unset!important; }
+
+.list-title .select{z-index: 1;}
+
+/* 일자가 쿠폰이름과 겹침 */
+.mltd_date{ position: inherit; }
+
+/* .phones_apply_popup_content{max-height: unset; overflow: auto;} */
+.form_check input[type="checkbox"] ~ .phone_form_check_mark{ margin-top: -15.5px; }
+.phone_form_check_mark + span{
+	display:none;
+}
+
+.phone_nodataDiv{ font-size: 12px; }
+
+.phone_main_section_f{ padding-top: 70px!important; }
+
+.my_network_box{ margin-top: 0; }
+
+/* .circle_margin{ display: none;  } */
+/* .phone_circle_margin{ display: block!important;  } */
+
+}

@@ -1,0 +1,187 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd"> 
+<mapper namespace="mngMember">
+
+	<!-- 관리자 목록 조회 -->
+	<select id="selectMemberList" parameterType="hashmap" resultType="hashmap">
+		<![CDATA[
+			SELECT
+				*
+			FROM (
+				SELECT
+					CAST(@rownum:=@rownum+1 AS UNSIGNED) as NO,
+					USER_IDX,
+					USER_NAME,
+					USER_JOB,
+					USER_NICK,
+					USER_TEL,
+					USER_EMAIL,
+					CAST( SYS_REG_DTM AS CHAR ) AS SYS_REG_DTM,
+					LONG_NOT_CONT_YN,
+					USER_STAT
+				FROM
+				    NSTR_MNG_USER_LIST
+				WHERE
+					(@rownum:=0)=0
+		]]>
+		<if test="userName not in {null, ''}">
+			<![CDATA[
+				AND USER_NAME LIKE '%${userName}%'
+			]]>
+		</if>
+		<if test="userStat not in {null, ''}">
+			<![CDATA[
+				AND USER_STAT LIKE '%${userStat}%'
+			]]>
+		</if>
+		<if test="userNick not in {null, ''}">
+			<![CDATA[
+				AND USER_NICK LIKE '%${userNick}%'
+			]]>
+		</if>
+		<if test="userTel not in {null, ''}">
+			<![CDATA[
+				AND USER_TEL LIKE '%${userTel}%'
+			]]>
+		</if>
+		<if test="userJob not in {null, ''}">
+			<![CDATA[
+				AND USER_JOB LIKE '%${userJob}%'
+			]]>
+		</if>
+		
+		<![CDATA[
+		) A
+			ORDER BY A.NO DESC
+		]]>
+	</select>
+	
+	<!-- 관리자 상세 조회 -->
+	<select id="selectMemberDetail" parameterType="hashmap" resultType="hashmap">
+		<![CDATA[
+			SELECT
+				USER.USER_IDX,
+				USER.USER_NAME,
+				USER.USER_JOB,
+				USER.USER_NICK,
+				USER.USER_PW,
+				USER.USER_TEL,
+				USER.USER_EMAIL,
+				CAST( USER.USER_STR_DATE AS CHAR(10) ) AS USER_STR_DATE,
+				CAST( USER.USER_END_DATE AS CHAR(10) ) AS USER_END_DATE,
+				CAST( USER.SYS_REG_DTM AS CHAR ) AS SYS_REG_DTM,
+				USER.LONG_NOT_CONT_YN,
+				USER.USER_STAT,
+				USER.USER_STAT_DETAIL,
+				ROUND( (EVAL_ACT_SINC +EVAL_TIME_APP +EVAL_PROFESSIONAL +	EVAL_CONSIDERATION +EVAL_CREATIVITY)/5 , 0) AS EVAL_AVG,
+				EVAL.EVAL_ACT_SINC,
+				EVAL.EVAL_TIME_APP,
+				EVAL.EVAL_PROFESSIONAL,
+				EVAL.EVAL_CONSIDERATION,
+				EVAL.EVAL_CREATIVITY
+			FROM
+			    NSTR_MNG_USER_LIST AS USER,
+			    (	SELECT
+			    		USER_EMAIL,
+						(CASE WHEN CNT > 0 THEN ROUND(EVAL_ACT_SINC/CNT,0) ELSE EVAL_ACT_SINC END) AS EVAL_ACT_SINC,
+						(CASE WHEN CNT > 0 THEN ROUND(EVAL_TIME_APP/CNT,0) ELSE EVAL_TIME_APP END) AS EVAL_TIME_APP,
+						(CASE WHEN CNT > 0 THEN ROUND(EVAL_PROFESSIONAL/CNT,0) ELSE EVAL_PROFESSIONAL END) AS EVAL_PROFESSIONAL,
+						(CASE WHEN CNT > 0 THEN ROUND(EVAL_CONSIDERATION/CNT,0) ELSE EVAL_CONSIDERATION END) AS EVAL_CONSIDERATION,
+						(CASE WHEN CNT > 0 THEN ROUND(EVAL_CREATIVITY/CNT,0) ELSE EVAL_CREATIVITY END) AS EVAL_CREATIVITY
+					FROM(
+						SELECT
+							COUNT( * ) - 1 AS CNT,
+							USER_EMAIL,
+							SUM(EVAL_ACT_SINC) AS EVAL_ACT_SINC,
+							SUM(EVAL_TIME_APP) AS EVAL_TIME_APP,
+							SUM(EVAL_PROFESSIONAL) AS EVAL_PROFESSIONAL,
+							SUM(EVAL_CONSIDERATION) AS EVAL_CONSIDERATION,
+							SUM(EVAL_CREATIVITY) AS EVAL_CREATIVITY
+						FROM
+							NSTR_SITE_USER_EVAL
+						WHERE
+							USER_EMAIL = '${userEmail }'
+						GROUP BY USER_EMAIL
+					) A
+				) AS EVAL
+			WHERE 1=1
+				AND USER.USER_IDX = '${userIdx }'
+				AND USER.USER_EMAIL = EVAL.USER_EMAIL
+		]]>
+	</select>
+
+	<!-- 관리자 ID 중복 조회 -->
+	<select id="selectMemberCheckYn" parameterType="hashmap" resultType="hashmap">
+		<![CDATA[
+			SELECT
+			   USER_IDX
+			FROM
+			    NSTR_MNG_USER_LIST
+			WHERE
+			    USER_ID = '${USERWrtId}'
+			ORDER BY 
+				USER_IDX DESC
+			LIMIT 1
+		]]>
+	</select>
+
+	<!-- 관리자 등록 -->
+	<insert id="insertMemberData" parameterType="hashmap">
+		<selectKey keyProperty="SEQ" resultType="int" order="AFTER">
+			<![CDATA[
+			SELECT LAST_INSERT_ID() AS SEQ
+			]]>
+		</selectKey>
+		<![CDATA[
+			INSERT INTO NSTR_MNG_USER_LIST (
+				USER_ID,
+				USER_PW,
+				USER_NM,
+				USER_GRADE,
+				USER_TEL,
+				USER_USE_YN,
+				SYS_REG_ID,
+				SYS_REG_DTM,
+				SYS_MOD_ID,
+				SYS_MOD_DTM
+			) VALUES (
+				'${USERWrtId}',
+				'${USERWrtPw}',
+				'${USERWrtNm}',
+				'N',
+				'${USERWrtTel}',
+				'Y',
+				'${userId}',
+				DATE_FORMAT(NOW(), '%Y%m%d%H%i%S'),
+				'${userId}',
+				DATE_FORMAT(NOW(), '%Y%m%d%H%i%S')
+			)
+		]]>
+	</insert>
+
+	<!-- 관리자 수정 -->
+	<update id="updateMemberData" parameterType="hashmap">
+		<![CDATA[
+			UPDATE NSTR_MNG_USER_LIST SET
+			
+				USER_STAT = '${userStat}',
+				USER_STAT_DETAIL = '${userStatDetail}',
+				USER_STR_DATE = '${userStrDate}',
+				USER_END_DATE = '${userEndDate}',
+				SYS_MOD_ID = '${userId}',
+				SYS_MOD_DTM = DATE_FORMAT(NOW(), '%Y%m%d%H%i%S')
+			WHERE
+				USER_IDX = '${userIdx}'
+		]]>
+	</update>
+	
+	<!-- 관리자 삭제 -->
+	<update id="deleteMemberData" parameterType="hashmap">
+		<![CDATA[
+			DELETE FROM NSTR_MNG_USER_LIST
+			WHERE
+				USER_IDX = '${userIdx}'
+		]]>
+	</update>
+
+</mapper>

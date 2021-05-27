@@ -1,0 +1,211 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd"> 
+<mapper namespace="mngAdmin">
+
+	<!-- 로그인 체크 -->
+	<select id="selectMngAdminList" parameterType="hashmap" resultType="hashmap">
+		<![CDATA[
+				]]>
+			<if test="status not in {'LIST'}">
+				<![CDATA[
+SELECT C.*, REPLACE(CONVERT(C.NUM_DESC, CHAR),'.0','') AS NUM_DESC_ORDER FROM (
+  SELECT B.*, (@rownumB:=@rownumB+1) as NUM_ASC FROM(  
+    SELECT A.*, (@rownumA:=@rownumA+1) as NUM_DESC FROM (
+				]]>
+			</if>
+		<![CDATA[
+			
+			    SELECT
+					MNG_IDX,
+					MNG_ID,
+				  	MNG_NM,
+				  	IFNULL( (SELECT PREV_NM FROM PPM_PREV PP WHERE PP.PREV_IDX =  PM.PREV_IDX AND PREV_USE_YN = 'Y'), '없음' ) PREV_NM,
+				  	MNG_USE_YN,
+				  	SYS_REG_IDX,
+				  	SYS_REG_DTM,
+				  	SYS_MOD_IDX,
+				  	SYS_MOD_DTM
+				FROM
+				    PPM_MNG PM
+				]]>
+				<where>
+								<![CDATA[
+				]]>
+							<if test="mngUseYn not in {null, ''}">
+								<![CDATA[
+									 MNG_USE_YN = '${mngUseYn}'
+									
+								]]>
+							</if>
+							<if test="prevIdx not in {null, ''}">
+								<![CDATA[
+									AND PREV_IDX = #{prevIdx}
+								]]>
+							</if>
+							<if test="mngNm not in {null, ''}">
+								<![CDATA[
+									AND (
+										MNG_NM LIKE '%${mngNm}%'
+										OR
+										MNG_ID LIKE '%${mngNm}%'
+									)
+								]]>
+							</if>
+				</where>
+						<![CDATA[
+				
+				
+				
+				
+				]]>
+			<if test="status not in {'LIST'}">
+				<![CDATA[
+						) A JOIN (SELECT @rownumA:=0) rownumA
+  ) B JOIN (SELECT @rownumB:=0) rownumB ORDER BY MNG_IDX DESC
+) C WHERE NUM_ASC BETWEEN '${startRow }' AND '${endRow }'
+				]]>
+			</if>
+		<![CDATA[
+		]]>
+	</select>
+	
+	<!-- 로그인 체크 -->
+	<select id="selectMngAdminListCnt" parameterType="hashmap" resultType="java.lang.Integer">
+		<![CDATA[
+			    SELECT
+					COUNT(*) CNT
+				FROM
+				    PPM_MNG
+				]]>
+				<where>
+								<![CDATA[
+				]]>
+							<if test="mngUseYn not in {null, ''}">
+								<![CDATA[
+									MNG_USE_YN = #{mngUseYn}
+								]]>
+							</if>
+							<if test="prevIdx not in {null, ''}">
+								<![CDATA[
+									AND PREV_IDX = #{prevIdx}
+								]]>
+							</if>
+							<if test="mngNm not in {null, ''}">
+								<![CDATA[
+									AND (
+										MNG_NM LIKE '%${mngNm}%'
+										OR
+										MNG_ID LIKE '%${mngNm}%'
+									)
+								]]>
+							</if>
+				</where>
+						<![CDATA[
+				    
+		]]>
+	</select>
+	
+	<select id="selectMngAdminDetail" parameterType="hashmap" resultType="hashmap">
+		<![CDATA[
+			    
+		    SELECT
+				MNG_IDX,
+				PREV_IDX MNG_PREV,
+				MNG_ID,
+			  	MNG_NM,
+			  	MNG_USE_YN,
+			  	SYS_REG_IDX,
+				SYS_REG_DTM,
+				SYS_MOD_IDX,
+				SYS_MOD_DTM
+			FROM
+			    PPM_MNG
+			WHERE
+			   MNG_IDX = #{mngIdx}
+		]]>
+	</select>
+
+	<select id="selectMngAdminIdDuple" parameterType="hashmap" resultType="hashmap">
+		<![CDATA[
+		    SELECT
+				COUNT(*) CNT
+			FROM
+			    PPM_MNG
+			WHERE
+			    MNG_USE_YN = 'Y'
+			    AND MNG_ID = #{dupleId}
+		]]>
+	</select>
+
+	<update id="deleteMngAdminData" parameterType="hashmap" >
+		<![CDATA[
+			    
+		    UPDATE
+		    	PPM_MNG 
+		    		SET MNG_USE_YN = 'N'
+		    	
+		    	WHERE 
+		    		MNG_USE_YN = 'Y'
+		    		AND
+		    		MNG_IDX = #{mngIdx}
+		]]>
+	</update>
+	
+	<insert id="insertMngAdminData" parameterType="hashmap">
+		<![CDATA[
+			INSERT 
+				INTO PPM_MNG
+						(
+						PREV_IDX, 
+						MNG_ID, 
+						MNG_PW, 
+						MNG_NM, 
+						MNG_USE_YN, 
+						
+						SYS_REG_IDX, 
+						SYS_REG_DTM, 
+						SYS_MOD_IDX, 
+						SYS_MOD_DTM
+						)
+				VALUES(
+						#{prevIdx}, 
+						#{mngId},
+						#{mngPw}, 
+						#{mngNm}, 
+						'Y', 
+						
+						#{mngLoginIdx}, 
+						DATE_FORMAT(NOW(), '%Y%m%d%H%i%S'), 
+						#{mngLoginIdx}, 
+						DATE_FORMAT(NOW(), '%Y%m%d%H%i%S')
+						);
+		]]>
+	</insert>
+	
+	<update id="updateMngAdminData" parameterType="hashmap">
+		<![CDATA[
+			UPDATE PPM_MNG
+				SET 
+		]]>
+		<if test="mngPw not in {null , ''}">
+			<![CDATA[
+						  MNG_PW=#{mngPw}, 
+			]]>
+		</if>			
+			
+		<![CDATA[
+					  PREV_IDX =#{prevIdx}, 
+					  MNG_NM=#{mngNm},
+					  MNG_USE_YN=#{mngUseYn}, 
+					  SYS_MOD_IDX=#{mngLoginIdx}, 
+					  SYS_MOD_DTM=DATE_FORMAT(NOW(), '%Y%m%d%H%i%S')
+					  
+					WHERE 
+						MNG_IDX=#{mngIdx}
+
+		]]>
+	</update>
+	
+	
+	
+</mapper>

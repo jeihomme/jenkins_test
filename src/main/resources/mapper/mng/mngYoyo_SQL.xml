@@ -1,0 +1,123 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd"> 
+<mapper namespace="mngYoyo">
+
+	<!-- 로그인 체크 -->
+	<select id="selectMngYoyoList" parameterType="hashmap" resultType="hashmap">
+		<![CDATA[
+				]]>
+			<if test="status not in {'LIST'}">
+				<![CDATA[
+SELECT C.*, REPLACE(CONVERT(C.NUM_DESC, CHAR),'.0','') AS NUM_DESC_ORDER FROM (
+	SELECT B.*, (@rownumB:=@rownumB+1) as NUM_ASC FROM(  
+		SELECT A.*, (@rownumA:=@rownumA+1) as NUM_DESC FROM (
+				]]>
+			</if>
+		<![CDATA[
+			
+			SELECT 
+				PPL.LECT_IDX,
+				PPL.LECT_NM ,
+				(SELECT PC.CODE_NM FROM PPM_CODE PC WHERE  PC.CODE_ID = PPL.LECT_PLAY ) LECT_PLAY ,
+				PPL.LECT_DTM ,
+				PPL.LECT_PLAY_LINK ,
+			
+				PSL.SALE_IDX 
+				
+				FROM 
+					PPM_PRDT_LECT PPL,
+					PPM_SALE_LECT PSL ,
+					PPM_PRDT_LECT_DATA PPLD ,
+					PPM_PRDT_VOD PPV ,
+					PPM_PRDT_VOD_DATA PPVD
+					
+					WHERE 
+						PPL.LECT_IDX = PSL.LECT_IDX
+						AND PPL.LECT_IDX = PPLD.LECT_IDX
+						AND PPV.VOD_IDX = PPLD.VOD_IDX
+						AND PPVD.VOD_IDX = PPV.VOD_IDX
+						AND PSL.SALE_USE_YN = 'Y'
+						
+		]]>
+		<![CDATA[ 
+
+				
+				]]>
+			<if test="status not in {'LIST'}">
+				<![CDATA[
+		) A JOIN (SELECT @rownumA:=0) rownumA 
+	) B JOIN (SELECT @rownumB:=0) rownumB ORDER BY NUM_DESC DESC
+) C WHERE NUM_ASC BETWEEN #{startRow } AND #{endRow }
+				]]>
+			</if>
+		<![CDATA[
+		]]>
+	</select>
+	
+	<!-- 로그인 체크 -->
+	<select id="selectMngYoyoListCnt" parameterType="hashmap" resultType="java.lang.Integer">
+		<![CDATA[
+				SELECT 
+				COUNT(0)
+				
+				FROM 
+					PPM_PRDT_LECT PPL,
+					PPM_SALE_LECT PSL ,
+					PPM_PRDT_LECT_DATA PPLD ,
+					PPM_PRDT_VOD PPV ,
+					PPM_PRDT_VOD_DATA PPVD
+					
+					WHERE 
+						PPL.LECT_IDX = PSL.LECT_IDX
+						AND PPL.LECT_IDX = PPLD.LECT_IDX
+						AND PPV.VOD_IDX = PPLD.VOD_IDX
+						AND PPVD.VOD_IDX = PPV.VOD_IDX
+						AND PSL.SALE_USE_YN = 'Y'
+		]]>
+		<![CDATA[ 
+				    
+		]]>
+	</select>
+
+	<select id="selectMngYoyoDetailList" parameterType="hashmap" resultType="hashmap">
+		<![CDATA[
+				SELECT 
+					PPL.LECT_IDX,
+					PPLD.DATA_IDX ,
+					PPV.VOD_NM,
+					PPVD.DATA_TITL,
+					(SELECT PC.CODE_NM FROM PPM_CODE PC WHERE  PC.CODE_ID = PPL.LECT_PLAY ) LECT_PLAY,
+					PPL.LECT_DTM ,
+					PPL.LECT_PLAY_LINK ,
+					PPVD.DATA_ORDE,
+					PSL.SALE_IDX, 
+					PPVD.DATA_PC_URL ,
+					PPLD.DATA_ORDE
+					FROM 
+						PPM_PRDT_LECT PPL,
+						PPM_SALE_LECT PSL ,
+						PPM_PRDT_LECT_DATA PPLD ,
+						PPM_PRDT_VOD PPV ,
+						PPM_PRDT_VOD_DATA PPVD
+						
+						WHERE 
+							PPL.LECT_IDX = PSL.LECT_IDX
+							AND PPL.LECT_IDX = PPLD.LECT_IDX
+							AND PPV.VOD_IDX = PPLD.VOD_IDX
+							AND PPVD.VOD_IDX = PPV.VOD_IDX
+							AND PSL.SALE_USE_YN = 'Y'
+							AND PPLD.DATA_USE_YN = 'Y'
+							AND PPL.LECT_IDX = #{lectIdx}
+							
+							ORDER BY PPLD.DATA_ORDE, CONVERT  ( PPVD.DATA_ORDE, UNSIGNED )
+
+
+		]]>
+		<![CDATA[ 
+				    
+		]]>
+	</select>
+	
+	
+	
+</mapper>

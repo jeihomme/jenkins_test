@@ -1,0 +1,860 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd"> 
+<mapper namespace="mngLive">
+
+	<!-- 로그인 체크 -->
+	<select id="selectMngLiveList" parameterType="hashmap" resultType="hashmap">
+		<![CDATA[
+				]]>
+			<if test="status not in {'LIST'}">
+				<![CDATA[
+SELECT C.*, REPLACE(CONVERT(C.NUM_DESC, CHAR),'.0','') AS NUM_DESC_ORDER FROM (
+  SELECT B.*, (@rownumB:=@rownumB+1) as NUM_ASC FROM(  
+    SELECT A.*, (@rownumA:=@rownumA+1) as NUM_DESC FROM (
+				]]>
+			</if>
+		<![CDATA[
+			SELECT
+				*
+			FROM (
+			    SELECT 
+			    	LIVE_IDX, 
+			    	PPL.CATE_IDX,
+			    	(SELECT PU.USER_NM FROM PPM_USER PU WHERE PU.USER_IDX IN (SELECT PC.USER_IDX FROM PPM_CATE PC WHERE PC.CATE_IDX = PPL.CATE_IDX) ) MASTER_NM,
+			    	LIVE_CD, 
+			    	LIVE_STAT_CD,
+			    	( SELECT CODE_NM FROM PPM_CODE WHERE CODE_ID = PPL.LIVE_STAT_CD ) AS LIVE_STAT_NM,
+			    	
+			    	LIVE_NM,
+			    	LIVE_IMG_UUID,
+			--    	DATE_FORMAT(LIVE_STR_DTM, '%Y-%m-%d') AS LIVE_STR_DTM,
+			--    	DATE_FORMAT(LIVE_END_DTM, '%Y-%m-%d') AS LIVE_END_DTM,
+			    	LIVE_PRIC,
+			    	
+			    	( SELECT CODE_NM FROM PPM_CODE WHERE CODE_ID = PPL.LIVE_DISC_CD ) AS LIVE_DISC_CD,
+			    	LIVE_DISC,
+			    	LIVE_PRIC_REAL,
+			    	LIVE_PLAY,
+			    	LIVE_PLAY_LINK,
+			    	
+			    	DATE_FORMAT(LIVE_MAIL_DTM, '%Y-%m-%d %H:%i:%S') AS LIVE_MAIL_DTM,
+			    	
+			--    	LIVE_RELA_PRDT1,
+			--   	LIVE_RELA_UUID,
+			    	
+			    	LIVE_USE_YN,
+			    	
+			    	PPL.SYS_REG_IDX, 
+			    	DATE_FORMAT(PPL.SYS_REG_DTM, '%Y-%m-%d') AS SYS_REG_DTM,
+			    	PPL.SYS_MOD_IDX,
+			    	DATE_FORMAT(PPL.SYS_MOD_DTM, '%Y-%m-%d') AS SYS_MOD_DTM,
+					
+			    	P_CODE.CODE_ID AS P_CODE_ID,
+			    	M_CODE.CODE_ID AS M_CODE_ID,
+			    	P_CODE.CODE_NM AS P_CODE_NM,
+			    	M_CODE.CODE_NM AS M_CODE_NM,
+			    	(
+			    		SELECT
+			    			PPT.TIME_RUN
+			    		FROM
+			    			PPM_PRDT_TIME PPT
+			    		WHERE
+			    			PPT.LIVE_IDX = PPL.LIVE_IDX
+			    			AND TIME_USE_YN = 'Y'
+			    			AND TIME_RUN != '00'
+			    		ORDER BY
+			    			 TIME_IDX DESC
+			    		LIMIT 1
+			    	) AS TIME_RUN
+			    	
+				FROM 
+					PPM_PRDT_LIVE PPL
+						LEFT JOIN PPM_CATE PC ON PPL.CATE_IDX = PC.CATE_IDX
+						LEFT JOIN PPM_CODE P_CODE ON SUBSTR(PC.CODE_ID,1,5) = P_CODE.CODE_ID
+						LEFT JOIN PPM_CODE M_CODE ON PC.CODE_ID = M_CODE.CODE_ID
+			) TEMP
+				WHERE
+					LIVE_USE_YN = 'Y'
+					-- AND CATE_IDX IN ( SELECT CATE_IDX FROM PPM_CATE WHERE CATE_USE_YN = 'Y' ) 
+				]]>
+			<if test='mngLoginType not in {"A"}'>
+				<![CDATA[
+					AND SYS_REG_IDX = #{mngLoginIdx }
+				]]>
+			</if>
+			<if test="parentCodeId not in {null, ''}">
+				<![CDATA[
+					AND P_CODE_ID = #{parentCodeId}  
+				]]>
+			</if>
+			<if test="codeId not in {null, ''}">
+				<![CDATA[
+					AND M_CODE_ID = #{codeId}  
+				]]>
+			</if>
+			<if test="searchList not in {null, ''}">
+				<![CDATA[
+				-- OR LIVE_NM LIKE '%${searchList}%' 
+					AND ( MASTER_NM LIKE '%${searchList}%' OR LIVE_CD LIKE '%${searchList}%' )
+				]]>
+			</if>
+			<if test="sysRegDtmStr not in {null, ''} and sysRegDtmEnd not in {null, ''}">
+				<![CDATA[
+					AND DATE_FORMAT( SYS_REG_DTM, '%Y-%m-%d' ) BETWEEN '${sysRegDtmStr}' AND '${sysRegDtmEnd}' 
+				]]>
+			</if>
+			<if test="liveStatCd not in {null, ''}">
+				<![CDATA[
+					AND LIVE_STAT_CD = '${liveStatCd}'
+				]]>
+			</if>
+			<if test="status not in {'LIST'}">
+				<![CDATA[
+						) A JOIN (SELECT @rownumA:=0) rownumA
+  ) B JOIN (SELECT @rownumB:=0) rownumB ORDER BY LIVE_IDX DESC
+) C WHERE NUM_ASC BETWEEN '${startRow }' AND '${endRow }'
+				]]>
+			</if>
+		<![CDATA[
+		]]>
+	</select>
+	
+	<!-- 로그인 체크 -->
+	<select id="selectMngLiveListCnt" parameterType="hashmap" resultType="java.lang.Integer">
+		<![CDATA[
+			SELECT
+				COUNT(0)
+			FROM (
+			    SELECT 
+			    	LIVE_IDX, 
+			    	PPL.CATE_IDX,
+			    	(SELECT PU.USER_NM FROM PPM_USER PU WHERE PU.USER_IDX IN (SELECT PC.USER_IDX FROM PPM_CATE PC WHERE PC.CATE_IDX = PPL.CATE_IDX) ) MASTER_NM,
+			    	LIVE_CD, 
+			    	LIVE_STAT_CD,
+			    	( SELECT CODE_NM FROM PPM_CODE WHERE CODE_ID = PPL.LIVE_STAT_CD ) AS LIVE_STAT_NM,
+			    	
+			    	LIVE_NM,
+			    	LIVE_IMG_UUID,
+			--    	DATE_FORMAT(LIVE_STR_DTM, '%Y-%m-%d') AS LIVE_STR_DTM,
+			--    	DATE_FORMAT(LIVE_END_DTM, '%Y-%m-%d') AS LIVE_END_DTM,
+			    	LIVE_PRIC,
+			    	
+			    	( SELECT CODE_NM FROM PPM_CODE WHERE CODE_ID = PPL.LIVE_DISC_CD ) AS LIVE_DISC_CD,
+			    	LIVE_DISC,
+			    	LIVE_PRIC_REAL,
+			    	LIVE_PLAY,
+			    	LIVE_PLAY_LINK,
+			    	
+			    	DATE_FORMAT(LIVE_MAIL_DTM, '%Y-%m-%d %H:%i:%S') AS LIVE_MAIL_DTM,
+			    	
+			--    	LIVE_RELA_PRDT1,
+			--   	LIVE_RELA_UUID,
+			    	
+			    	LIVE_USE_YN,
+			    	
+			    	PPL.SYS_REG_IDX, 
+			    	DATE_FORMAT(PPL.SYS_REG_DTM, '%Y-%m-%d') AS SYS_REG_DTM,
+			    	PPL.SYS_MOD_IDX,
+			    	DATE_FORMAT(PPL.SYS_MOD_DTM, '%Y-%m-%d') AS SYS_MOD_DTM,
+					
+			    	P_CODE.CODE_ID AS P_CODE_ID,
+			    	M_CODE.CODE_ID AS M_CODE_ID,
+			    	P_CODE.CODE_NM AS P_CODE_NM,
+			    	M_CODE.CODE_NM AS M_CODE_NM,
+			    	(
+			    		SELECT
+			    			PPT.TIME_RUN
+			    		FROM
+			    			PPM_PRDT_TIME PPT
+			    		WHERE
+			    			PPT.LIVE_IDX = PPL.LIVE_IDX
+			    			AND TIME_USE_YN = 'Y'
+			    			AND TIME_RUN != '00'
+			    		ORDER BY
+			    			 TIME_IDX DESC
+			    		LIMIT 1
+			    	) AS TIME_RUN
+			    	
+				FROM 
+					PPM_PRDT_LIVE PPL
+						LEFT JOIN PPM_CATE PC ON PPL.CATE_IDX = PC.CATE_IDX
+						LEFT JOIN PPM_CODE P_CODE ON SUBSTR(PC.CODE_ID,1,5) = P_CODE.CODE_ID
+						LEFT JOIN PPM_CODE M_CODE ON PC.CODE_ID = M_CODE.CODE_ID
+			) TEMP
+				WHERE
+					LIVE_USE_YN = 'Y'
+					-- AND CATE_IDX IN ( SELECT CATE_IDX FROM PPM_CATE WHERE CATE_USE_YN = 'Y' ) 
+				]]>
+			<if test='mngLoginType not in {"A"}'>
+				<![CDATA[
+					AND SYS_REG_IDX = #{mngLoginIdx }
+				]]>
+			</if>
+			<if test="parentCodeId not in {null, ''}">
+				<![CDATA[
+					AND P_CODE_ID = #{parentCodeId}  
+				]]>
+			</if>
+			<if test="codeId not in {null, ''}">
+				<![CDATA[
+					AND M_CODE_ID = #{codeId}  
+				]]>
+			</if>
+			<if test="searchList not in {null, ''}">
+				<![CDATA[
+				-- OR LIVE_NM LIKE '%${searchList}%' 
+					AND ( MASTER_NM LIKE '%${searchList}%' OR LIVE_CD LIKE '%${searchList}%' )
+				]]>
+			</if>
+			<if test="sysRegDtmStr not in {null, ''} and sysRegDtmEnd not in {null, ''}">
+				<![CDATA[
+					AND DATE_FORMAT( SYS_REG_DTM, '%Y-%m-%d' ) BETWEEN '${sysRegDtmStr}' AND '${sysRegDtmEnd}' 
+				]]>
+			</if>
+			<if test="liveStatCd not in {null, ''}">
+				<![CDATA[
+					AND LIVE_STAT_CD = '${liveStatCd}'
+				]]>
+			</if>
+	</select>
+	
+	
+	<select id="selectMngLiveDetail" parameterType="hashmap" resultType="hashmap">
+		<![CDATA[
+			    
+			    SELECT 
+			    	LIVE_IDX, 
+			    	CATE_IDX,
+			    	(SELECT CODE_ID FROM PPM_CATE PC WHERE PC.CATE_IDX = PPL.CATE_IDX) CODE_ID,
+			    	LIVE_CD, 
+			    	LIVE_STAT_CD,
+			    	
+			    	LIVE_NM,
+			    	LIVE_IMG_UUID,
+			    	LIVE_CNT,
+			    	LIVE_PRIC,
+			    	
+			    	LIVE_DISC_CD,
+			    	LIVE_DISC,
+			    	LIVE_PRIC_REAL,
+			    	LIVE_PLAY,
+			    	LIVE_PLAY_ID,
+			    	
+			    	LIVE_PLAY_KEY,
+			    	LIVE_PLAY_LINK,
+			    	DATE_FORMAT(LIVE_MAIL_DTM, '%Y-%m-%d') AS LIVE_MAIL_DTM,
+			    	DATE_FORMAT(LIVE_MAIL_DTM, '%H:%i') AS LIVE_SENDTIME,
+			    	LIVE_USE_YN,
+			    	LIVE_ACAD_YN,
+			    	
+			    	SYS_REG_IDX, 
+			    	DATE_FORMAT(SYS_REG_DTM, '%Y-%m-%d') AS SYS_REG_DTM,
+			    	SYS_MOD_IDX,
+			    	DATE_FORMAT(SYS_MOD_DTM, '%Y-%m-%d') AS SYS_MOD_DTM
+			    	
+				FROM 
+					PPM_PRDT_LIVE PPL
+				WHERE
+					LIVE_IDX = '${liveIdx}'
+		]]>
+	</select>
+	
+	<insert id="insertMngLiveData" parameterType="hashmap">
+		<![CDATA[
+			INSERT 
+				INTO PPM_PRDT_LIVE (
+			    	CATE_IDX,
+			    	LIVE_CD, 
+			    	LIVE_STAT_CD, 
+			    	
+			    	LIVE_NM,
+			    	LIVE_IMG_UUID,
+			    	LIVE_CNT,
+			    	LIVE_PRIC,
+			    	
+			    	LIVE_DISC_CD,
+			    	LIVE_DISC,
+			    	LIVE_PRIC_REAL,
+			    	LIVE_PLAY,
+			    	LIVE_PLAY_ID,
+			    	LIVE_PLAY_KEY,
+			    	LIVE_PLAY_LINK,
+			    	
+			    	LIVE_MAIL_DTM,
+			    	
+			    	LIVE_USE_YN,
+			    	LIVE_ACAD_YN,
+			    	
+			    	SYS_REG_IDX, 
+			    	SYS_REG_DTM,
+			    	SYS_MOD_IDX,
+			    	SYS_MOD_DTM
+				) VALUES (
+					'${cateIdx}', 
+					(
+						SELECT
+								CONCAT(
+									CONCAT(
+										'${liveCd}',
+										(
+											CASE
+												WHEN COUNT(PPL.LIVE_IDX) BETWEEN 0 AND 9999 THEN 'A'
+												WHEN COUNT(PPL.LIVE_IDX) > 9999 THEN CHAR(ASCII('A') + FLOOR(COUNT(PPL.LIVE_IDX)/10000))
+												WHEN COUNT(PPL.LIVE_IDX) = 0 THEN 'A'
+											END
+										)
+									),
+									(
+										CASE 
+											WHEN COUNT(PPL.LIVE_IDX) BETWEEN 0 AND 9999 THEN LPAD( COUNT(PPL.LIVE_IDX)+1 , 4 , 0)
+											WHEN COUNT(PPL.LIVE_IDX) > 9999 THEN LPAD( COUNT(PPL.LIVE_IDX)+1 - 9999 , 4 , 0)
+											WHEN COUNT(PPL.LIVE_IDX) = 0 THEN '0001'
+										END
+									)
+								)
+						FROM
+							PPM_PRDT_LIVE PPL
+						WHERE
+							LIVE_CD LIKE '%${liveCd}%'
+					),
+					'${liveStatCd}', 
+					
+					'${liveNm}', 
+					'${liveImgUuid}', 
+					'${liveCnt}', 
+					'${livePric}', 
+					
+					'${liveDiscCd}', 
+					'${liveDisc}', 
+					'${livePricReal}', 
+					'${livePlay}', 
+					'${livePlayId}', 
+					'${livePlayKey}', 
+					'${livePlayLink}', 
+					
+					'${liveMailDtm}', 
+					
+					
+					'Y', 
+					'${liveAcadYn}', 
+					
+					'${mngLoginIdx}', 
+					DATE_FORMAT(NOW(), '%Y%m%d%H%i%S'), 
+					'${mngLoginIdx}', 
+					DATE_FORMAT(NOW(), '%Y%m%d%H%i%S')
+			);
+		]]>
+	</insert>
+	
+	<update id="updateMngLiveData" parameterType="hashmap">
+		<![CDATA[
+			UPDATE
+				PPM_PRDT_LIVE
+			SET 
+		]]>
+		<if test="mngPw not in {null , ''}">
+			<![CDATA[
+						  MNG_PW='${mngPw}', 
+			]]>
+		</if>			
+			
+		<![CDATA[
+				LIVE_STAT_CD = '${liveStatCd}', 
+	
+				LIVE_NM = '${liveNm}',
+				LIVE_IMG_UUID = '${liveImgUuid}', 
+				LIVE_CNT = '${liveCnt}',
+				LIVE_PRIC = '${livePric}', 
+				
+				LIVE_DISC_CD = '${liveDiscCd}', 
+				LIVE_DISC = '${liveDisc}', 
+				LIVE_PRIC_REAL = '${livePricReal}', 
+				LIVE_PLAY = '${livePlay}', 
+		    	LIVE_PLAY_ID = '${livePlayId}', 
+		    	LIVE_PLAY_KEY = '${livePlayKey}', 
+				LIVE_PLAY_LINK = '${livePlayLink}', 
+				
+				LIVE_MAIL_DTM = '${liveMailDtm}', 
+				
+			--	LIVE_RELA_PRDT1 = '${liveRelaPrdt1}', 
+			--	LIVE_RELA_UUID = '${liveRelaUuid}', 
+				LIVE_ACAD_YN = '${liveAcadYn}', 
+				
+				SYS_MOD_IDX = '${mngLoginIdx}', 
+				SYS_MOD_DTM = DATE_FORMAT(NOW(), '%Y%m%d%H%i%S')
+					  
+			WHERE 
+				LIVE_IDX = '${liveIdx}'
+
+		]]>
+	</update>
+
+	<update id="deleteMngLiveData" parameterType="hashmap" >
+		<![CDATA[
+			    
+		    UPDATE
+		    	PPM_PRDT_LIVE 
+    		SET
+    			LIVE_USE_YN = 'N'
+	    	WHERE 
+	    		LIVE_IDX = '${liveIdx}'
+		]]>
+	</update>
+	
+<!-- 시간예약설정	 --><!-- 시간예약설정	 --><!-- 시간예약설정	 --><!-- 시간예약설정	 --><!-- 시간예약설정	 -->
+	
+	<select id="selectMngTimeList" parameterType="hashmap" resultType="hashmap">
+		<![CDATA[
+SELECT C.*, REPLACE(CONVERT(C.NUM_DESC, CHAR),'.0','') AS NUM_DESC_ORDER FROM (
+  SELECT B.*, (@rownumB:=@rownumB+1) as NUM_ASC FROM(  
+    SELECT A.*, (@rownumA:=@rownumA+1) as NUM_DESC FROM (
+			    SELECT
+			    	TIME_IDX AS TIME_IDX_CHK1, 
+			    	TIME_IDX AS TIME_IDX2, 
+			    	DATE_FORMAT( TIME_DTM ,'%Y-%m-%d' ) AS TIME_DTM3,
+			    	TIME_STR AS TIME_STR4,
+			    	TIME_RUN AS TIME_RUN5
+			    	
+			    --	'CHKBOX,TIME_IDX,TIME_DTM,TIME_STR,TIME_RUN' AS DATA_ORDER6
+			    
+				FROM 
+					PPM_PRDT_TIME
+				WHERE
+					TIME_USE_YN = 'Y'
+					AND LIVE_IDX = '${liveIdx}'
+					
+	) A JOIN (SELECT @rownumA:=0) rownumA
+  ) B JOIN (SELECT @rownumB:=0) rownumB ORDER BY TIME_IDX2 DESC
+) C WHERE NUM_ASC BETWEEN '${startRow }' AND '9999'
+		]]>
+	</select>
+	
+	<insert id="insertMngTimeData" parameterType="hashmap">
+		<![CDATA[
+			INSERT 
+				INTO PPM_PRDT_TIME (
+		]]>
+			<if test="liveIdx not in {null, ''}">
+				<![CDATA[
+					LIVE_IDX,
+				]]>
+			</if>
+		<![CDATA[
+			    	TIME_DTM,
+			    	TIME_STR, 
+			    	TIME_RUN,
+			    	
+			    	TIME_USE_YN,
+			    	
+			    	SYS_REG_IDX, 
+			    	SYS_REG_DTM,
+			    	SYS_MOD_IDX,
+			    	SYS_MOD_DTM
+				) VALUES (
+		]]>
+			<if test="liveIdx not in {null, ''}">
+				<![CDATA[
+					'${liveIdx}', 
+				]]>
+			</if>
+		<![CDATA[
+					'${timeDtm}', 
+					'${timeStr}', 
+					'${timeRun}', 
+					
+					'Y', 
+					
+					'${mngLoginIdx}', 
+					DATE_FORMAT(NOW(), '%Y%m%d%H%i%S'), 
+					'${mngLoginIdx}', 
+					DATE_FORMAT(NOW(), '%Y%m%d%H%i%S')
+			);
+		]]>
+	</insert>
+	
+	<insert id="updateMngTimeEqualData" parameterType="hashmap">
+		<selectKey resultType="string" keyProperty="timeIdxSelectKey" order="BEFORE"> 
+		<![CDATA[
+			SELECT
+				GROUP_CONCAT( TIME_IDX ) AS TIME_IDX
+			FROM
+				PPM_USER_BUY
+			WHERE
+				BUY_STAT = '결제완료'
+				AND TIME_IDX IS NOT NULL
+	]]>
+		<if test="liveIdx in {null, ''}">
+			<![CDATA[
+				AND BUY_PRDT_CD = ( SELECT LIVE_CD FROM PPM_PRDT_LIVE WHERE LIVE_IDX = '0' )
+			]]>
+		</if>
+		<if test="liveIdx not in {null, ''}">
+			<![CDATA[
+				AND BUY_PRDT_CD = ( SELECT LIVE_CD FROM PPM_PRDT_LIVE WHERE LIVE_IDX = '${liveIdx}' )
+			]]>
+		</if>
+	<![CDATA[
+	]]>
+	    </selectKey>    
+		<![CDATA[
+			UPDATE
+				PPM_PRDT_TIME
+			SET 
+				TIME_RUN = '${timeRun}', 
+				
+				SYS_MOD_IDX = '${mngLoginIdx}', 
+				SYS_MOD_DTM = DATE_FORMAT(NOW(), '%Y%m%d%H%i%S')
+			WHERE
+				SYS_REG_IDX = '${mngLoginIdx}'
+				AND TIME_USE_YN = 'Y'
+				AND TIME_IDX NOT IN ( '${timeIdxSelectKey}' )
+	]]>
+		<if test="liveIdx in {null, ''}">
+			<![CDATA[
+				AND LIVE_IDX = '0'
+			]]>
+		</if>
+		<if test="liveIdx not in {null, ''}">
+			<![CDATA[
+				AND LIVE_IDX = '${liveIdx}'
+			]]>
+		</if>
+	</insert>
+
+	<update id="deleteMngTimeData" parameterType="hashmap" >
+		<![CDATA[
+		    UPDATE
+		    	PPM_PRDT_TIME 
+    		SET
+    			TIME_USE_YN = 'N'
+	    	WHERE 
+	    		TIME_IDX = '${timeIdx}'
+	    		AND SYS_REG_IDX = '${mngLoginIdx}'
+	]]>
+		<if test="liveIdx not in {null, ''}">
+			<![CDATA[
+				AND LIVE_IDX = '${liveIdx}'
+			]]>
+		</if>
+	<![CDATA[
+		]]>
+	</update>
+	
+	<insert id="updateMngTimeData" parameterType="hashmap">
+		<selectKey resultType="string" keyProperty="liveIdxSelectKey" order="BEFORE"> 
+		<![CDATA[
+	        SELECT
+	        	MAX(LIVE_IDX) AS LIVE_IDX
+	       	FROM
+	       		PPM_PRDT_LIVE
+	       	WHERE
+	       		SYS_REG_IDX = '${mngLoginIdx}'     
+	]]>
+		<if test="liveIdx not in {null, ''}">
+			<![CDATA[
+				AND LIVE_IDX = '${liveIdx}'
+			]]>
+		</if>
+	<![CDATA[
+		]]>
+	    </selectKey>    
+		<![CDATA[
+			UPDATE
+				PPM_PRDT_TIME
+			SET 
+				LIVE_IDX = '${liveIdxSelectKey}', 
+				
+				SYS_MOD_IDX = '${mngLoginIdx}', 
+				SYS_MOD_DTM = DATE_FORMAT(NOW(), '%Y%m%d%H%i%S')
+			WHERE 
+	]]>
+		<if test="liveIdx in {null, ''}">
+			<![CDATA[
+				LIVE_IDX = 0
+			]]>
+		</if>
+		<if test="liveIdx not in {null, ''}">
+			<![CDATA[
+				LIVE_IDX = '${liveIdxSelectKey}'
+			]]>
+		</if>
+	<![CDATA[
+				AND SYS_REG_IDX = '${mngLoginIdx}'
+				AND TIME_USE_YN = 'Y'
+		]]>
+	</insert>
+	
+	<update id="updateMngTimeUseNo" parameterType="hashmap">
+		<![CDATA[
+			UPDATE
+				PPM_PRDT_TIME
+			SET 
+			  TIME_USE_YN='N', 
+			  
+			  SYS_MOD_IDX=#{mngLoginIdx}, 
+			  SYS_MOD_DTM=DATE_FORMAT(NOW(), '%Y%m%d%H%i%S')
+			  
+			WHERE 
+				LIVE_IDX = 0
+				AND SYS_REG_IDX = '${mngLoginIdx}'
+
+		]]>
+	</update>
+<!-- 사전질문 설정 --><!-- 사전질문 설정 --><!-- 사전질문 설정 --><!-- 사전질문 설정 --><!-- 사전질문 설정 --><!-- 사전질문 설정 --><!-- 사전질문 설정 --><!-- 사전질문 설정 -->
+	
+	<select id="selectMngQuesList" parameterType="hashmap" resultType="hashmap">
+		<![CDATA[
+SELECT C.*, REPLACE(CONVERT(C.NUM_DESC, CHAR),'.0','') AS NUM_DESC_ORDER FROM (
+  SELECT B.*, (@rownumB:=@rownumB+1) as NUM_ASC FROM(  
+    SELECT A.*, (@rownumA:=@rownumA+1) as NUM_DESC FROM (
+			    SELECT
+			    	QUES_IDX,
+			    	QUES_CNTN
+			    
+				FROM 
+					PPM_PRDT_QUES
+				WHERE
+					QUES_USE_YN = 'Y'
+					AND LIVE_IDX = '${liveIdx}'
+					
+					
+	) A JOIN (SELECT @rownumA:=0) rownumA
+  ) B JOIN (SELECT @rownumB:=0) rownumB ORDER BY QUES_IDX DESC
+) C WHERE NUM_ASC BETWEEN '${startRow }' AND '9999'
+		]]>
+	</select>
+	
+	<insert id="insertMngQuesData" parameterType="hashmap">
+		<![CDATA[
+			INSERT 
+				INTO PPM_PRDT_QUES (
+					LIVE_IDX,
+			    	QUES_CNTN,
+			    	
+			    	QUES_USE_YN,
+			    	
+			    	SYS_REG_IDX, 
+			    	SYS_REG_DTM,
+			    	SYS_MOD_IDX,
+			    	SYS_MOD_DTM
+				) VALUES (
+					'${liveIdx}', 
+					'${quesCntn}', 
+					
+					'Y', 
+					
+					'${mngLoginIdx}', 
+					DATE_FORMAT(NOW(), '%Y%m%d%H%i%S'), 
+					'${mngLoginIdx}', 
+					DATE_FORMAT(NOW(), '%Y%m%d%H%i%S')
+			);
+		]]>
+	</insert>
+
+	<update id="deleteMngQuesData" parameterType="hashmap" >
+		<![CDATA[
+		    UPDATE
+		    	PPM_PRDT_QUES 
+    		SET
+    			QUES_USE_YN = 'N'
+	    	WHERE 
+	    		QUES_IDX = '${quesIdx}'
+	    		AND SYS_REG_IDX = '${mngLoginIdx}'
+				AND LIVE_IDX = '${liveIdx}'
+		]]>
+	</update>
+	
+	<insert id="updateMngQuesData" parameterType="hashmap">
+		<selectKey resultType="string" keyProperty="liveIdxSelectKey" order="BEFORE"> 
+		<![CDATA[
+	        SELECT
+	        	MAX(LIVE_IDX) AS LIVE_IDX
+	       	FROM
+	       		PPM_PRDT_LIVE
+	       	WHERE
+	       		SYS_REG_IDX = '${mngLoginIdx}'     
+	]]>
+		<if test="liveIdx not in {null, ''}">
+			<![CDATA[
+				AND LIVE_IDX = '${liveIdx}'
+			]]>
+		</if>
+	<![CDATA[
+		]]>
+	    </selectKey>    
+		<![CDATA[
+			UPDATE
+				PPM_PRDT_QUES
+			SET 
+				LIVE_IDX = '${liveIdxSelectKey}', 
+				
+				SYS_MOD_IDX = '${mngLoginIdx}', 
+				SYS_MOD_DTM = DATE_FORMAT(NOW(), '%Y%m%d%H%i%S')
+			WHERE 
+	]]>
+		<if test="liveIdx in {null, ''}">
+			<![CDATA[
+				LIVE_IDX = 0
+			]]>
+		</if>
+		<if test="liveIdx not in {null, ''}">
+			<![CDATA[
+				LIVE_IDX = '${liveIdxSelectKey}'
+			]]>
+		</if>
+	<![CDATA[
+				AND SYS_REG_IDX = '${mngLoginIdx}'
+				AND QUES_USE_YN = 'Y'
+		]]>
+	</insert>
+	
+	<update id="updateMngQuesUseNo" parameterType="hashmap">
+		<![CDATA[
+			UPDATE
+				PPM_PRDT_QUES
+			SET 
+			  QUES_USE_YN='N', 
+			  
+			  SYS_MOD_IDX=#{mngLoginIdx}, 
+			  SYS_MOD_DTM=DATE_FORMAT(NOW(), '%Y%m%d%H%i%S')
+			  
+			WHERE 
+				LIVE_IDX = 0
+				AND SYS_REG_IDX = '${mngLoginIdx}'
+
+		]]>
+	</update>
+	
+	
+	<select id="selectMngLiveList_Excel" parameterType="hashmap" resultType="hashmap">
+		<![CDATA[
+				]]>
+			<if test="status not in {'LIST'}">
+				<![CDATA[
+SELECT 
+	
+	CONVERT( REPLACE(CONVERT(C.NUM_DESC, CHAR),'.0',''), UNSIGNED ) AS 'ㄱ_No',
+	MASTER_NM AS 'ㄴ_마스터명',
+	LIVE_CD AS 'ㄷ_상품코드',
+		
+	TIME_RUN AS 'ㅅ_수강진행시간(분)',
+	LIVE_PRIC AS 'ㅇ_상품가(원)',
+	LIVE_DISC_CD AS 'ㅈ_할인종류',
+	LIVE_DISC AS 'ㅊ_할인폭',
+	LIVE_PRIC_REAL AS 'ㅋ_판매가(원)',
+	SYS_REG_DTM AS 'ㅌ_등록일' ,
+	LIVE_STAT_NM AS 'ㅍ_판매상태'
+	
+	
+	FROM (
+  SELECT B.*, (@rownumB:=@rownumB+1) as NUM_ASC FROM(  
+    SELECT A.*, (@rownumA:=@rownumA+1) as NUM_DESC FROM (
+				]]>
+			</if>
+		<![CDATA[
+			SELECT
+				*
+			FROM (
+			    SELECT 
+			    	LIVE_IDX, 
+			    	PPL.CATE_IDX,
+			    	(SELECT PU.USER_NM FROM PPM_USER PU WHERE PU.USER_IDX IN (SELECT PC.USER_IDX FROM PPM_CATE PC WHERE PC.CATE_IDX = PPL.CATE_IDX) ) MASTER_NM,
+			    	LIVE_CD, 
+			    	LIVE_STAT_CD,
+			    	( SELECT CODE_NM FROM PPM_CODE WHERE CODE_ID = PPL.LIVE_STAT_CD ) AS LIVE_STAT_NM,
+			    	
+			    	LIVE_NM,
+			    	LIVE_IMG_UUID,
+			--    	DATE_FORMAT(LIVE_STR_DTM, '%Y-%m-%d') AS LIVE_STR_DTM,
+			--    	DATE_FORMAT(LIVE_END_DTM, '%Y-%m-%d') AS LIVE_END_DTM,
+			    	LIVE_PRIC,
+			    	
+			    	( SELECT CODE_NM FROM PPM_CODE WHERE CODE_ID = PPL.LIVE_DISC_CD ) AS LIVE_DISC_CD,
+			    	LIVE_DISC,
+			    	LIVE_PRIC_REAL,
+			    	LIVE_PLAY,
+			    	LIVE_PLAY_LINK,
+			    	
+			    	DATE_FORMAT(LIVE_MAIL_DTM, '%Y-%m-%d %H:%i:%S') AS LIVE_MAIL_DTM,
+			    	
+			--    	LIVE_RELA_PRDT1,
+			--   	LIVE_RELA_UUID,
+			    	
+			    	LIVE_USE_YN,
+			    	
+			    	PPL.SYS_REG_IDX, 
+			    	DATE_FORMAT(PPL.SYS_REG_DTM, '%Y-%m-%d') AS SYS_REG_DTM,
+			    	PPL.SYS_MOD_IDX,
+			    	DATE_FORMAT(PPL.SYS_MOD_DTM, '%Y-%m-%d') AS SYS_MOD_DTM,
+					
+			    	P_CODE.CODE_ID AS P_CODE_ID,
+			    	M_CODE.CODE_ID AS M_CODE_ID,
+			    	P_CODE.CODE_NM AS P_CODE_NM,
+			    	M_CODE.CODE_NM AS M_CODE_NM,
+			    	(
+			    		SELECT
+			    			PPT.TIME_RUN
+			    		FROM
+			    			PPM_PRDT_TIME PPT
+			    		WHERE
+			    			PPT.LIVE_IDX = PPL.LIVE_IDX
+			    			AND TIME_USE_YN = 'Y'
+			    			AND TIME_RUN != '00'
+			    		ORDER BY
+			    			 TIME_IDX DESC
+			    		LIMIT 1
+			    	) AS TIME_RUN
+			    	
+				FROM 
+					PPM_PRDT_LIVE PPL
+						LEFT JOIN PPM_CATE PC ON PPL.CATE_IDX = PC.CATE_IDX
+						LEFT JOIN PPM_CODE P_CODE ON SUBSTR(PC.CODE_ID,1,5) = P_CODE.CODE_ID
+						LEFT JOIN PPM_CODE M_CODE ON PC.CODE_ID = M_CODE.CODE_ID
+			) TEMP
+				WHERE
+					LIVE_USE_YN = 'Y'
+					-- AND CATE_IDX IN ( SELECT CATE_IDX FROM PPM_CATE WHERE CATE_USE_YN = 'Y' ) 
+				]]>
+			<if test='mngLoginType not in {"A"}'>
+				<![CDATA[
+					AND SYS_REG_IDX = #{mngLoginIdx }
+				]]>
+			</if>
+			<if test="parentCodeId not in {null, ''}">
+				<![CDATA[
+					AND P_CODE_ID = #{parentCodeId}  
+				]]>
+			</if>
+			<if test="codeId not in {null, ''}">
+				<![CDATA[
+					AND M_CODE_ID = #{codeId}  
+				]]>
+			</if>
+			<if test="searchList not in {null, ''}">
+				<![CDATA[
+				-- OR LIVE_NM LIKE '%${searchList}%' 
+					AND ( MASTER_NM LIKE '%${searchList}%' OR LIVE_CD LIKE '%${searchList}%' )
+				]]>
+			</if>
+			<if test="sysRegDtmStr not in {null, ''} and sysRegDtmEnd not in {null, ''}">
+				<![CDATA[
+					AND DATE_FORMAT( SYS_REG_DTM, '%Y-%m-%d' ) BETWEEN '${sysRegDtmStr}' AND '${sysRegDtmEnd}' 
+				]]>
+			</if>
+			<if test="liveStatCd not in {null, ''}">
+				<![CDATA[
+					AND LIVE_STAT_CD = '${liveStatCd}'
+				]]>
+			</if>
+			<if test="status not in {'LIST'}">
+				<![CDATA[
+						) A JOIN (SELECT @rownumA:=0) rownumA
+  ) B JOIN (SELECT @rownumB:=0) rownumB ORDER BY LIVE_IDX DESC
+) C 
+				]]>
+			</if>
+		<![CDATA[
+		]]>
+	</select>
+	
+</mapper>

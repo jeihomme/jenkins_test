@@ -1,0 +1,350 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd"> 
+<mapper namespace="mngRevi">
+
+	<!-- 로그인 체크 -->
+	<select id="selectMngReviList" parameterType="hashmap" resultType="hashmap">
+		<![CDATA[
+				]]>
+			<if test="status not in {'LIST'}">
+				<![CDATA[
+SELECT C.*, REPLACE(CONVERT(C.NUM_DESC, CHAR),'.0','') AS NUM_DESC_ORDER FROM (
+  SELECT B.*, (@rownumB:=@rownumB+1) as NUM_ASC FROM(  
+    SELECT A.*, (@rownumA:=@rownumA+1) as NUM_DESC FROM (
+				]]>
+			</if>
+		<![CDATA[
+			SELECT
+				*
+			FROM (
+			   SELECT
+					REVI_IDX,
+					PUR.BUY_IDX,
+					PUB.CATE_IDX,
+					P_CODE.CODE_ID AS P_CODE_ID,
+					M_CODE.CODE_ID AS M_CODE_ID,
+					
+					PU.USER_NM AS MASTER_NM,
+					P_CODE.CODE_NM AS P_CODE_NM,
+					M_CODE.CODE_NM AS M_CODE_NM,
+					
+					PUB.BUY_PRDT_CD,
+					(
+						CASE 
+							WHEN PUB.BUY_PRDT_CD LIKE '%FN%' THEN '화상'
+							WHEN PUB.BUY_PRDT_CD LIKE '%CN%' THEN '채팅'
+							WHEN PUB.BUY_PRDT_CD LIKE '%VL%' THEN 'VOD'
+							WHEN PUB.BUY_PRDT_CD LIKE '%EN%' THEN '이메일'
+							WHEN PUB.BUY_PRDT_CD LIKE '%LN%' THEN '라이브클래스'
+						END
+					) AS PRDT_TYPE_NM,
+					(
+						CASE 
+							WHEN PUB.BUY_PRDT_CD LIKE '%CN%' THEN 'PRD01'
+							WHEN PUB.BUY_PRDT_CD LIKE '%FN%' THEN 'PRD02'
+							WHEN PUB.BUY_PRDT_CD LIKE '%EN%' THEN 'PRD03'
+							WHEN PUB.BUY_PRDT_CD LIKE '%LN%' THEN 'PRD04'
+							WHEN PUB.BUY_PRDT_CD LIKE '%VL%' THEN 'PRD05'
+						END
+					) AS PRDT_CD,
+					(
+						CASE 
+							WHEN LENGTH(REVI_CNTN) > 15 THEN CONCAT(SUBSTR(REVI_CNTN,1,15),'...')
+							ELSE REVI_CNTN
+						END
+					) AS REVI_CNTN,
+					REVI_SCOR,
+					
+					( SELECT IFNULL(ROUND(AVG(REVI_SCOR),1),'0.0' ) FROM PPM_USER_REVI WHERE BUY_IDX=PUB.BUY_IDX AND REVI_USE_YN = 'Y') AS PRDT_SCOR_AVG,
+					( SELECT USER_NICK FROM PPM_USER WHERE USER_IDX = PUB.USER_IDX ) AS USER_NICK,
+				  	DATE_FORMAT(PUR.SYS_REG_DTM, '%Y-%m-%d') AS SYS_REG_DTM,
+				  	( SELECT COUNT(0) FROM PPM_USER_REVI_REPO WHERE REVI_IDX = PUR.REVI_IDX ) AS REPO_IDX,
+				  	REVI_USE_YN,
+				  	REVI_UUID,
+				  	PIP.INFO_PRDT_TITL1 ,
+				  	PIP.INFO_PRDT_TITL2
+				FROM
+				  	PPM_USER_REVI PUR,
+					PPM_USER_BUY PUB
+					LEFT JOIN
+					PPM_INFO_PRDT PIP 
+					ON ( PUB.BUY_PRDT_CD  = PIP.PRDT_CD OR CONCAT('COACHING' ,PUB.CATE_IDX) = PIP.PRDT_CD ) AND PIP.INFO_ORDE = 0 AND PIP.INFO_USE_YN  = 'Y',
+					PPM_CATE PC,
+					PPM_USER PU,
+					PPM_CODE P_CODE,
+					PPM_CODE M_CODE
+					
+				WHERE
+					PUB.BUY_IDX = PUR.BUY_IDX
+					AND PUB.CATE_IDX = PUR.CATE_IDX
+					AND PUB.CATE_IDX = PC.CATE_IDX
+					AND PC.USER_IDX = PU.USER_IDX
+					AND M_CODE.CODE_ID = PC.CODE_ID
+					AND P_CODE.CODE_ID = ( SELECT CODE_ID FROM PPM_CODE WHERE CODE_PARENT_IDX = 0 AND SUBSTR(PC.CODE_ID,1,5) = CODE_ID )
+			) MAIN
+			WHERE
+				REVI_IDX IS NOT NULL
+				]]>
+			<if test="masterNm not in {null, ''}">
+				<![CDATA[
+					AND 
+					(
+						MASTER_NM LIKE '%${masterNm}%' 
+						OR INFO_PRDT_TITL1 LIKE '%${masterNm}%' 
+						OR INFO_PRDT_TITL2 LIKE '%${masterNm}%' 
+						OR USER_NICK LIKE '%${masterNm}%' 
+						
+					 )
+				]]>
+			</if>
+			<if test="prdCd not in {null, ''}">
+				<![CDATA[
+					AND PRDT_CD = #{prdCd}
+				]]>
+			</if>
+			<if test="catParentCd not in {null, ''}">
+				<![CDATA[
+					AND P_CODE_ID = #{catParentCd}
+				]]>
+			</if>
+			<if test="catCd not in {null, ''}">
+				<![CDATA[
+					AND M_CODE_ID = #{catCd}
+				]]>
+			</if>
+			<if test="status not in {'LIST'}">
+				<![CDATA[
+				 
+						) A JOIN (SELECT @rownumA:=0) rownumA ORDER BY REVI_IDX
+  ) B JOIN (SELECT @rownumB:=0) rownumB ORDER BY NUM_DESC DESC
+) C WHERE NUM_ASC BETWEEN #{startRow } AND #{endRow }
+				]]>
+			</if>
+		<![CDATA[
+		]]>
+	</select>
+	
+	<!-- 로그인 체크 -->
+	<select id="selectMngReviListCnt" parameterType="hashmap" resultType="java.lang.Integer">
+		<![CDATA[
+			SELECT
+				COUNT(0)
+			FROM (
+			   SELECT
+					REVI_IDX,
+					PUR.BUY_IDX,
+					PUB.CATE_IDX,
+					P_CODE.CODE_ID AS P_CODE_ID,
+					M_CODE.CODE_ID AS M_CODE_ID,
+					
+					PU.USER_NM AS MASTER_NM,
+					P_CODE.CODE_NM AS P_CODE_NM,
+					M_CODE.CODE_NM AS M_CODE_NM,
+					
+					PUB.BUY_PRDT_CD,
+					(
+						CASE 
+							WHEN PUB.BUY_PRDT_CD LIKE '%FN%' THEN '화상'
+							WHEN PUB.BUY_PRDT_CD LIKE '%CN%' THEN '채팅'
+							WHEN PUB.BUY_PRDT_CD LIKE '%VL%' THEN 'VOD'
+							WHEN PUB.BUY_PRDT_CD LIKE '%EN%' THEN '이메일'
+							WHEN PUB.BUY_PRDT_CD LIKE '%LN%' THEN '라이브클래스'
+						END
+					) AS PRDT_TYPE_NM,
+					(
+						CASE 
+							WHEN PUB.BUY_PRDT_CD LIKE '%CN%' THEN 'PRD01'
+							WHEN PUB.BUY_PRDT_CD LIKE '%FN%' THEN 'PRD02'
+							WHEN PUB.BUY_PRDT_CD LIKE '%EN%' THEN 'PRD03'
+							WHEN PUB.BUY_PRDT_CD LIKE '%LN%' THEN 'PRD04'
+							WHEN PUB.BUY_PRDT_CD LIKE '%VL%' THEN 'PRD05'
+						END
+					) AS PRDT_CD,
+					(
+						CASE 
+							WHEN LENGTH(REVI_CNTN) > 15 THEN CONCAT(SUBSTR(REVI_CNTN,1,15),'...')
+							ELSE REVI_CNTN
+						END
+					) AS REVI_CNTN,
+					REVI_SCOR,
+					
+					( SELECT IFNULL(ROUND(AVG(REVI_SCOR),1),'0.0' ) FROM PPM_USER_REVI WHERE BUY_IDX=PUB.BUY_IDX AND REVI_USE_YN = 'Y') AS PRDT_SCOR_AVG,
+					( SELECT USER_NICK FROM PPM_USER WHERE USER_IDX = PUB.USER_IDX ) AS USER_NICK,
+				  	DATE_FORMAT(PUR.SYS_REG_DTM, '%Y-%m-%d') AS SYS_REG_DTM,
+				  	'준비중' AS REPO_IDX,
+				  	REVI_USE_YN,
+				  	REVI_UUID,
+				  	PIP.INFO_PRDT_TITL1 ,
+				  	PIP.INFO_PRDT_TITL2
+				FROM
+				  	PPM_USER_REVI PUR,
+					PPM_USER_BUY PUB
+					LEFT JOIN
+					PPM_INFO_PRDT PIP 
+					ON ( PUB.BUY_PRDT_CD  = PIP.PRDT_CD OR CONCAT('COACHING' ,PUB.CATE_IDX) = PIP.PRDT_CD ) AND PIP.INFO_ORDE = 0 AND PIP.INFO_USE_YN  = 'Y',
+					PPM_CATE PC,
+					PPM_USER PU,
+					PPM_CODE P_CODE,
+					PPM_CODE M_CODE
+					
+				WHERE
+					PUB.BUY_IDX = PUR.BUY_IDX
+					AND PUB.CATE_IDX = PUR.CATE_IDX
+					AND PUB.CATE_IDX = PC.CATE_IDX
+					AND PC.USER_IDX = PU.USER_IDX
+					AND M_CODE.CODE_ID = PC.CODE_ID
+					AND P_CODE.CODE_ID = ( SELECT CODE_ID FROM PPM_CODE WHERE CODE_PARENT_IDX = 0 AND SUBSTR(PC.CODE_ID,1,5) = CODE_ID )
+			) MAIN
+			WHERE
+				REVI_IDX IS NOT NULL
+				]]>
+			<if test="masterNm not in {null, ''}">
+				<![CDATA[
+					AND 
+					(
+						MASTER_NM LIKE '%${masterNm}%' 
+						OR INFO_PRDT_TITL1 LIKE '%${masterNm}%' 
+						OR INFO_PRDT_TITL2 LIKE '%${masterNm}%' 
+						OR USER_NICK LIKE '%${masterNm}%' 
+						
+					 )
+				]]>
+			</if>
+			<if test="prdCd not in {null, ''}">
+				<![CDATA[
+					AND PRDT_CD = #{prdCd}
+				]]>
+			</if>
+			<if test="catParentCd not in {null, ''}">
+				<![CDATA[
+					AND P_CODE_ID = #{catParentCd}
+				]]>
+			</if>
+			<if test="catCd not in {null, ''}">
+				<![CDATA[
+					AND M_CODE_ID = #{catCd}
+				]]>
+			</if>
+	</select>
+	
+	<select id="selectMngReviDetail" parameterType="hashmap" resultType="hashmap">
+		<![CDATA[
+			    
+		    SELECT
+				REVI_IDX,
+				PUR.BUY_IDX,
+				PUB.CATE_IDX,
+				P_CODE.CODE_ID AS P_CODE_ID,
+				M_CODE.CODE_ID AS M_CODE_ID,
+				
+				PU.USER_NM AS MASTER_NM,
+				PU.USER_EMAIL AS MASTER_EMAIL,
+				P_CODE.CODE_NM AS P_CODE_NM,
+				M_CODE.CODE_NM AS M_CODE_NM,
+				
+				PUB.BUY_PRDT_CD,
+				(
+					CASE 
+						WHEN PUB.BUY_PRDT_CD LIKE '%FN%' THEN '화상'
+						WHEN PUB.BUY_PRDT_CD LIKE '%CN%' THEN '채팅'
+						WHEN PUB.BUY_PRDT_CD LIKE '%VL%' THEN 'VOD'
+						WHEN PUB.BUY_PRDT_CD LIKE '%EN%' THEN '이메일'
+						WHEN PUB.BUY_PRDT_CD LIKE '%LN%' THEN '라이브클래스'
+					END
+				) AS PRDT_TYPE,
+				REVI_CNTN,
+				REVI_SCOR,
+				
+				( SELECT IFNULL(ROUND(AVG(REVI_SCOR),1),'0.0' ) FROM PPM_USER_REVI WHERE BUY_IDX=PUB.BUY_IDX AND REVI_USE_YN = 'Y') AS PRDT_SCOR_AVG,
+				( SELECT USER_NM FROM PPM_USER WHERE USER_IDX = PUB.USER_IDX ) AS USER_NM,
+				( SELECT USER_EMAIL FROM PPM_USER WHERE USER_IDX = PUB.USER_IDX ) AS USER_EMAIL,
+				PIP.INFO_PRDT_TITL1 ,
+				PIP.INFO_PRDT_TITL2 ,
+			  	DATE_FORMAT(PUR.SYS_REG_DTM, '%Y-%m-%d') AS SYS_REG_DTM,
+			  	'준비중' AS REPO_IDX,
+			  	REVI_USE_YN,
+				REVI_PUBL_YN,
+			  	REVI_REPO_CNTN,
+			  	REVI_UUID
+			FROM
+			  	PPM_USER_REVI PUR,
+				PPM_USER_BUY PUB
+				LEFT JOIN PPM_INFO_PRDT PIP 
+				ON ( PUB.BUY_PRDT_CD  = PIP.PRDT_CD OR CONCAT('COACHING' ,PUB.CATE_IDX) = PIP.PRDT_CD ) AND PIP.INFO_ORDE = 0 AND PIP.INFO_USE_YN  = 'Y',
+				PPM_CATE PC,
+				PPM_USER PU,
+				PPM_CODE P_CODE,
+				PPM_CODE M_CODE
+			WHERE
+				PUB.BUY_IDX = PUR.BUY_IDX
+				AND PUB.CATE_IDX = PUR.CATE_IDX
+				AND PUB.CATE_IDX = PC.CATE_IDX
+				AND PC.USER_IDX = PU.USER_IDX
+				AND M_CODE.CODE_ID = PC.CODE_ID
+				AND P_CODE.CODE_ID = ( SELECT CODE_ID FROM PPM_CODE WHERE CODE_PARENT_IDX = 0 AND SUBSTR(PC.CODE_ID,1,5) = CODE_ID )
+				AND REVI_IDX = #{reviIdx}
+		]]>
+	</select>
+	
+	<select id="selectMngRepoList" parameterType="hashmap" resultType="hashmap">
+		<![CDATA[
+			SELECT
+				REVI_IDX,
+				PU.USER_NM,
+				PU.USER_NICK,
+				PU.USER_EMAIL,
+				REPO_CNTN,
+				
+				DATE_FORMAT(PURP.SYS_REG_DTM, '%Y-%m-%d') AS SYS_REG_DTM
+			FROM
+				PPM_USER_REVI_REPO PURP,
+				PPM_USER PU
+			WHERE
+				PURP.USER_IDX = PU.USER_IDX
+				AND REPO_USE_YN = 'Y'
+				AND REVI_IDX = #{reviIdx}
+		]]>
+	</select>
+	
+	
+	<update id="updateMngReviData" parameterType="hashmap">
+		<![CDATA[
+			UPDATE
+				PPM_USER_REVI
+			SET 
+				REVI_REPO_CNTN = #{reviRepoCntn}, 
+				SYS_MOD_IDX=#{mngLoginIdx}, 
+				SYS_MOD_DTM=DATE_FORMAT(NOW(), '%Y%m%d%H%i%S')
+			WHERE 
+				REVI_IDX=#{reviIdx}
+		]]>
+	</update>
+	
+	
+	<update id="updateMngUseYn" parameterType="hashmap">
+		<![CDATA[
+			UPDATE
+				PPM_USER_REVI
+			SET 
+				REVI_USE_YN = #{useYn}, 
+				SYS_MOD_IDX=#{mngLoginIdx}, 
+				SYS_MOD_DTM=DATE_FORMAT(NOW(), '%Y%m%d%H%i%S')
+			WHERE 
+				REVI_IDX=#{idx}
+		]]>
+	</update>
+
+	<update id="updateMngPublickUseYn" parameterType="hashmap">
+		<![CDATA[
+			UPDATE
+				PPM_USER_REVI
+			SET 
+				REVI_PUBL_YN = #{useYn}, 
+				SYS_MOD_IDX=#{mngLoginIdx}, 
+				SYS_MOD_DTM=DATE_FORMAT(NOW(), '%Y%m%d%H%i%S')
+			WHERE 
+				REVI_IDX=#{idx}
+		]]>
+	</update>
+	
+</mapper>

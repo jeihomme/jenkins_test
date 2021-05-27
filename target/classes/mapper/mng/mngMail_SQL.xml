@@ -1,0 +1,470 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd"> 
+<mapper namespace="mngMail">
+
+	<!-- 로그인 체크 -->
+	<select id="selectMngMailList" parameterType="hashmap" resultType="hashmap">
+		<![CDATA[
+				]]>
+			<if test="status not in {'LIST'}">
+				<![CDATA[
+SELECT C.*, REPLACE(CONVERT(C.NUM_DESC, CHAR),'.0','') AS NUM_DESC_ORDER FROM (
+  SELECT B.*, (@rownumB:=@rownumB+1) as NUM_ASC FROM(  
+    SELECT A.*, (@rownumA:=@rownumA+1) as NUM_DESC FROM (
+				]]>
+			</if>
+		<![CDATA[
+			SELECT
+				*
+			FROM (
+			    SELECT 
+			    	MAIL_IDX, 
+			    	PPF.CATE_IDX,
+			    	(SELECT PU.USER_NM FROM PPM_USER PU WHERE PU.USER_IDX IN (SELECT PC.USER_IDX FROM PPM_CATE PC WHERE PC.CATE_IDX = PPF.CATE_IDX) ) MASTER_NM,
+			    	MAIL_CD, 
+			    	MAIL_STAT_CD,
+			    	( SELECT CODE_NM FROM PPM_CODE WHERE CODE_ID = PPF.MAIL_STAT_CD ) AS MAIL_STAT_NM,
+			    	
+			    	MAIL_NM,
+			    	MAIL_IMG_UUID,
+			    	DATE_FORMAT(MAIL_STR_DTM, '%Y-%m-%d') AS MAIL_STR_DTM,
+			    	DATE_FORMAT(MAIL_END_DTM, '%Y-%m-%d') AS MAIL_END_DTM,
+			    	MAIL_CNT,
+			    	
+			    	MAIL_REST,
+			    	MAIL_PRIC,
+			    	( SELECT CODE_NM FROM PPM_CODE WHERE CODE_ID = PPF.MAIL_DISC_CD ) AS MAIL_DISC_CD,
+			    	MAIL_DISC,
+			    	MAIL_PRIC_REAL,
+
+			    	MAIL_USE_YN,
+			    	
+			    	PPF.SYS_REG_IDX, 
+			    	DATE_FORMAT(PPF.SYS_REG_DTM, '%Y-%m-%d') AS SYS_REG_DTM,
+			    	PPF.SYS_MOD_IDX,
+			    	DATE_FORMAT(PPF.SYS_MOD_DTM, '%Y-%m-%d') AS SYS_MOD_DTM,
+			    	PPF.MAIL_DTM_CNT,
+					
+			    	P_CODE.CODE_ID AS P_CODE_ID,
+			    	M_CODE.CODE_ID AS M_CODE_ID,
+			    	P_CODE.CODE_NM AS P_CODE_NM,
+			    	M_CODE.CODE_NM AS M_CODE_NM
+				FROM 
+					PPM_PRDT_MAIL PPF
+						LEFT JOIN PPM_CATE PC ON PPF.CATE_IDX = PC.CATE_IDX
+						LEFT JOIN PPM_CODE P_CODE ON SUBSTR(PC.CODE_ID,1,5) = P_CODE.CODE_ID
+						LEFT JOIN PPM_CODE M_CODE ON PC.CODE_ID = M_CODE.CODE_ID
+			) TEMP
+				WHERE
+					MAIL_USE_YN = 'Y'
+					-- AND CATE_IDX IN ( SELECT CATE_IDX FROM PPM_CATE WHERE CATE_USE_YN = 'Y' ) 
+				]]>
+			<if test='mngLoginType not in {"A"}'>
+				<![CDATA[
+					AND SYS_REG_IDX = #{mngLoginIdx }
+				]]>
+			</if>
+			<if test="parentCodeId not in {null, ''}">
+				<![CDATA[
+					AND P_CODE_ID = #{parentCodeId}  
+				]]>
+			</if>
+			<if test="codeId not in {null, ''}">
+				<![CDATA[
+					AND M_CODE_ID = #{codeId}  
+				]]>
+			</if>
+			<if test="searchList not in {null, ''}">
+				<![CDATA[
+				-- OR MAIL_NM LIKE '%${searchList}%'
+					AND ( MASTER_NM LIKE '%${searchList}%' OR MAIL_CD LIKE '%${searchList}%' )
+				]]>
+			</if>
+			<if test="sysRegDtmStr not in {null, ''} and sysRegDtmEnd not in {null, ''}">
+				<![CDATA[
+					AND DATE_FORMAT( SYS_REG_DTM, '%Y-%m-%d' ) BETWEEN '${sysRegDtmStr}' AND '${sysRegDtmEnd}' 
+				]]>
+			</if>
+			<if test="mailStatCd not in {null, ''}">
+				<![CDATA[
+					AND MAIL_STAT_CD = '${mailStatCd}'
+				]]>
+			</if>
+			<if test="status not in {'LIST'}">
+				<![CDATA[
+						) A JOIN (SELECT @rownumA:=0) rownumA
+  ) B JOIN (SELECT @rownumB:=0) rownumB ORDER BY MAIL_IDX DESC
+) C WHERE NUM_ASC BETWEEN '${startRow }' AND '${endRow }'
+				]]>
+			</if>
+		<![CDATA[
+		]]>
+	</select>
+	
+	<!-- 로그인 체크 -->
+	<select id="selectMngMailListCnt" parameterType="hashmap" resultType="java.lang.Integer">
+		<![CDATA[
+			SELECT
+				COUNT(0)
+			FROM (
+			    SELECT 
+			    	MAIL_IDX, 
+			    	PPF.CATE_IDX,
+			    	(SELECT PU.USER_NM FROM PPM_USER PU WHERE PU.USER_IDX IN (SELECT PC.USER_IDX FROM PPM_CATE PC WHERE PC.CATE_IDX = PPF.CATE_IDX) ) MASTER_NM,
+			    	MAIL_CD, 
+			    	MAIL_STAT_CD,
+			    	( SELECT CODE_NM FROM PPM_CODE WHERE CODE_ID = PPF.MAIL_STAT_CD ) AS MAIL_STAT_NM,
+			    	
+			    	MAIL_NM,
+			    	MAIL_IMG_UUID,
+			    	DATE_FORMAT(MAIL_STR_DTM, '%Y-%m-%d') AS MAIL_STR_DTM,
+			    	DATE_FORMAT(MAIL_END_DTM, '%Y-%m-%d') AS MAIL_END_DTM,
+			    	MAIL_CNT,
+			    	
+			    	MAIL_REST,
+			    	MAIL_PRIC,
+			    	( SELECT CODE_NM FROM PPM_CODE WHERE CODE_ID = PPF.MAIL_DISC_CD ) AS MAIL_DISC_CD,
+			    	MAIL_DISC,
+			    	MAIL_PRIC_REAL,
+
+			    	MAIL_USE_YN,
+			    	
+			    	PPF.SYS_REG_IDX, 
+			    	DATE_FORMAT(PPF.SYS_REG_DTM, '%Y-%m-%d') AS SYS_REG_DTM,
+			    	PPF.SYS_MOD_IDX,
+			    	DATE_FORMAT(PPF.SYS_MOD_DTM, '%Y-%m-%d') AS SYS_MOD_DTM,
+			    	PPF.MAIL_DTM_CNT,
+					
+			    	P_CODE.CODE_ID AS P_CODE_ID,
+			    	M_CODE.CODE_ID AS M_CODE_ID,
+			    	P_CODE.CODE_NM AS P_CODE_NM,
+			    	M_CODE.CODE_NM AS M_CODE_NM
+				FROM 
+					PPM_PRDT_MAIL PPF
+						LEFT JOIN PPM_CATE PC ON PPF.CATE_IDX = PC.CATE_IDX
+						LEFT JOIN PPM_CODE P_CODE ON SUBSTR(PC.CODE_ID,1,5) = P_CODE.CODE_ID
+						LEFT JOIN PPM_CODE M_CODE ON PC.CODE_ID = M_CODE.CODE_ID
+			) TEMP
+				WHERE
+					MAIL_USE_YN = 'Y'
+					-- AND CATE_IDX IN ( SELECT CATE_IDX FROM PPM_CATE WHERE CATE_USE_YN = 'Y' ) 
+				]]>
+			<if test='mngLoginType not in {"A"}'>
+				<![CDATA[
+					AND SYS_REG_IDX = #{mngLoginIdx }
+				]]>
+			</if>
+			<if test="parentCodeId not in {null, ''}">
+				<![CDATA[
+					AND P_CODE_ID = #{parentCodeId}  
+				]]>
+			</if>
+			<if test="codeId not in {null, ''}">
+				<![CDATA[
+					AND M_CODE_ID = #{codeId}  
+				]]>
+			</if>
+			<if test="searchList not in {null, ''}">
+				<![CDATA[
+				-- OR MAIL_NM LIKE '%${searchList}%'
+					AND ( MASTER_NM LIKE '%${searchList}%' OR MAIL_CD LIKE '%${searchList}%' )
+				]]>
+			</if>
+			<if test="sysRegDtmStr not in {null, ''} and sysRegDtmEnd not in {null, ''}">
+				<![CDATA[
+					AND DATE_FORMAT( SYS_REG_DTM, '%Y-%m-%d' ) BETWEEN '${sysRegDtmStr}' AND '${sysRegDtmEnd}' 
+				]]>
+			</if>
+			<if test="mailStatCd not in {null, ''}">
+				<![CDATA[
+					AND MAIL_STAT_CD = '${mailStatCd}'
+				]]>
+			</if>
+	</select>
+	
+	<select id="selectMngMailDetail" parameterType="hashmap" resultType="hashmap">
+		<![CDATA[
+			    
+			    SELECT 
+			    	MAIL_IDX, 
+			    	CATE_IDX,
+			    	(SELECT CODE_ID FROM PPM_CATE PC WHERE PC.CATE_IDX = PPF.CATE_IDX) CODE_ID,
+			    	MAIL_CD, 
+			    	MAIL_STAT_CD,
+			    	
+			    	MAIL_NM,
+			    	MAIL_IMG_UUID,
+			    	DATE_FORMAT(MAIL_STR_DTM, '%Y-%m-%d') AS MAIL_STR_DTM,
+			    	DATE_FORMAT(MAIL_END_DTM, '%Y-%m-%d') AS MAIL_END_DTM,
+			    	MAIL_DTM_CNT,
+			    	MAIL_CNT,
+			    	
+			    	MAIL_REST,
+			    	MAIL_PRIC,
+			    	MAIL_DISC_CD,
+			    	MAIL_DISC,
+			    	MAIL_PRIC_REAL,
+
+			    	MAIL_USE_YN,
+			    	
+			    	SYS_REG_IDX, 
+			    	DATE_FORMAT(SYS_REG_DTM, '%Y-%m-%d') AS SYS_REG_DTM,
+			    	SYS_MOD_IDX,
+			    	DATE_FORMAT(SYS_MOD_DTM, '%Y-%m-%d') AS SYS_MOD_DTM
+				FROM 
+					PPM_PRDT_MAIL PPF
+				WHERE
+					MAIL_IDX = '${mailIdx}'
+		]]>
+	</select>
+	
+	<insert id="insertMngMailData" parameterType="hashmap">
+		<![CDATA[
+			INSERT 
+				INTO PPM_PRDT_MAIL (
+			    	CATE_IDX,
+			    	MAIL_CD, 
+			    	MAIL_STAT_CD,
+			    	
+			    	MAIL_NM,
+			    	MAIL_IMG_UUID,
+			    	MAIL_STR_DTM,
+			    	MAIL_END_DTM,
+			    	MAIL_DTM_CNT,
+			    	MAIL_CNT,
+			    	
+			    	MAIL_REST,
+			    	MAIL_PRIC,
+			    	MAIL_DISC_CD,
+			    	MAIL_DISC,
+			    	MAIL_PRIC_REAL,
+
+			    	MAIL_USE_YN,
+			    	
+			    	SYS_REG_IDX, 
+			    	SYS_REG_DTM,
+			    	SYS_MOD_IDX,
+			    	SYS_MOD_DTM
+				) VALUES (
+					'${cateIdx}', 
+					(
+						SELECT
+								CONCAT(
+									CONCAT(
+										'${mailCd}',
+										(
+											CASE
+												WHEN COUNT(PPF.MAIL_IDX) BETWEEN 0 AND 9999 THEN 'A'
+												WHEN COUNT(PPF.MAIL_IDX) > 9999 THEN CHAR(ASCII('A') + FLOOR(COUNT(PPF.MAIL_IDX)/10000))
+												WHEN COUNT(PPF.MAIL_IDX) = 0 THEN 'A'
+											END
+										)
+									),
+									(
+										CASE 
+											WHEN COUNT(PPF.MAIL_IDX) BETWEEN 0 AND 9999 THEN LPAD( COUNT(PPF.MAIL_IDX)+1 , 4 , 0)
+											WHEN COUNT(PPF.MAIL_IDX) > 9999 THEN LPAD( COUNT(PPF.MAIL_IDX)+1 - 9999 , 4 , 0)
+											WHEN COUNT(PPF.MAIL_IDX) = 0 THEN '0001'
+										END
+									)
+								)
+						FROM
+							PPM_PRDT_MAIL PPF
+						WHERE
+							MAIL_CD LIKE '%${liveCd}%'
+					),
+					'${mailStatCd}', 
+					
+					'${mailNm}', 
+					'${mailImgUuid}', 
+					'${mailStrDtm}', 
+					'${mailEndDtm}', 
+					'${mailDtmCnt}', 
+					'${mailCnt}', 
+					
+					'${mailRest}', 
+					'${mailPric}', 
+					'${mailDiscCd}', 
+					'${mailDisc}', 
+					'${mailPricReal}', 
+					
+					'Y', 
+					
+					'${mngLoginIdx}', 
+					DATE_FORMAT(NOW(), '%Y%m%d%H%i%S'), 
+					'${mngLoginIdx}', 
+					DATE_FORMAT(NOW(), '%Y%m%d%H%i%S')
+			);
+		]]>
+	</insert>
+	
+	<update id="updateMngMailData" parameterType="hashmap">
+		<![CDATA[
+			UPDATE
+				PPM_PRDT_MAIL
+			SET 
+		]]>
+		<if test="mngPw not in {null , ''}">
+			<![CDATA[
+						  MNG_PW='${mngPw}', 
+			]]>
+		</if>			
+			
+		<![CDATA[
+				MAIL_STAT_CD = '${mailStatCd}', 
+	
+				MAIL_NM = '${mailNm}',
+				MAIL_IMG_UUID = '${mailImgUuid}', 
+				MAIL_STR_DTM = '${mailStrDtm}',
+				MAIL_END_DTM = '${mailEndDtm}',
+				MAIL_DTM_CNT = '${mailDtmCnt}', 
+				MAIL_CNT = '${mailCnt}', 
+				
+				MAIL_REST = '${mailRest}',
+				MAIL_PRIC = '${mailPric}', 
+				MAIL_DISC_CD = '${mailDiscCd}', 
+				MAIL_DISC = '${mailDisc}', 
+				MAIL_PRIC_REAL = '${mailPricReal}', 
+				
+				SYS_MOD_IDX = '${mngLoginIdx}', 
+				SYS_MOD_DTM = DATE_FORMAT(NOW(), '%Y%m%d%H%i%S')
+		    	
+			WHERE 
+				MAIL_IDX = '${mailIdx}'
+
+		]]>
+	</update>
+
+	<update id="deleteMngMailData" parameterType="hashmap" >
+		<![CDATA[
+			    
+		    UPDATE
+		    	PPM_PRDT_MAIL 
+    		SET
+    			MAIL_USE_YN = 'N'
+	    	WHERE 
+	    		MAIL_IDX = '${mailIdx}'
+		]]>
+	</update>
+	
+	
+		<!-- 로그인 체크 -->
+	<select id="selectMngMailList_Excel" parameterType="hashmap" resultType="hashmap">
+		<![CDATA[
+				]]>
+			<if test="status not in {'LIST'}">
+				<![CDATA[
+SELECT 
+		CONVERT( REPLACE(CONVERT(C.NUM_DESC, CHAR),'.0',''), UNSIGNED ) AS 'ㄱ_No',
+		MASTER_NM AS 'ㄴ_마스터명',
+		MAIL_CD AS 'ㄷ_상품코드',
+		P_CODE_NM AS 'ㄹ_분야',
+		M_CODE_NM AS 'ㅁ_분야상세',
+		
+		MAIL_DTM_CNT AS 'ㅂ_사용기한(일)',
+		MAIL_CNT AS 'ㅅ_이용가능 횟수(회)',
+		MAIL_PRIC AS 'ㅇ_상품가(원)',
+		MAIL_DISC_CD AS 'ㅈ_할인종류',
+		MAIL_DISC AS 'ㅊ_할인폭',
+		MAIL_PRIC_REAL AS 'ㅋ_판매가(원)',
+		SYS_REG_DTM AS 'ㅌ_등록일' ,
+		MAIL_STAT_NM AS 'ㅍ_판매상태'
+			
+		
+		
+	FROM (
+  SELECT B.*, (@rownumB:=@rownumB+1) as NUM_ASC FROM(  
+    SELECT A.*, (@rownumA:=@rownumA+1) as NUM_DESC FROM (
+				]]>
+			</if>
+		<![CDATA[
+			SELECT
+				*
+			FROM (
+			    SELECT 
+			    	MAIL_IDX, 
+			    	PPF.CATE_IDX,
+			    	(SELECT PU.USER_NM FROM PPM_USER PU WHERE PU.USER_IDX IN (SELECT PC.USER_IDX FROM PPM_CATE PC WHERE PC.CATE_IDX = PPF.CATE_IDX) ) MASTER_NM,
+			    	MAIL_CD, 
+			    	MAIL_STAT_CD,
+			    	( SELECT CODE_NM FROM PPM_CODE WHERE CODE_ID = PPF.MAIL_STAT_CD ) AS MAIL_STAT_NM,
+			    	
+			    	MAIL_NM,
+			    	MAIL_IMG_UUID,
+			    	DATE_FORMAT(MAIL_STR_DTM, '%Y-%m-%d') AS MAIL_STR_DTM,
+			    	DATE_FORMAT(MAIL_END_DTM, '%Y-%m-%d') AS MAIL_END_DTM,
+			    	MAIL_CNT,
+			    	
+			    	MAIL_REST,
+			    	MAIL_PRIC,
+			    	( SELECT CODE_NM FROM PPM_CODE WHERE CODE_ID = PPF.MAIL_DISC_CD ) AS MAIL_DISC_CD,
+			    	MAIL_DISC,
+			    	MAIL_PRIC_REAL,
+
+			    	MAIL_USE_YN,
+			    	
+			    	PPF.SYS_REG_IDX, 
+			    	DATE_FORMAT(PPF.SYS_REG_DTM, '%Y-%m-%d') AS SYS_REG_DTM,
+			    	PPF.SYS_MOD_IDX,
+			    	DATE_FORMAT(PPF.SYS_MOD_DTM, '%Y-%m-%d') AS SYS_MOD_DTM,
+			    	PPF.MAIL_DTM_CNT,
+					
+			    	P_CODE.CODE_ID AS P_CODE_ID,
+			    	M_CODE.CODE_ID AS M_CODE_ID,
+			    	P_CODE.CODE_NM AS P_CODE_NM,
+			    	M_CODE.CODE_NM AS M_CODE_NM
+				FROM 
+					PPM_PRDT_MAIL PPF
+						LEFT JOIN PPM_CATE PC ON PPF.CATE_IDX = PC.CATE_IDX
+						LEFT JOIN PPM_CODE P_CODE ON SUBSTR(PC.CODE_ID,1,5) = P_CODE.CODE_ID
+						LEFT JOIN PPM_CODE M_CODE ON PC.CODE_ID = M_CODE.CODE_ID
+			) TEMP
+				WHERE
+					MAIL_USE_YN = 'Y'
+					-- AND CATE_IDX IN ( SELECT CATE_IDX FROM PPM_CATE WHERE CATE_USE_YN = 'Y' ) 
+				]]>
+			<if test='mngLoginType not in {"A"}'>
+				<![CDATA[
+					AND SYS_REG_IDX = #{mngLoginIdx }
+				]]>
+			</if>
+			<if test="parentCodeId not in {null, ''}">
+				<![CDATA[
+					AND P_CODE_ID = #{parentCodeId}  
+				]]>
+			</if>
+			<if test="codeId not in {null, ''}">
+				<![CDATA[
+					AND M_CODE_ID = #{codeId}  
+				]]>
+			</if>
+			<if test="searchList not in {null, ''}">
+				<![CDATA[
+				-- OR MAIL_NM LIKE '%${searchList}%'
+					AND ( MASTER_NM LIKE '%${searchList}%' OR MAIL_CD LIKE '%${searchList}%' )
+				]]>
+			</if>
+			<if test="sysRegDtmStr not in {null, ''} and sysRegDtmEnd not in {null, ''}">
+				<![CDATA[
+					AND DATE_FORMAT( SYS_REG_DTM, '%Y-%m-%d' ) BETWEEN '${sysRegDtmStr}' AND '${sysRegDtmEnd}' 
+				]]>
+			</if>
+			<if test="mailStatCd not in {null, ''}">
+				<![CDATA[
+					AND MAIL_STAT_CD = '${mailStatCd}'
+				]]>
+			</if>
+			<if test="status not in {'LIST'}">
+				<![CDATA[
+						) A JOIN (SELECT @rownumA:=0) rownumA
+  ) B JOIN (SELECT @rownumB:=0) rownumB ORDER BY MAIL_IDX DESC
+) C 
+				]]>
+			</if>
+		<![CDATA[
+		]]>
+	</select>
+	
+	
+	
+</mapper>

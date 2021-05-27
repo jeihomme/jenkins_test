@@ -1,0 +1,935 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd"> 
+<mapper namespace="mngLect">
+
+	<!-- 로그인 체크 -->
+	<select id="selectMngLectList" parameterType="hashmap" resultType="hashmap">
+		<![CDATA[
+				]]>
+			<if test="status not in {'LIST'}">
+				<![CDATA[
+SELECT C.*, REPLACE(CONVERT(C.NUM_DESC, CHAR),'.0','') AS NUM_DESC_ORDER FROM (
+  SELECT B.*, (@rownumB:=@rownumB+1) as NUM_ASC FROM(  
+    SELECT A.*, (@rownumA:=@rownumA+1) as NUM_DESC FROM (
+				]]>
+			</if>
+		<![CDATA[
+			
+			    SELECT 
+
+					LECT_IDX, 
+					PPL.CATE_IDX, 
+					(SELECT PU.USER_NM FROM PPM_USER PU WHERE PU.USER_IDX IN (SELECT PC.USER_IDX FROM PPM_CATE PC WHERE PC.CATE_IDX = PPL.CATE_IDX) ) MASTER_NM,
+					LECT_CD,
+					LECT_STAT_CD,
+					
+					(SELECT PC.CODE_NM FROM PPM_CODE PC WHERE PC.CODE_ID = LECT_STAT_CD ) LECT_STAT_CDNM,
+					LECT_NM, 
+					LECT_UUID,
+					DATE_FORMAT(LECT_STR_DTM, '%Y-%m-%d') LECT_STR_DTM,
+					DATE_FORMAT(LECT_END_DTM, '%Y-%m-%d') LECT_END_DTM,
+					LECT_DTM,
+					( SELECT COUNT(0) FROM PPM_PRDT_VOD_DATA PPVD WHERE DATA_USE_YN = 'Y' AND VOD_IDX IN (SELECT VOD_IDX FROM PPM_PRDT_LECT_DATA PPLD WHERE DATA_USE_YN = 'Y' AND LECT_IDX = PPL.LECT_IDX ) ) LECT_VOD_CNT, 
+					
+					LECT_PRIC,
+					LECT_DISC_CD,
+					(SELECT PC.CODE_NM FROM PPM_CODE PC WHERE PC.CODE_ID = LECT_DISC_CD ) LECT_DISC_CDNM,
+					LECT_DISC,
+					LECT_PRIC_REAL,
+					
+					LECT_PLAY, 
+					LECT_PLAY_LINK,
+					LECT_RELA_PRDT1,
+					LECT_RELA_PRDT2,
+					LECT_RELA_PRDT3,
+					
+					LECT_RELA_PRDT4,
+					LECT_RELA_PRDT5,
+					LECT_RELA_PRDT6,
+					
+					PPL.SYS_REG_IDX,
+					DATE_FORMAT(PPL.SYS_REG_DTM, '%Y-%m-%d') SYS_REG_DTM,
+					PPL.SYS_MOD_IDX, 
+			    	DATE_FORMAT(PPL.SYS_MOD_DTM, '%Y-%m-%d') AS SYS_MOD_DTM,
+					
+			    	P_CODE.CODE_NM AS P_CODE_NM,
+			    	M_CODE.CODE_NM AS M_CODE_NM
+					
+				FROM 
+					PPM_PRDT_LECT PPL
+						LEFT JOIN PPM_CATE PC ON PPL.CATE_IDX = PC.CATE_IDX
+						LEFT JOIN PPM_CODE P_CODE ON SUBSTR(PC.CODE_ID,1,5) = P_CODE.CODE_ID
+						LEFT JOIN PPM_CODE M_CODE ON PC.CODE_ID = M_CODE.CODE_ID
+				WHERE
+					LECT_USE_YN = 'Y'
+					AND PPL.CATE_IDX IN ( SELECT CATE_IDX FROM PPM_CATE WHERE CATE_USE_YN = 'Y' ) 
+			]]>
+			<if test='mngLoginType not in {"A"}'>
+				<![CDATA[
+					AND PPL.SYS_REG_IDX = #{mngLoginIdx }
+				]]>
+			</if>
+			<if test="lectSelectStatCd not in {null, ''}">
+				<![CDATA[
+					AND LECT_STAT_CD = #{lectSelectStatCd}
+				]]>
+			</if>
+			<if test="parentCodeId not in {null, ''}">
+				<![CDATA[
+				AND P_CODE.CODE_ID = #{parentCodeId}  
+				]]>
+			</if>
+			<if test="codeId not in {null, ''}">
+				<![CDATA[
+				AND M_CODE.CODE_ID = #{codeId}  
+				]]>
+			</if>
+			<if test="searchList not in {null, ''}">
+				<![CDATA[
+				-- LECT_NM LIKE '%${searchList}%' || 
+					AND (LECT_CD LIKE '%${searchList}%' || PPL.CATE_IDX IN (SELECT CATE_IDX
+																		FROM PPM_CATE PC 
+																			WHERE PC.USER_IDX 
+																				IN 
+																				
+																				(SELECT PU.USER_IDX 
+																					FROM PPM_USER PU 
+																						WHERE USER_NM LIKE '%${searchList}%' 
+																							AND USER_TYPE = 'M' 
+																							AND USER_USE_YN = 'Y') ) )
+				]]>
+			</if>
+			<if test="sysRegDtmStr not in {null, ''} and sysRegDtmEnd not in {null, ''}">
+				<![CDATA[
+					AND DATE_FORMAT( PPL.SYS_REG_DTM, '%Y-%m-%d' ) BETWEEN '${sysRegDtmStr}' AND '${sysRegDtmEnd}' 
+				]]>
+			</if>
+			<if test="status not in {'LIST'}">
+				<![CDATA[
+						) A JOIN (SELECT @rownumA:=0) rownumA
+  ) B JOIN (SELECT @rownumB:=0) rownumB ORDER BY LECT_IDX DESC
+) C WHERE NUM_ASC BETWEEN '${startRow }' AND '${endRow }'
+				]]>
+			</if>
+		<![CDATA[
+		]]>
+	</select>
+	
+	<!-- 로그인 체크 -->
+	<select id="selectMngLectListCnt" parameterType="hashmap" resultType="java.lang.Integer">
+		<![CDATA[
+			    SELECT
+					COUNT(*) CNT
+				FROM 
+					PPM_PRDT_LECT PPL
+						LEFT JOIN PPM_CATE PC ON PPL.CATE_IDX = PC.CATE_IDX
+						LEFT JOIN PPM_CODE P_CODE ON SUBSTR(PC.CODE_ID,1,5) = P_CODE.CODE_ID
+						LEFT JOIN PPM_CODE M_CODE ON PC.CODE_ID = M_CODE.CODE_ID
+				WHERE
+					LECT_USE_YN = 'Y'
+					AND PPL.CATE_IDX IN ( SELECT CATE_IDX FROM PPM_CATE WHERE CATE_USE_YN = 'Y' ) 
+			]]>
+			<if test='mngLoginType not in {"A"}'>
+				<![CDATA[
+					AND PPL.SYS_REG_IDX = #{mngLoginIdx }
+				]]>
+			</if>
+			<if test="lectSelectStatCd not in {null, ''}">
+				<![CDATA[
+					AND LECT_STAT_CD = #{lectSelectStatCd}
+				]]>
+			</if>
+			<if test="parentCodeId not in {null, ''}">
+				<![CDATA[
+				AND P_CODE.CODE_ID = #{parentCodeId}  
+				]]>
+			</if>
+			<if test="codeId not in {null, ''}">
+				<![CDATA[
+				AND M_CODE.CODE_ID = #{codeId}  
+				]]>
+			</if>
+			<if test="searchList not in {null, ''}">
+				<![CDATA[
+				-- LECT_NM LIKE '%${searchList}%' || 
+					AND (LECT_CD LIKE '%${searchList}%' || PPL.CATE_IDX IN (SELECT CATE_IDX
+																		FROM PPM_CATE PC 
+																			WHERE PC.USER_IDX 
+																				IN 
+																				
+																				(SELECT PU.USER_IDX 
+																					FROM PPM_USER PU 
+																						WHERE USER_NM LIKE '%${searchList}%' 
+																							AND USER_TYPE = 'M' 
+																							AND USER_USE_YN = 'Y') ) )
+				]]>
+			</if>
+			<if test="sysRegDtmStr not in {null, ''} and sysRegDtmEnd not in {null, ''}">
+				<![CDATA[
+					AND DATE_FORMAT( PPL.SYS_REG_DTM, '%Y-%m-%d' ) BETWEEN '${sysRegDtmStr}' AND '${sysRegDtmEnd}' 
+				]]>
+			</if>
+	</select>
+	
+	<select id="selectMngLectDetail" parameterType="hashmap" resultType="hashmap">
+		<![CDATA[
+			 
+			 SELECT 
+				LECT_IDX, 
+				CATE_IDX, 
+				(SELECT CODE_ID FROM PPM_CATE PC WHERE PC.CATE_IDX = PPM_PRDT_LECT.CATE_IDX) CODE_ID,
+				LECT_CD, 
+				LECT_STAT_CD,
+				
+				(SELECT PC.CODE_NM FROM PPM_CODE PC WHERE PC.CODE_ID = LECT_STAT_CD ) LECT_STAT_CDNM,
+				LECT_STAT_CD LECT_STAT_CD_YN,
+				LECT_NM, 
+				LECT_UUID,
+				DATE_FORMAT(LECT_STR_DTM, '%Y-%m-%d') LECT_STR_DTM,
+				
+				DATE_FORMAT(LECT_END_DTM, '%Y-%m-%d') LECT_END_DTM,
+				LECT_DTM,
+				LECT_PRIC, 
+				LECT_DISC_CD,
+				LECT_DISC,
+				LECT_PRIC_REAL, 
+				
+				LECT_PLAY,
+				LECT_PLAY_LINK,
+				LECT_RELA_PRDT1,
+				LECT_RELA_PRDT2, 
+				LECT_RELA_PRDT3, 
+				
+				LECT_RELA_PRDT4,
+				LECT_RELA_PRDT5, 
+				LECT_RELA_PRDT6, 
+				
+				LECT_USE_YN, 
+				SYS_REG_IDX,
+				DATE_FORMAT(SYS_REG_DTM, '%Y-%m-%d') SYS_REG_DTM,
+				SYS_MOD_IDX,
+				SYS_MOD_DTM
+				
+				FROM 
+					PPM_PRDT_LECT
+						WHERE 
+							LECT_IDX = #{lectIdx}
+				   
+		     
+		]]>
+	</select>
+	
+	<select id="selectMngLectDetailList" parameterType="hashmap" resultType="hashmap">
+		<![CDATA[
+			 
+			 SELECT 
+				DATA_IDX,
+				LECT_IDX, 
+				VOD_NM,
+				VOD_CD,
+				(SELECT PU.USER_NM FROM PPM_USER PU WHERE PU.USER_IDX IN (SELECT PC.USER_IDX FROM PPM_CATE PC WHERE PC.CATE_IDX = PPV.CATE_IDX) ) MASTER_NM,
+				PPLD.VOD_IDX,
+				VOD_PROG_CD,
+								CASE VOD_PROG_CD 
+									WHEN 'P' THEN '진행중'
+									WHEN 'M' THEN '완강'
+									ELSE '확인중'
+								END VOD_PROG,
+								
+								VOD_STAT_CD,
+								CASE VOD_STAT_CD 
+									WHEN 'Y' THEN '가능' 
+									WHEN 'W' THEN '대기' 
+									WHEN 'N' THEN '불가' 
+									ELSE '확인중'
+								end VOD_STAT,
+				
+				DATA_ORDE,
+				DATA_USE_YN,
+				PPV.SYS_REG_IDX, 
+				DATE_FORMAT(PPV.SYS_REG_DTM, '%Y-%m-%d') SYS_REG_DTM
+				
+				FROM 
+					PPM_PRDT_LECT_DATA PPLD, PPM_PRDT_VOD  PPV
+						WHERE LECT_IDX = #{lectIdx}
+						and PPV.VOD_IDX  = PPLD.VOD_IDX 
+						and PPLD.DATA_USE_YN = 'Y'
+						and PPV.VOD_USE_YN = 'Y'
+						ORDER BY DATA_ORDE
+			
+			
+		
+
+					
+		]]>
+	</select>
+
+	<select id="selectMngLectMatelList" parameterType="hashmap" resultType="hashmap">
+		<![CDATA[
+			 
+			 SELECT 
+				MATE_IDX,
+				CATE_IDX, 
+				LECT_IDX, 
+				MATE_CD, 
+				MATE_NM,
+				MATE_CTNT, 
+				MATE_UUID, 
+				MATE_PRIC,
+				MATE_DISC_CD, 
+				MATE_DISC,
+				MATE_PRIC_REAL,
+				MATE_USE_YN,
+				SYS_REG_IDX, 
+				SYS_REG_DTM, 
+				SYS_MOD_IDX,
+				SYS_MOD_DTM
+				
+				FROM 
+					PPM_PRDT_LECT_MATE
+					
+					WHERE 
+						LECT_IDX = #{lectIdx}
+						AND MATE_USE_YN = 'Y'
+			
+			
+		
+
+					
+		]]>
+	</select>
+
+	<update id="deleteMngLectData" parameterType="hashmap" >
+		<![CDATA[
+			    
+		    UPDATE 
+		    	PPM_PRDT_LECT 
+		    	
+		    		SET 
+		    			LECT_USE_YN  = 'N' ,
+		    			SYS_MOD_IDX = #{mngLoginIdx}, 
+						SYS_MOD_DTM = DATE_FORMAT(NOW(), '%Y%m%d%H%i%S')
+		    		
+		    			WHERE 
+		    				LECT_IDX = #{lectIdx}
+		]]>
+	</update>
+	
+	<insert id="insertMngLectData" parameterType="hashmap">
+		<![CDATA[
+			INSERT INTO 
+			
+					PPM_PRDT_LECT
+					(
+						CATE_IDX,
+						LECT_CD,
+						LECT_STAT_CD,
+						LECT_UUID,
+						LECT_DTM,
+						LECT_PRIC,
+						LECT_DISC_CD,
+						LECT_DISC,
+						LECT_PRIC_REAL,
+						LECT_PLAY,
+						LECT_PLAY_LINK,
+						LECT_RELA_PRDT1,
+						LECT_RELA_PRDT2,
+						LECT_RELA_PRDT3,
+						LECT_RELA_PRDT4,
+						LECT_RELA_PRDT5,
+						LECT_RELA_PRDT6, 
+						LECT_USE_YN, 
+						SYS_REG_IDX,
+						SYS_REG_DTM, 
+						SYS_MOD_IDX,
+						SYS_MOD_DTM
+					)
+					
+				VALUES(
+						#{cateIdx}, 
+						(
+							SELECT
+									CONCAT(
+										CONCAT(
+											'${lectCd}',
+											(
+												CASE
+													WHEN COUNT(PPF.LECT_IDX) BETWEEN 0 AND 9999 THEN 'A'
+													WHEN COUNT(PPF.LECT_IDX) > 9999 THEN CHAR(ASCII('A') + FLOOR(COUNT(PPF.LECT_IDX)/10000))
+													WHEN COUNT(PPF.LECT_IDX) = 0 THEN 'A'
+												END
+											)
+										),
+										(
+											CASE 
+												WHEN COUNT(PPF.LECT_IDX) BETWEEN 0 AND 9999 THEN LPAD( COUNT(PPF.LECT_IDX)+1 , 4 , 0)
+												WHEN COUNT(PPF.LECT_IDX) > 9999 THEN LPAD( COUNT(PPF.LECT_IDX)+1 - 9999 , 4 , 0)
+												WHEN COUNT(PPF.LECT_IDX) = 0 THEN '0001'
+											END
+										)
+									)
+							FROM
+								PPM_PRDT_LECT PPF
+							WHERE
+								LECT_CD LIKE '%${lectCd}%'
+						),
+						#{lectStatCd},          
+						#{lectUuid},         
+						#{lectDtm},
+						#{lectPric},          
+						#{lectDiscCd},       
+						#{lectDisc},          
+						#{lectPricReal},     
+						#{lectPlay},          
+						#{lectPlayLink},     
+						#{lectRelaPrdt1},    
+						#{lectRelaPrdt2},    
+						#{lectRelaPrdt3},    
+						#{lectRelaPrdt4},    
+						#{lectRelaPrdt5},    
+						#{lectRelaPrdt6},    
+						'Y',        
+						#{mngLoginIdx}, 
+						DATE_FORMAT(NOW(), '%Y%m%d%H%i%S'), 
+						#{mngLoginIdx}, 
+						DATE_FORMAT(NOW(), '%Y%m%d%H%i%S')
+					)
+		]]>
+				<selectKey resultType="int" keyProperty="LECT_IDX" order="AFTER">
+					<![CDATA[
+			        SELECT LAST_INSERT_ID()
+					]]>
+			    </selectKey>
+	</insert>
+
+
+	<insert id="updateMngLectMate" parameterType="hashmap">
+		<![CDATA[
+			INSERT 
+					INTO PPM_PRDT_LECT_MATE
+					(
+					MATE_IDX, 
+					CATE_IDX, 
+					LECT_IDX,
+					MATE_CD, 
+					MATE_NM, 
+					MATE_CTNT, 
+					MATE_UUID, 
+					MATE_PRIC, 
+					MATE_DISC_CD,
+					MATE_DISC,
+					MATE_PRIC_REAL,
+					MATE_USE_YN, 
+					
+					SYS_REG_IDX,
+					SYS_REG_DTM, 
+					SYS_MOD_IDX,
+					SYS_MOD_DTM
+					)
+					VALUES
+						(
+						#{mateIdx},
+						#{cateIdx},
+						#{lectIdx},
+						(
+							SELECT
+									CONCAT(
+										CONCAT(
+											'${mateCd}',
+											(
+												CASE
+													WHEN COUNT(PPF.MATE_IDX) BETWEEN 0 AND 9999 THEN 'A'
+													WHEN COUNT(PPF.MATE_IDX) > 9999 THEN CHAR(ASCII('A') + FLOOR(COUNT(PPF.MATE_IDX)/10000))
+													WHEN COUNT(PPF.MATE_IDX) = 0 THEN 'A'
+												END
+											)
+										),
+										(
+											CASE 
+												WHEN COUNT(PPF.MATE_IDX) BETWEEN 0 AND 9999 THEN LPAD( COUNT(PPF.MATE_IDX)+1 , 4 , 0)
+												WHEN COUNT(PPF.MATE_IDX) > 9999 THEN LPAD( COUNT(PPF.MATE_IDX)+1 - 9999 , 4 , 0)
+												WHEN COUNT(PPF.MATE_IDX) = 0 THEN '0001'
+											END
+										)
+									)
+							FROM
+								PPM_PRDT_LECT_MATE PPF
+							WHERE
+								MATE_CD LIKE '%${mateCd}%'
+						),
+						#{mateNm}, 
+						#{mateCtnt}, 
+						#{mateUuid}, 
+						#{matePric},
+						#{mateDiscCd},
+						#{mateDisc}, 
+						#{matePricReal}, 
+						'Y',
+						
+						#{mngLoginIdx}, 
+						DATE_FORMAT(NOW(), '%Y%m%d%H%i%S'), 
+						#{mngLoginIdx}, 
+						DATE_FORMAT(NOW(), '%Y%m%d%H%i%S')
+						)
+					ON DUPLICATE KEY UPDATE 
+						MATE_NM = #{mateNm}, 
+						MATE_CTNT = #{mateCtnt}, 
+						MATE_UUID = #{mateUuid}, 
+						MATE_PRIC = #{matePric}, 
+						MATE_DISC_CD = #{mateDiscCd},
+						MATE_DISC = #{mateDisc},
+						MATE_PRIC_REAL = #{matePricReal},
+						
+						SYS_MOD_IDX = #{mngLoginIdx}, 
+						SYS_MOD_DTM = DATE_FORMAT(NOW(), '%Y%m%d%H%i%S')
+
+		]]>
+	</insert>
+	
+	<update id="updateMngLectMateOnlyUpdate" parameterType="hashmap">
+		<![CDATA[
+			UPDATE  PPM_PRDT_LECT_MATE SET
+						MATE_NM = #{mateNm}, 
+						MATE_CTNT = #{mateCtnt}, 
+						MATE_UUID = #{mateUuid}, 
+						MATE_PRIC = #{matePric}, 
+						MATE_DISC_CD = #{mateDiscCd},
+						MATE_DISC = #{mateDisc},
+						MATE_PRIC_REAL = #{matePricReal},
+						
+						SYS_MOD_IDX = #{mngLoginIdx}, 
+						SYS_MOD_DTM = DATE_FORMAT(NOW(), '%Y%m%d%H%i%S')
+				
+				WHERE 
+					MATE_IDX = #{mateIdx}		
+
+		]]>
+	</update>
+
+	<update id="deleteMngLectMate" parameterType="hashmap">
+		<![CDATA[
+			UPDATE  PPM_PRDT_LECT_MATE SET
+						MATE_USE_YN = 'N',
+						
+						SYS_MOD_IDX = #{mngLoginIdx}, 
+						SYS_MOD_DTM = DATE_FORMAT(NOW(), '%Y%m%d%H%i%S')
+				
+				WHERE 
+					MATE_IDX = #{mateIdx}		
+
+		]]>
+	</update>
+	
+	<insert id="updateMngLectMateDataLectIdx" parameterType="hashmap">
+		<selectKey resultType="int" keyProperty="lectIdx" order="BEFORE">
+		<![CDATA[
+			SELECT MAX(LECT_IDX) FROM PPM_PRDT_LECT WHERE SYS_REG_IDX = #{mngLoginIdx}
+		]]>
+		</selectKey>
+		
+		<![CDATA[
+			UPDATE  PPM_PRDT_LECT_MATE SET
+						LECT_IDX = #{lectIdx},
+						
+						SYS_MOD_IDX = #{mngLoginIdx}, 
+						SYS_MOD_DTM = DATE_FORMAT(NOW(), '%Y%m%d%H%i%S')
+				
+				WHERE 
+					MATE_IDX = #{mateIdx}		
+
+		]]>
+	</insert>
+	
+	
+	<select id="getMyMateIdx" parameterType="hashmap" resultType="hashmap">
+		<![CDATA[
+		SELECT 
+			MAX(MATE_IDX) MATE_IDX, 
+			MAX(MATE_CD) MATE_CD
+			
+				 FROM PPM_PRDT_LECT_MATE 
+				 	
+				 	WHERE
+					LECT_IDX = #{lectIdx} 
+				 	AND MATE_USE_YN = 'Y' 
+			]]>
+	</select>
+
+	<select id="selectMngLectMateData" parameterType="hashmap" resultType="hashmap">
+		<![CDATA[
+		SELECT 
+				MATE_IDX,
+				CATE_IDX, 
+				LECT_IDX, 
+				MATE_CD, 
+				MATE_NM,
+				MATE_CTNT, 
+				MATE_UUID, 
+				MATE_PRIC,
+				MATE_DISC_CD, 
+				MATE_DISC,
+				MATE_PRIC_REAL,
+				MATE_USE_YN,
+				SYS_REG_IDX, 
+				DATE_FORMAT(SYS_REG_DTM, '%Y-%m-%d') SYS_REG_DTM,
+				SYS_MOD_IDX,
+				SYS_MOD_DTM
+			
+				 FROM PPM_PRDT_LECT_MATE 
+				 	
+				 	WHERE
+					MATE_IDX = #{mateIdx} 
+			]]>
+	</select>
+	
+	
+	<insert id="updateMngLectDataDataOnDuplicate" parameterType="hashmap">
+			<selectKey resultType="int" keyProperty="lectSeq" order="BEFORE">
+				<![CDATA[
+		        SELECT MAX(LECT_IDX) FROM PPM_PRDT_LECT WHERE LECT_USE_YN = 'Y' AND  SYS_REG_IDX = #{mngLoginIdx}
+				]]>
+	   	 	</selectKey>
+		
+		<![CDATA[
+			INSERT INTO 
+				PPM_PRDT_LECT_DATA
+					(
+					DATA_IDX,
+					LECT_IDX, 
+					VOD_IDX,
+					DATA_ORDE,
+					DATA_USE_YN,
+					 
+					SYS_REG_IDX, 
+					SYS_REG_DTM, 
+					SYS_MOD_IDX,
+					SYS_MOD_DTM
+					)
+					
+					VALUES
+					(
+					#{dataIdx},
+		]]>
+		<choose>
+		
+			<when test="lectIdx in {'', null}">
+				<![CDATA[
+							#{lectSeq},
+				]]>
+			</when>
+			<otherwise>
+				<![CDATA[
+							#{lectIdx},
+				]]>
+			</otherwise>
+		</choose>
+		<![CDATA[
+					#{vodIdx},
+					#{dataOrde},
+					'Y',
+					
+					#{mngLoginIdx},
+					DATE_FORMAT(NOW(), '%Y%m%d%H%i%S'),
+					#{mngLoginIdx},
+					DATE_FORMAT(NOW(), '%Y%m%d%H%i%S')
+					) ON DUPLICATE KEY UPDATE 
+					
+						DATA_ORDE = #{dataOrde},
+						SYS_MOD_IDX = #{mngLoginIdx},
+						SYS_MOD_DTM = DATE_FORMAT(NOW(), '%Y%m%d%H%i%S')
+
+					
+		]]>
+	</insert>
+	
+	<update id="updateMngLectData" parameterType="hashmap">
+		<![CDATA[
+			UPDATE
+				PPM_PRDT_LECT
+					SET 
+						CATE_IDX=#{cateIdx},
+						LECT_STAT_CD=#{lectStatCd},
+						LECT_UUID=#{lectUuid},
+						LECT_DTM=#{lectDtm},
+						LECT_PRIC=#{lectPric}, 
+						LECT_DISC_CD=#{lectDiscCd},
+						LECT_DISC=#{lectDisc}, 
+						LECT_PRIC_REAL=#{lectPricReal},
+						LECT_PLAY=#{lectPlay}, 
+						LECT_PLAY_LINK=#{lectPlayLink},
+						LECT_RELA_PRDT1=#{lectRelaPrdt1},
+						LECT_RELA_PRDT2=#{lectRelaPrdt2},
+						LECT_RELA_PRDT3=#{lectRelaPrdt3}, 
+						LECT_RELA_PRDT4=#{lectRelaPrdt4},
+						LECT_RELA_PRDT5=#{lectRelaPrdt5}, 
+						LECT_RELA_PRDT6=#{lectRelaPrdt6}, 
+						SYS_MOD_IDX = #{mngLoginIdx},
+						SYS_MOD_DTM = DATE_FORMAT(NOW(), '%Y%m%d%H%i%S')
+			
+				WHERE LECT_IDX=#{lectIdx}
+
+		]]>
+	</update>
+	
+	<update id="DeleteMngLectDataData" parameterType="hashmap">
+		<![CDATA[
+			UPDATE 
+				PPM_PRDT_LECT_DATA
+			
+					SET
+						DATA_USE_YN='N', 
+						SYS_MOD_IDX=#{mngLoginIdx}, 
+						SYS_MOD_DTM=DATE_FORMAT(NOW(), '%Y%m%d%H%i%S')
+						
+						WHERE 
+							DATA_IDX=#{dataIdx};
+
+
+		]]>
+	</update>
+	
+		<!-- 엑셀 체크 -->
+	<select id="selectMngVodPopList" parameterType="hashmap" resultType="hashmap">
+		<![CDATA[
+				]]>
+			<if test="status not in {'LIST'}">
+				<![CDATA[
+SELECT C.*, REPLACE(CONVERT(C.NUM_DESC, CHAR),'.0','') AS NUM_DESC_ORDER FROM (
+  SELECT B.*, (@rownumB:=@rownumB+1) as NUM_ASC FROM(  
+    SELECT A.*, (@rownumA:=@rownumA+1) as NUM_DESC FROM (
+				]]>
+			</if>
+		
+					 <![CDATA[
+					
+			 	SELECT 
+					*, 
+					CASE 
+						WHEN TOTAL_RUNN > 59 THEN
+							CONCAT ( CAST(  TOTAL_RUNN/60 AS UNSIGNED ) , ':' ,TOTAL_RUNN%60 ) 
+						ELSE '0:'
+					END	AS TOTAL_RUNN_DETAIL
+				
+				FROM
+				
+				( 
+		 
+			
+			    SELECT 
+
+					VOD_IDX, 
+					CATE_IDX, 
+					VOD_CD,
+					(SELECT PU.USER_NM FROM PPM_USER PU WHERE PU.USER_IDX IN (SELECT PC.USER_IDX FROM PPM_CATE PC WHERE PC.CATE_IDX = PVD.CATE_IDX) ) MASTER_NM,
+					(SELECT IFNULL(  SUM(PPVD.DATA_RUNN),0) FROM PPM_PRDT_VOD_DATA PPVD WHERE PPVD.VOD_IDX = PVD.VOD_IDX AND VOD_USE_YN= 'Y' AND PPVD.DATA_USE_YN = 'Y') TOTAL_RUNN,
+					VOD_USE_YN,
+					VOD_NM,
+					VOD_PROG_CD,
+					IFNULL( (SELECT CODE_NM  FROM PPM_CODE PC WHERE PC.CODE_ID = VOD_PROG_CD) , '확인중')  VOD_PROG,
+					
+					VOD_STAT_CD,
+					IFNULL( (SELECT CODE_NM  FROM PPM_CODE PC WHERE PC.CODE_ID = VOD_STAT_CD) , '확인중')  VOD_STAT,
+					VOD_CNT,
+					DATE_FORMAT(SYS_REG_DTM, '%Y-%m-%d') SYS_REG_DTM
+					
+						FROM 
+							PPM_PRDT_VOD  PVD
+				 
+					 WHERE VOD_USE_YN = 'Y' 
+					 
+					 AND CATE_IDX = #{cateIdx}
+			 				
+				 
+				]]>
+				<if test="selectVodSearch not in {'',null}">
+				<![CDATA[
+				
+				
+			AND (VOD_NM LIKE '%${selectVodSearch}%' || VOD_CD LIKE '%${selectVodSearch}%' || CATE_IDX IN (SELECT CATE_IDX
+																									FROM PPM_CATE PC 
+																										WHERE PC.USER_IDX 
+																											IN 
+																											
+																											(SELECT PU.USER_IDX 
+																												FROM PPM_USER PU 
+																													WHERE USER_NM LIKE '%${selectVodSearch}%'
+																														AND USER_TYPE = 'M' 
+																														AND USER_USE_YN = 'Y') ) )
+										
+				]]>
+				</if>
+			<if test="status not in {'LIST'}">
+				<![CDATA[
+				) MAIN
+
+						) A JOIN (SELECT @rownumA:=0) rownumA
+  ) B JOIN (SELECT @rownumB:=0) rownumB ORDER BY VOD_IDX DESC
+) C WHERE NUM_ASC BETWEEN '${startRow }' AND '${endRow }'
+				]]>
+			</if>
+		<![CDATA[
+		]]>
+	</select>
+
+
+	<select id="selectMngVodPopListCnt" parameterType="hashmap" resultType="java.lang.Integer">
+					 <![CDATA[
+			    SELECT 
+
+					COUNT(*) CNT
+					
+						FROM 
+							PPM_PRDT_VOD  PVD
+				 
+					 WHERE VOD_USE_YN = 'Y' 
+			 				
+			 				AND CATE_IDX = #{cateIdx}
+				]]>
+				<if test="selectVodSearch not in {'',null}">
+				<![CDATA[
+				
+				
+			AND (VOD_NM LIKE '%${selectVodSearch}%' || VOD_CD LIKE '%${selectVodSearch}%' || CATE_IDX IN (SELECT CATE_IDX
+																									FROM PPM_CATE PC 
+																										WHERE PC.USER_IDX 
+																											IN 
+																											
+																											(SELECT PU.USER_IDX 
+																												FROM PPM_USER PU 
+																													WHERE USER_NM LIKE '%${selectVodSearch}%'
+																														AND USER_TYPE = 'M' 
+																														AND USER_USE_YN = 'Y') ) )
+										
+				]]>
+				</if>
+	</select>
+	
+	
+	<select id="selectMngLectList_Excel" parameterType="hashmap" resultType="hashmap">
+		<![CDATA[
+				]]>
+			<if test="status not in {'LIST'}">
+				<![CDATA[
+SELECT 
+	CONVERT( REPLACE(CONVERT(C.NUM_DESC, CHAR),'.0',''), UNSIGNED )  AS 'ㄱ_No',
+	MASTER_NM AS 'ㄴ_마스터명',
+	LECT_CD AS 'ㄷ_상품코드',
+	P_CODE_NM AS 'ㄹ_분야',
+	M_CODE_NM AS 'ㅁ_분야상세',
+	LECT_DTM AS 'ㅂ_수강일수',
+	LECT_VOD_CNT AS 'ㅅ_총영상수',
+	LECT_PRIC AS 'ㅇ_상품가(원)',
+	LECT_DISC_CD AS 'ㅈ_할인종류',
+	LECT_DISC AS 'ㅊ_할인폭',
+	LECT_PRIC_REAL AS 'ㅋ_판매가(원)',
+	SYS_REG_DTM AS 'ㅌ_등록일' ,
+	LECT_STAT_CDNM AS 'ㅍ_판매상태'
+	
+	FROM (
+  SELECT B.*, (@rownumB:=@rownumB+1) as NUM_ASC FROM(  
+    SELECT A.*, (@rownumA:=@rownumA+1) as NUM_DESC FROM (
+				]]>
+			</if>
+		<![CDATA[
+			
+			    SELECT 
+
+					LECT_IDX, 
+					PPL.CATE_IDX, 
+					(SELECT PU.USER_NM FROM PPM_USER PU WHERE PU.USER_IDX IN (SELECT PC.USER_IDX FROM PPM_CATE PC WHERE PC.CATE_IDX = PPL.CATE_IDX) ) MASTER_NM,
+					LECT_CD,
+					LECT_STAT_CD,
+					
+					(SELECT PC.CODE_NM FROM PPM_CODE PC WHERE PC.CODE_ID = LECT_STAT_CD ) LECT_STAT_CDNM,
+					LECT_NM, 
+					LECT_UUID,
+					DATE_FORMAT(LECT_STR_DTM, '%Y-%m-%d') LECT_STR_DTM,
+					DATE_FORMAT(LECT_END_DTM, '%Y-%m-%d') LECT_END_DTM,
+					LECT_DTM,
+					( SELECT COUNT(0) FROM PPM_PRDT_VOD_DATA PPVD WHERE DATA_USE_YN = 'Y' AND VOD_IDX IN (SELECT VOD_IDX FROM PPM_PRDT_LECT_DATA PPLD WHERE DATA_USE_YN = 'Y' AND LECT_IDX = PPL.LECT_IDX ) ) LECT_VOD_CNT, 
+					
+					LECT_PRIC,
+					LECT_DISC_CD,
+					(SELECT PC.CODE_NM FROM PPM_CODE PC WHERE PC.CODE_ID = LECT_DISC_CD ) LECT_DISC_CDNM,
+					LECT_DISC,
+					LECT_PRIC_REAL,
+					
+					LECT_PLAY, 
+					LECT_PLAY_LINK,
+					LECT_RELA_PRDT1,
+					LECT_RELA_PRDT2,
+					LECT_RELA_PRDT3,
+					
+					LECT_RELA_PRDT4,
+					LECT_RELA_PRDT5,
+					LECT_RELA_PRDT6,
+					
+					PPL.SYS_REG_IDX,
+					DATE_FORMAT(PPL.SYS_REG_DTM, '%Y-%m-%d') SYS_REG_DTM,
+					PPL.SYS_MOD_IDX, 
+			    	DATE_FORMAT(PPL.SYS_MOD_DTM, '%Y-%m-%d') AS SYS_MOD_DTM,
+					
+			    	P_CODE.CODE_NM AS P_CODE_NM,
+			    	M_CODE.CODE_NM AS M_CODE_NM
+					
+				FROM 
+					PPM_PRDT_LECT PPL
+						LEFT JOIN PPM_CATE PC ON PPL.CATE_IDX = PC.CATE_IDX
+						LEFT JOIN PPM_CODE P_CODE ON SUBSTR(PC.CODE_ID,1,5) = P_CODE.CODE_ID
+						LEFT JOIN PPM_CODE M_CODE ON PC.CODE_ID = M_CODE.CODE_ID
+				WHERE
+					LECT_USE_YN = 'Y'
+					AND PPL.CATE_IDX IN ( SELECT CATE_IDX FROM PPM_CATE WHERE CATE_USE_YN = 'Y' ) 
+			]]>
+			<if test='mngLoginType not in {"A"}'>
+				<![CDATA[
+					AND PPL.SYS_REG_IDX = #{mngLoginIdx }
+				]]>
+			</if>
+			<if test="lectSelectStatCd not in {null, ''}">
+				<![CDATA[
+					AND LECT_STAT_CD = #{lectSelectStatCd}
+				]]>
+			</if>
+			<if test="parentCodeId not in {null, ''}">
+				<![CDATA[
+				AND P_CODE.CODE_ID = #{parentCodeId}  
+				]]>
+			</if>
+			<if test="codeId not in {null, ''}">
+				<![CDATA[
+				AND M_CODE.CODE_ID = #{codeId}  
+				]]>
+			</if>
+			<if test="searchList not in {null, ''}">
+				<![CDATA[
+				-- LECT_NM LIKE '%${searchList}%' || 
+					AND (LECT_CD LIKE '%${searchList}%' || PPL.CATE_IDX IN (SELECT CATE_IDX
+																		FROM PPM_CATE PC 
+																			WHERE PC.USER_IDX 
+																				IN 
+																				
+																				(SELECT PU.USER_IDX 
+																					FROM PPM_USER PU 
+																						WHERE USER_NM LIKE '%${searchList}%' 
+																							AND USER_TYPE = 'M' 
+																							AND USER_USE_YN = 'Y') ) )
+				]]>
+			</if>
+			<if test="sysRegDtmStr not in {null, ''} and sysRegDtmEnd not in {null, ''}">
+				<![CDATA[
+					AND DATE_FORMAT( PPL.SYS_REG_DTM, '%Y-%m-%d' ) BETWEEN '${sysRegDtmStr}' AND '${sysRegDtmEnd}' 
+				]]>
+			</if>
+			<if test="status not in {'LIST'}">
+				<![CDATA[
+						) A JOIN (SELECT @rownumA:=0) rownumA
+  ) B JOIN (SELECT @rownumB:=0) rownumB ORDER BY LECT_IDX DESC
+) C 
+				]]>
+			</if>
+		<![CDATA[
+		]]>
+	</select>
+	
+</mapper>

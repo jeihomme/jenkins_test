@@ -1,0 +1,77 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans:beans 
+		xmlns="http://www.springframework.org/schema/mvc"
+		xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+		xmlns:beans="http://www.springframework.org/schema/beans"
+		xmlns:context="http://www.springframework.org/schema/context"
+		xmlns:util="http://www.springframework.org/schema/util"
+		xmlns:task="http://www.springframework.org/schema/task"
+		xmlns:mvc="http://www.springframework.org/schema/mvc"
+		xmlns:tx="http://www.springframework.org/schema/tx"
+		xmlns:websocket="http://www.springframework.org/schema/websocket"
+		xsi:schemaLocation="http://www.springframework.org/schema/mvc https://www.springframework.org/schema/mvc/spring-mvc.xsd
+								http://www.springframework.org/schema/beans https://www.springframework.org/schema/beans/spring-beans.xsd
+								http://www.springframework.org/schema/context https://www.springframework.org/schema/context/spring-context.xsd
+								http://www.springframework.org/schema/task http://www.springframework.org/schema/task/spring-task-3.0.xsd
+								http://www.springframework.org/schema/util http://www.springframework.org/schema/util/spring-util-3.1.xsd
+								http://www.springframework.org/schema/websocket http://www.springframework.org/schema/websocket/spring-websocket.xsd">
+
+  <!-- DispatcherServlet Context: defines this servlet's request-processing infrastructure -->
+  
+  <!-- Enables the Spring MVC @Controller programming model -->
+  <annotation-driven />
+
+  <!-- Handles HTTP GET requests for /resources/ by efficiently serving up static resources in the ${webappRoot}/resources directory -->
+  <resources mapping="/resources/**" location="/resources/" />
+  <resources mapping="/VOL-FILES/**" location="/resources/" />
+  <resources mapping="/robots.txt" location="/robots.txt"/>
+  <resources mapping="/**" location="/test.html" />
+  
+  <!--  -->
+
+  <!-- [Setting] Interceptor -->  
+  <interceptors>
+       <interceptor>
+           <mapping path="/**"/>           
+           <beans:bean id="Interceptor" class="com.iwonsoft.unit.Interceptor" />           
+       </interceptor>
+    </interceptors>
+  
+  <!-- [Setting] JSON Result Maker -->
+  <beans:bean id="jacksonMessageConverter" class="org.springframework.http.converter.json.MappingJacksonHttpMessageConverter"></beans:bean>
+  
+  <!-- [Setting] Tiles -->  
+  <beans:bean id="tilesViewResolver" class="org.springframework.web.servlet.view.UrlBasedViewResolver">
+  	
+        <beans:property name="viewClass" value="org.springframework.web.servlet.view.tiles3.TilesView" />
+        <beans:property name="order" value="1" />
+    </beans:bean>
+    <beans:bean id="tilesConfigurer" class="org.springframework.web.servlet.view.tiles3.TilesConfigurer">
+       <beans:property name="definitions">
+            <beans:list>
+                <beans:value>/WEB-INF/spring/tiles.xml</beans:value>
+            </beans:list>
+       </beans:property>
+  </beans:bean>
+
+  <!-- Resolves views selected for rendering by @Controllers to .jsp resources in the /WEB-INF/views directory -->
+  <beans:bean class="org.springframework.web.servlet.view.InternalResourceViewResolver">
+    <beans:property name="order" value="2" />
+    <beans:property name="prefix" value="/WEB-INF/views/" />
+    <beans:property name="suffix" value=".jsp" />
+  </beans:bean>
+    
+  <context:component-scan base-package="com.iwonsoft.unit, com.iwonsoft.dao,  com.ppm.controller, com.ppm.dao, com.ppm.service, com.ppm.kspay, com.ppm.webchat" />
+  
+  <!-- Spring Scheduler 1.8.6 -->
+  <task:scheduler id="gsScheduler" pool-size="10" />
+  <task:executor id="gsTaskExecutor" pool-size="10" />
+  <task:annotation-driven executor="gsTaskExecutor" scheduler="gsScheduler" />
+  
+  <!-- custom view Class -->
+  <beans:bean class="org.springframework.web.servlet.view.BeanNameViewResolver">
+        <beans:property name="order" value="0" />
+    </beans:bean>
+  <beans:bean id="unit" class="com.iwonsoft.unit.UnitMV"></beans:bean>
+  
+</beans:beans>

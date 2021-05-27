@@ -1,0 +1,153 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd"> 
+<mapper namespace="code">
+	
+	<select id="selectCode" parameterType="hashmap" resultType="hashmap">
+				<![CDATA[
+					SELECT
+						CODE_ID,
+						CODE_NM
+					FROM
+						PPM_CODE CODE
+					WHERE
+						CODE_ID LIKE '%${code}%'
+				]]>
+				<if test='parentCode in {"PARANT"}'>
+					<![CDATA[
+						AND CODE_PARENT_IDX != 0
+					]]>
+				</if>
+				<if test='parentCode not in {null, "", "PARANT" }'>
+					<![CDATA[
+						AND CODE_PARENT_IDX != 0
+						AND CODE_ID LIKE '%${parentCode}%'
+					]]>
+				</if>
+				<if test="parentCode in {null, ''}">
+					<![CDATA[
+						AND CODE_PARENT_IDX = 0
+					]]>
+				</if>
+				<![CDATA[
+						AND CODE_USE_YN = 'Y'
+					ORDER BY CODE_ORDR, CODE_NM
+				]]>
+	</select>
+
+	<select id="selectAllCode" parameterType="hashmap" resultType="hashmap">
+				<![CDATA[
+					SELECT
+						CODE_ID,
+						CODE_NM
+					FROM
+						PPM_CODE CODE
+					WHERE
+						CODE_ID LIKE '%${code}%'
+						AND CODE_USE_YN = 'Y'
+					ORDER BY CODE_ID ASC
+				]]>
+	</select>
+	
+	<select id="selectMasterNameList" resultType="hashmap">
+		<![CDATA[
+		    SELECT
+		    	CATE_IDX AS CATE_ID,
+		    	CONCAT( (SELECT CODE_NM FROM PPM_CODE WHERE CODE_ID = PC.CODE_ID), ( SELECT CONCAT('_', USER_NM) FROM PPM_USER WHERE USER_IDX = PU.USER_IDX ) )  AS USER_NM
+			FROM 
+				PPM_CATE PC,
+				PPM_USER PU
+			WHERE
+				PC.USER_IDX = PU.USER_IDX
+				AND PU.USER_TYPE = 'M'
+				AND PU.USER_USE_YN = 'Y'
+		]]>
+		<if test="codeId not in {null, ''}">
+			<![CDATA[
+				AND PC.CODE_ID = #{codeId}
+			]]>
+		</if>
+				
+	</select>
+	
+	<select id="selectMasterNameOnlyList" resultType="hashmap">
+		<![CDATA[
+		    SELECT DISTINCT
+		    	USER_NM AS CATE_ID,
+		    	USER_NM
+			FROM 
+				PPM_CATE PC,
+				PPM_USER PU
+			WHERE
+				PC.USER_IDX = PU.USER_IDX
+				AND PU.USER_TYPE = 'M'
+				AND PU.USER_USE_YN = 'Y'
+		]]>
+	</select>
+	
+	<select id="selectVodNameList" resultType="hashmap">
+		<![CDATA[
+			    SELECT 
+			    	VOD_IDX,
+			    	VOD_CD,
+			    	VOD_NM
+			    	
+								FROM 
+									PPM_PRDT_VOD
+										WHERE 
+											VOD_USE_YN = 'Y'
+		]]>
+	</select>
+
+	<select id="selectPrevNameList" resultType="hashmap">
+		<![CDATA[
+			    SELECT 
+			    	PREV_IDX,
+					PREV_NM,
+					PREV_CD
+			    	
+								FROM 
+									PPM_PREV
+										WHERE 
+											PREV_USE_YN = 'Y'
+		]]>
+	</select>
+
+	<select id="selectMypeoplemadePrdtCateList" resultType="hashmap">
+		<![CDATA[
+	    SELECT DISTINCT
+			PUB.CATE_IDX,
+			P_CODE.CODE_ID,
+			P_CODE.CODE_NM
+		FROM
+			PPM_USER_BUY PUB,
+			PPM_CATE PC,
+			PPM_CODE P_CODE
+		WHERE
+			PUB.CATE_IDX = PC.CATE_IDX
+			AND PUB.BUY_REFU_YN = 'N'
+			AND PC.CODE_ID = P_CODE.CODE_ID
+			AND PC.CATE_USE_YN = 'Y'
+			AND P_CODE.CODE_USE_YN = 'Y'
+			AND PUB.USER_IDX = #{frontLoginIdx}
+		]]>
+	</select>
+
+	<select id="selectMypeoplemadeEmailAlarm" resultType="hashmap">
+		<![CDATA[
+		SELECT
+			GROUP_CONCAT(PUBM.BUY_IDX) AS BUY_IDX,
+			GROUP_CONCAT(BUY_PRDT_CD) AS BUY_PRDT_CD,
+			COUNT(0) AS MAIL_READ_N_CNT
+		FROM
+			ppm_user_buy_mail PUBM
+				LEFT JOIN PPM_USER_BUY PUB ON PUBM.BUY_IDX = PUB.BUY_IDX
+		WHERE
+			MAIL_REPL IS NOT NULL
+			AND MAIL_READ_YN = 'N'
+			AND PUB.USER_IDX = PUBM.SYS_REG_IDX
+			AND PUBM.SYS_REG_IDX = #{frontLoginIdx}
+		]]>
+	</select>
+	
+	
+</mapper>

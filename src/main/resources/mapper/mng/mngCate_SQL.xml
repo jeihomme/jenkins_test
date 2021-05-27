@@ -1,0 +1,287 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd"> 
+<mapper namespace="mngCate">
+
+	<!-- 로그인 체크 -->
+	<select id="selectMngCateList" parameterType="hashmap" resultType="hashmap">
+		<![CDATA[
+			    SELECT
+					'1' AS CNT
+		]]>
+	</select>
+	
+	<!-- 로그인 체크 -->
+	<select id="selectMngCateListCnt" parameterType="hashmap" resultType="java.lang.Integer">
+		<![CDATA[
+			    SELECT
+					'1' AS CNT
+				]]>
+	</select>
+	
+	<select id="selectMngCateDetailList" parameterType="hashmap" resultType="hashmap">
+		<![CDATA[
+			SELECT DISTINCT
+				M_CODE.CODE_IDX AS M_CODE_IDX,
+				
+				M_CODE.CODE_ID AS M_CODE_ID,
+				
+				(
+					CASE
+						WHEN M_CODE.CODE_ID = #{parentCodeId} THEN '분야'
+						ELSE '분야상세'
+					END
+				) AS CODE_TYPE,
+				
+				M_CODE.CODE_NM AS M_CODE_NM,
+				
+				( SELECT COUNT(0) FROM PPM_CATE WHERE SUBSTR(CODE_ID,1,5) = P_CODE.CODE_ID ) AS P_CODE_CNT,
+				( SELECT COUNT(0) FROM PPM_CATE WHERE CODE_ID = M_CODE.CODE_ID ) AS M_CODE_CNT,
+				(
+					CASE
+						WHEN P_CODE.CODE_ORDR = '9999' THEN ''
+						ELSE P_CODE.CODE_ORDR
+					END
+				) AS CODE_ORDR
+			FROM
+				PPM_CODE M_CODE
+					LEFT JOIN PPM_CODE P_CODE ON P_CODE.CODE_ID = SUBSTR(M_CODE.CODE_ID,1,5)
+					LEFT JOIN PPM_CATE PC ON M_CODE.CODE_ID = PC.CODE_ID
+			WHERE
+				M_CODE.CODE_USE_YN = 'Y'
+				AND P_CODE.CODE_USE_YN = 'Y'
+				AND P_CODE.CODE_ID = #{parentCodeId}
+			ORDER BY M_CODE_ID
+		]]>
+	</select>
+	
+	<insert id="updateMngCateParentData" parameterType="hashmap">
+	
+		<selectKey keyProperty="codeIdx,codeId" resultType="hashmap" order="BEFORE"> 
+		<![CDATA[
+	        SELECT
+	        	CONVERT(( SELECT MAX(CODE_IDX)+1 FROM PPM_CODE ), CHAR) AS codeIdx,
+	        	CONCAT('CAT',CONVERT(LPAD(SUBSTR(MAX(CODE_ID), 4,5)+1,2,'0'), CHAR) ) AS codeId
+	        FROM
+	       		PPM_CODE
+			WHERE
+				CODE_ID LIKE '%CAT%'
+				AND LENGTH(CODE_ID) = 5  
+		]]>
+	    </selectKey>    
+	    
+		<![CDATA[
+		INSERT INTO
+			PPM_CODE (
+				CODE_IDX,
+				CODE_PARENT_IDX,
+				CODE_ID,
+				CODE_NM,
+				CODE_USE_YN,
+				CODE_ORDR,
+				
+				SYS_REG_IDX, 
+				SYS_REG_DTM, 
+				SYS_MOD_IDX, 
+				SYS_MOD_DTM
+			) VALUES (
+				#{codeIdx},
+				'0',
+		]]>
+		<if test="parentCodeId not in {null, ''}">
+			<![CDATA[
+				#{parentCodeId}, 
+			]]>
+		</if>
+		<if test="parentCodeId in {null, ''}">
+			<![CDATA[
+				#{codeId},
+			]]>
+		</if>
+		<![CDATA[
+				
+				#{parentCodeNm}, 
+				'Y',
+		]]>
+		<if test="codeOrdr not in {null, ''}">
+			<![CDATA[
+				#{codeOrdr}, 
+			]]>
+		</if>
+		<if test="codeOrdr in {null, ''}">
+			<![CDATA[
+				'9999',
+			]]>
+		</if>
+		<![CDATA[
+				
+				#{mngLoginIdx}, 
+				DATE_FORMAT(NOW(), '%Y%m%d%H%i%S'), 
+				#{mngLoginIdx}, 
+				DATE_FORMAT(NOW(), '%Y%m%d%H%i%S')
+			) ON DUPLICATE KEY UPDATE
+				CODE_NM = #{parentCodeNm},
+		]]>
+		<if test="codeOrdr not in {null, ''}">
+			<![CDATA[
+				CODE_ORDR = #{codeOrdr}, 
+			]]>
+		</if>
+		<if test="codeOrdr in {null, ''}">
+			<![CDATA[
+				CODE_ORDR = '9999',
+			]]>
+		</if>
+		<![CDATA[
+				
+				SYS_MOD_IDX = #{mngLoginIdx},
+				SYS_MOD_DTM = DATE_FORMAT(NOW(), '%Y%m%d%H%i%S')
+		]]>
+	</insert>
+	
+	<insert id="updateMngCateData" parameterType="hashmap">
+		<selectKey keyProperty="codeIdx,codeId,parentCodeIdx" resultType="hashmap" order="BEFORE"> 
+		<![CDATA[
+		SELECT
+			CONVERT(( SELECT MAX(CODE_IDX)+1 FROM PPM_CODE ), CHAR) AS codeIdx,
+				
+			(
+		]]>
+		<if test="parentCodeId not in {null, ''}">
+			<![CDATA[
+				SELECT
+					(
+						CASE 
+						  	WHEN CODE_ID IS NULL THEN CONCAT(#{parentCodeId},'01')
+						  	ELSE CONCAT(#{parentCodeId},CONVERT(LPAD(SUBSTR(MAX(CODE_ID), 6,7)+1,2,'0'), CHAR) )
+						END
+					) AS codeId
+					FROM PPM_CODE
+					WHERE CODE_ID LIKE '%${parentCodeId}%'
+					-- AND LENGTH(CODE_ID) = 7
+			]]>
+		</if>
+		<if test="parentCodeId in {null, ''}">
+			<![CDATA[
+				SELECT CONCAT(CONCAT('CAT',CONVERT(LPAD(SUBSTR(MAX(CODE_ID), 4,5),2,'0'), CHAR ) ), '01') AS codeId
+				FROM PPM_CODE
+				WHERE CODE_ID LIKE '%CAT%' AND LENGTH(CODE_ID) = 5
+			]]>
+		</if>
+		<![CDATA[
+			)  AS codeId,
+			( SELECT MAX(CODE_IDX) FROM PPM_CODE WHERE CODE_NM = #{parentCodeNm} ) AS parentCodeIdx
+		FROM
+			DUAL
+		]]>
+	    </selectKey>    
+	    
+		<![CDATA[
+		INSERT INTO
+			PPM_CODE (
+				CODE_IDX,
+				CODE_PARENT_IDX,
+				CODE_ID,
+				CODE_NM,
+				CODE_USE_YN,
+				CODE_ORDR,
+				
+				SYS_REG_IDX, 
+				SYS_REG_DTM, 
+				SYS_MOD_IDX, 
+				SYS_MOD_DTM
+			) VALUES (
+				#{codeIdx},
+				#{parentCodeIdx},
+		]]>
+		<if test="codeIdList not in {null, ''}">
+			<![CDATA[
+				#{codeIdList}, 
+			]]>
+		</if>
+		<if test="codeIdList in {null, ''}">
+			<![CDATA[
+				#{codeId}, 
+			]]>
+		</if>
+		<![CDATA[
+				#{codeNm}, 
+				'Y',
+		]]>
+		<if test="codeOrdr not in {null, ''}">
+			<![CDATA[
+				#{codeOrdr},
+			]]>
+		</if>
+		<if test="codeOrdr in {null, ''}">
+			<![CDATA[
+				'9999',
+			]]>
+		</if>
+		<![CDATA[
+				
+				#{mngLoginIdx}, 
+				DATE_FORMAT(NOW(), '%Y%m%d%H%i%S'), 
+				#{mngLoginIdx}, 
+				DATE_FORMAT(NOW(), '%Y%m%d%H%i%S')
+			) ON DUPLICATE KEY UPDATE
+				CODE_NM = #{codeNm},
+		]]>
+		<if test="codeOrdr not in {null, ''}">
+			<![CDATA[
+				CODE_ORDR = #{codeOrdr},
+			]]>
+		</if>
+		<if test="codeOrdr in {null, ''}">
+			<![CDATA[
+				CODE_ORDR = '9999',
+			]]>
+		</if>
+		<![CDATA[
+				
+				SYS_MOD_IDX = #{mngLoginIdx},
+				SYS_MOD_DTM = DATE_FORMAT(NOW(), '%Y%m%d%H%i%S')
+		]]>
+	</insert>
+
+	<update id="deleteMngCateData" parameterType="hashmap" >
+		<![CDATA[
+			    
+		    UPDATE
+		    	PPM_CODE 
+    		SET 
+    			CODE_USE_YN = 'N',
+    			
+    			SYS_MOD_IDX = #{mngLoginIdx}, 
+				SYS_MOD_DTM = DATE_FORMAT(NOW(), '%Y%m%d%H%i%S')
+	    	WHERE 
+				CODE_ID = #{codeId }
+		]]>
+	</update>
+
+	<update id="updateMngCateOrdrData" parameterType="hashmap" >
+		<![CDATA[
+			    
+		    UPDATE
+		    	PPM_CODE 
+    		SET 
+		]]>
+		<if test="codeOrdr not in {null, ''}">
+			<![CDATA[
+				CODE_ORDR = #{codeOrdr}
+			]]>
+		</if>
+		<if test="codeOrdr in {null, ''}">
+			<![CDATA[
+				CODE_ORDR = '9999'
+			]]>
+		</if>
+		<![CDATA[
+    			
+	    	WHERE 
+				CODE_ID = #{parentCodeId }
+		]]>
+	</update>
+	
+	
+	
+</mapper>

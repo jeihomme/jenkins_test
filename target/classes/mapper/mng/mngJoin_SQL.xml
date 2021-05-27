@@ -1,0 +1,632 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd"> 
+<mapper namespace="mngJoin">
+
+	<!-- 로그인 체크 -->
+	<select id="selectMngJoinList" parameterType="hashmap" resultType="hashmap">
+		<![CDATA[
+				]]>
+				
+			<choose>
+				<when test='searchRange in {null, ""}'>
+					<![CDATA[
+						SELECT 
+							DATE_FORMAT( NOW(), '%Y-%m-%d' ) MAIN_DTM ,
+							CASE DAYOFWEEK( now() )
+								WHEN 1 THEN '일'
+								WHEN 2 THEN '월'
+								WHEN 3 THEN '화'
+								WHEN 4 THEN '수'
+								WHEN 5 THEN '목'
+								WHEN 6 THEN '금'
+								WHEN 7 THEN '토'
+							END	WDAY,
+							(SELECT COUNT(0) FROM PPM_USER PU WHERE PU.USER_USE_YN = 'Y' AND DATE_FORMAT( SYS_REG_DTM, '%Y%m%d' ) = DATE_FORMAT( NOW(), '%Y%m%d' ) ) JOIN_CNT,
+							(SELECT COUNT(0) FROM PPM_USER PU WHERE PU.USER_USE_YN = 'N' AND DATE_FORMAT( SYS_MOD_DTM, '%Y%m%d' ) = DATE_FORMAT( NOW(), '%Y%m%d' ) ) JOIN_SLEE_CNT,
+							(SELECT COUNT(0) FROM PPM_USER PU WHERE PU.USER_REST_YN = 'Y' AND DATE_FORMAT( SYS_REST_DTM, '%Y%m%d' ) = DATE_FORMAT( NOW(), '%Y%m%d' ) ) JOIN_DEL_CNT,
+							REPLACE( (SELECT PSSJ.JOIN_ISSU FROM PPM_SITE_STAT_JOIN PSSJ WHERE MAIN_DTM = DATE_FORMAT( NOW(), '%Y-%m-%d' )), '\n', '<br>' )  JOIN_ISSU,
+							IFNULL( (SELECT PSSJ.JOIN_IDX FROM PPM_SITE_STAT_JOIN PSSJ WHERE MAIN_DTM = DATE_FORMAT( NOW(), '%Y-%m-%d' )), 0 ) JOIN_IDX,
+							(SELECT COUNT(0) FROM PPM_USER PU WHERE PU.USER_DEL_YN = 'N' AND PU.USER_USE_YN = 'Y'  AND PU.USER_REST_YN = 'N' AND DATE_FORMAT( MAIN_DTM, '%Y-%m-%d' ) >= DATE_FORMAT( SYS_REG_DTM, '%Y-%m-%d' ) ) NOW_USERS
+							
+					]]>
+				</when>
+				<otherwise>
+				
+					<if test="status not in {'LIST'}">
+						<![CDATA[
+		SELECT C.*, REPLACE(CONVERT(C.NUM_DESC, CHAR),'.0','') AS NUM_DESC_ORDER FROM (
+		  SELECT B.*, (@rownumB:=@rownumB+1) as NUM_ASC FROM(  
+		    SELECT A.*, (@rownumA:=@rownumA+1) as NUM_DESC FROM (
+						]]>
+					</if>
+				<![CDATA[
+					
+					    SELECT 
+							JOIN_IDX, 
+							CASE DAYOFWEEK(MAIN_DTM )
+								WHEN 1 THEN '일'
+								WHEN 2 THEN '월'
+								WHEN 3 THEN '화'
+								WHEN 4 THEN '수'
+								WHEN 5 THEN '목'
+								WHEN 6 THEN '금'
+								WHEN 7 THEN '토'
+							END	WDAY		,		
+							DATE_FORMAT( MAIN_DTM, '%Y-%m-%d' ) MAIN_DTM,
+							(SELECT COUNT(0) FROM PPM_USER PU WHERE PU.USER_DEL_YN = 'N' AND PU.USER_USE_YN = 'Y'  AND PU.USER_REST_YN = 'N' AND DATE_FORMAT( MAIN_DTM, '%Y-%m-%d' ) >= DATE_FORMAT( SYS_REG_DTM, '%Y-%m-%d' ) ) NOW_USERS,
+							JOIN_WEEK,
+							JOIN_CNT, 
+							JOIN_SLEE_CNT, 
+							JOIN_DEL_CNT,
+							REPLACE(JOIN_ISSU, '\n', '<br>' ) JOIN_ISSU,
+							SYS_REG_IDX,
+							DATE_FORMAT( SYS_REG_DTM, '%Y-%m-%d' ) SYS_REG_DTM, 
+							SYS_MOD_IDX, 
+							SYS_MOD_DTM,
+							
+							(SELECT 
+								CONVERT(SUM(JOIN_CNT), UNSIGNED) 
+								FROM 
+									PPM_SITE_STAT_JOIN P1 
+									
+									]]>
+						<where>
+							<if test="searchRange not in {null, ''}">
+								<if test='searchRange.equals("WEEK") '>
+									<![CDATA[
+										AND 	MAIN_DTM BETWEEN DATE_FORMAT( DATE_SUB(NOW(), INTERVAL 7 DAY  ), '%Y-%m-%d' ) AND DATE_FORMAT( DATE_SUB(NOW(), INTERVAL 1 DAY  ), '%Y-%m-%d' )
+									]]>
+								</if>
+								<if test='searchRange.equals("MONTH") '>
+									<![CDATA[
+										MAIN_DTM BETWEEN DATE_FORMAT( DATE_SUB(NOW(), INTERVAL 1 MONTH  ), '%Y-%m-%d' ) AND DATE_FORMAT( DATE_SUB(NOW(), INTERVAL 1 DAY  ), '%Y-%m-%d' )
+									]]>
+								</if>
+								<if test='searchRange.equals("ALL") '>
+									<![CDATA[
+										MAIN_DTM < DATE_FORMAT( NOW(), '%Y-%m-%d' )
+									]]>
+								</if>
+								<if test='searchRange.equals("SEARCH") '>
+									<if test="timeDtmSrt not in {null, ''}">
+										<if test="timeDtmEnd not in {null, ''}">
+										<![CDATA[
+											MAIN_DTM BETWEEN DATE_FORMAT( #{timeDtmSrt} , '%Y-%m-%d' ) AND DATE_FORMAT( #{timeDtmEnd}, '%Y-%m-%d' )
+											]]>
+										</if>								
+									</if>
+								</if>
+							</if>
+						</where>
+								<![CDATA[
+									) ALL_JOIN_CNT,
+									
+							(SELECT 
+								CONVERT(SUM(JOIN_SLEE_CNT), UNSIGNED) 
+								FROM 
+									PPM_SITE_STAT_JOIN P1 
+									
+									]]>
+						<where>
+							<if test="searchRange not in {null, ''}">
+								<if test='searchRange.equals("WEEK") '>
+									<![CDATA[
+										AND 	MAIN_DTM BETWEEN DATE_FORMAT( DATE_SUB(NOW(), INTERVAL 7 DAY  ), '%Y-%m-%d' ) AND DATE_FORMAT( DATE_SUB(NOW(), INTERVAL 1 DAY  ), '%Y-%m-%d' )
+									]]>
+								</if>
+								<if test='searchRange.equals("MONTH") '>
+									<![CDATA[
+										MAIN_DTM BETWEEN DATE_FORMAT( DATE_SUB(NOW(), INTERVAL 1 MONTH  ), '%Y-%m-%d' ) AND DATE_FORMAT( DATE_SUB(NOW(), INTERVAL 1 DAY  ), '%Y-%m-%d' )
+									]]>
+								</if>
+								<if test='searchRange.equals("ALL") '>
+									<![CDATA[
+										MAIN_DTM < DATE_FORMAT( NOW(), '%Y-%m-%d' )
+									]]>
+								</if>
+								<if test='searchRange.equals("SEARCH") '>
+									<if test="timeDtmSrt not in {null, ''}">
+										<if test="timeDtmEnd not in {null, ''}">
+										<![CDATA[
+											MAIN_DTM BETWEEN DATE_FORMAT( #{timeDtmSrt} , '%Y-%m-%d' ) AND DATE_FORMAT( #{timeDtmEnd}, '%Y-%m-%d' )
+											]]>
+										</if>								
+									</if>
+								</if>
+							</if>
+						</where>
+								<![CDATA[
+									
+									) ALL_JOIN_SLEE_CNT,
+									
+							(SELECT 
+								CONVERT(SUM(JOIN_DEL_CNT), UNSIGNED) 
+								FROM 
+									PPM_SITE_STAT_JOIN P1 
+									]]>
+						<where>
+							<if test="searchRange not in {null, ''}">
+								<if test='searchRange.equals("WEEK") '>
+									<![CDATA[
+										AND 	MAIN_DTM BETWEEN DATE_FORMAT( DATE_SUB(NOW(), INTERVAL 7 DAY  ), '%Y-%m-%d' ) AND DATE_FORMAT( DATE_SUB(NOW(), INTERVAL 1 DAY  ), '%Y-%m-%d' )
+									]]>
+								</if>
+								<if test='searchRange.equals("MONTH") '>
+									<![CDATA[
+										MAIN_DTM BETWEEN DATE_FORMAT( DATE_SUB(NOW(), INTERVAL 1 MONTH  ), '%Y-%m-%d' ) AND DATE_FORMAT( DATE_SUB(NOW(), INTERVAL 1 DAY  ), '%Y-%m-%d' )
+									]]>
+								</if>
+								<if test='searchRange.equals("ALL") '>
+									<![CDATA[
+										MAIN_DTM < DATE_FORMAT( NOW(), '%Y-%m-%d' )
+									]]>
+								</if>
+								<if test='searchRange.equals("SEARCH") '>
+									<if test="timeDtmSrt not in {null, ''}">
+										<if test="timeDtmEnd not in {null, ''}">
+										<![CDATA[
+											MAIN_DTM BETWEEN DATE_FORMAT( #{timeDtmSrt} , '%Y-%m-%d' ) AND DATE_FORMAT( #{timeDtmEnd}, '%Y-%m-%d' )
+											]]>
+										</if>								
+									</if>
+								</if>
+							</if>
+						</where>
+								<![CDATA[
+									) ALL_JOIN_DEL_CNT
+									
+							FROM 
+								PPM_SITE_STAT_JOIN PSSJ 
+								
+						]]>
+						<where>
+										<![CDATA[
+						]]>
+									
+							<if test="searchRange not in {null, ''}">
+								<if test='searchRange.equals("WEEK") '>
+									<![CDATA[
+										AND 	MAIN_DTM BETWEEN DATE_FORMAT( DATE_SUB(NOW(), INTERVAL 7 DAY  ), '%Y-%m-%d' ) AND DATE_FORMAT( DATE_SUB(NOW(), INTERVAL 1 DAY  ), '%Y-%m-%d' )
+									]]>
+								</if>
+								<if test='searchRange.equals("MONTH") '>
+									<![CDATA[
+										MAIN_DTM BETWEEN DATE_FORMAT( DATE_SUB(NOW(), INTERVAL 1 MONTH  ), '%Y-%m-%d' ) AND DATE_FORMAT( DATE_SUB(NOW(), INTERVAL 1 DAY  ), '%Y-%m-%d' )
+									]]>
+								</if>
+								<if test='searchRange.equals("ALL") '>
+									<![CDATA[
+										MAIN_DTM < DATE_FORMAT( NOW(), '%Y-%m-%d' )
+									]]>
+								</if>
+								<if test='searchRange.equals("SEARCH") '>
+									<if test="timeDtmSrt not in {null, ''}">
+										<if test="timeDtmEnd not in {null, ''}">
+										<![CDATA[
+											MAIN_DTM BETWEEN DATE_FORMAT( #{timeDtmSrt} , '%Y-%m-%d' ) AND DATE_FORMAT( #{timeDtmEnd}, '%Y-%m-%d' )
+											]]>
+										</if>								
+									</if>
+								</if>
+							</if>
+						</where>
+								<![CDATA[
+						
+						
+						
+						
+								GROUP BY MAIN_DTM
+								ORDER BY MAIN_DTM 
+						]]>
+					<if test="status not in {'LIST'}">
+						<![CDATA[
+								) A JOIN (SELECT @rownumA:=0) rownumA
+		  ) B JOIN (SELECT @rownumB:=0) rownumB ORDER BY MAIN_DTM DESC
+		) C WHERE NUM_ASC BETWEEN '${startRow }' AND '${endRow }'
+						]]>
+					</if>
+				</otherwise>
+			</choose>	
+		<![CDATA[
+		]]>
+	</select>
+	
+	<!-- 로그인 체크 -->
+	<select id="selectMngJoinListCnt" parameterType="hashmap" resultType="java.lang.Integer">
+	
+	<choose>
+		<when test="searchRange in {null, ''}">
+		<![CDATA[
+			SELECT 1
+				]]>
+		</when>
+		<otherwise>
+		
+		
+		<![CDATA[
+			SELECT COUNT(0) FROM (
+			   SELECT 
+					COUNT(0)
+					FROM 
+						PPM_SITE_STAT_JOIN PSSJ
+				]]>
+				<where>
+								<![CDATA[
+				]]>
+<!-- 							<if test='searchRange in {null, ""}'> -->
+<!-- 								<![CDATA[ -->
+<!-- 									MAIN_DTM = DATE_FORMAT( NOW(), '%Y-%m-%d' ) -->
+<!-- 								]]> -->
+<!-- 							</if> -->
+							<if test="searchRange not in {null, ''}">
+								<if test='searchRange.equals("WEEK") '>
+									<![CDATA[
+										AND 	MAIN_DTM BETWEEN DATE_FORMAT( DATE_SUB(NOW(), INTERVAL 7 DAY  ), '%Y-%m-%d' ) AND DATE_FORMAT( DATE_SUB(NOW(), INTERVAL 1 DAY  ), '%Y-%m-%d' )
+									]]>
+								</if>
+								<if test='searchRange.equals("MONTH") '>
+									<![CDATA[
+										MAIN_DTM BETWEEN DATE_FORMAT( DATE_SUB(NOW(), INTERVAL 1 MONTH  ), '%Y-%m-%d' ) AND DATE_FORMAT( DATE_SUB(NOW(), INTERVAL 1 DAY  ), '%Y-%m-%d' )
+									]]>
+								</if>
+								<if test='searchRange.equals("ALL") '>
+									<![CDATA[
+										MAIN_DTM < DATE_FORMAT( NOW(), '%Y-%m-%d' )
+									]]>
+								</if>
+								<if test='searchRange.equals("SEARCH") '>
+									<if test="timeDtmSrt not in {null, ''}">
+										<if test="timeDtmEnd not in {null, ''}">
+										<![CDATA[
+											MAIN_DTM BETWEEN DATE_FORMAT( #{timeDtmSrt} , '%Y-%m-%d' ) AND DATE_FORMAT( #{timeDtmEnd}, '%Y-%m-%d' )
+											]]>
+										</if>								
+									</if>
+								</if>
+							</if>
+				</where>
+						<![CDATA[
+						GROUP BY MAIN_DTM
+			) A
+		]]>
+		</otherwise>
+	</choose>
+	</select>
+	
+	<select id="selectNearIssuDataIdx" parameterType="hashmap" resultType="hashmap">
+		<![CDATA[
+			    
+		    SELECT 
+		    	PSSJ.JOIN_IDX 
+		    		FROM 
+		    			PPM_SITE_STAT_JOIN PSSJ 
+		    			
+		    			WHERE 
+		    				MAIN_DTM = DATE_FORMAT( NOW(), '%Y-%m-%d') 
+		    				AND PSSJ.JOIN_ISSU = #{joinIssu}
+		    				AND PSSJ.SYS_REG_IDX = #{mngLoginIdx}
+		]]>
+	</select>
+
+	<select id="selectMngReviIdDuple" parameterType="hashmap" resultType="hashmap">
+		<![CDATA[
+		    SELECT
+				COUNT(*) CNT
+			FROM
+			    PPM_MNG
+			WHERE
+			    MNG_USE_YN = 'Y'
+			    AND MNG_ID = #{dupleId}
+		]]>
+	</select>
+
+	<update id="deleteMngReviData" parameterType="hashmap" >
+		<![CDATA[
+			    
+		    UPDATE
+		    	PPM_MNG 
+		    		SET MNG_USE_YN = 'N'
+		    	
+		    	WHERE 
+		    		MNG_USE_YN = 'Y'
+		    		AND
+		    		MNG_IDX = #{mngIdx}
+		]]>
+	</update>
+	
+	<insert id="updateMngJoinIssuData" parameterType="hashmap">
+		<![CDATA[
+			
+			INSERT INTO 
+				PPM_SITE_STAT_JOIN
+				(
+				JOIN_IDX,
+				MAIN_DTM, 
+				JOIN_ISSU, 
+				SYS_REG_IDX,
+				SYS_REG_DTM, 
+				SYS_MOD_IDX, 
+				SYS_MOD_DTM
+				)
+				VALUES(
+				#{joinIdx},
+				DATE_FORMAT(NOW(), '%Y-%m-%d'),
+				#{joinIssu},
+				#{mngLoginIdx}, 
+				DATE_FORMAT(NOW(), '%Y%m%d%H%i%S'), 
+				#{mngLoginIdx}, 
+				DATE_FORMAT(NOW(), '%Y%m%d%H%i%S')
+				)ON DUPLICATE KEY UPDATE
+		
+					JOIN_ISSU = #{joinIssu},
+					SYS_MOD_IDX = #{mngLoginIdx},
+					SYS_MOD_DTM = DATE_FORMAT(NOW(), '%Y%m%d%H%i%S')
+						
+		]]>
+	</insert>
+	
+	<update id="updateMngReviData" parameterType="hashmap">
+		<![CDATA[
+			UPDATE PPM_MNG
+				SET 
+		]]>
+		<if test="mngPw not in {null , ''}">
+			<![CDATA[
+						  MNG_PW=#{mngPw}, 
+			]]>
+		</if>			
+			
+		<![CDATA[
+					  MNG_NM=#{mngNm},
+					  MNG_USE_YN=#{mngUseYn}, 
+					  SYS_MOD_IDX=#{mngLoginIdx}, 
+					  SYS_MOD_DTM=DATE_FORMAT(NOW(), '%Y%m%d%H%i%S')
+					  
+					WHERE 
+						MNG_IDX=#{mngIdx}
+
+		]]>
+	</update>
+	
+		<select id="selectMngJoinList_Excel" parameterType="hashmap" resultType="hashmap">
+		<![CDATA[
+				]]>
+				
+			<choose>
+				<when test='searchRange in {null, ""}'>
+					<![CDATA[
+					SELECT
+						MAIN_DTM 'ㄱ_일자',
+						WDAY 'ㄴ_요일',
+						NOW_USERS 'ㄷ_회원수',
+						JOIN_CNT 'ㄹ_가입',
+						JOIN_SLEE_CNT 'ㅁ_휴면',
+						JOIN_DEL_CNT 'ㅂ_탈퇴',
+						JOIN_ISSU 'ㅅ_이슈사항'
+					FROM(
+					
+						SELECT 
+							DATE_FORMAT( NOW(), '%Y-%m-%d' ) MAIN_DTM ,
+							CASE DAYOFWEEK( now() )
+								WHEN 1 THEN '일'
+								WHEN 2 THEN '월'
+								WHEN 3 THEN '화'
+								WHEN 4 THEN '수'
+								WHEN 5 THEN '목'
+								WHEN 6 THEN '금'
+								WHEN 7 THEN '토'
+							END	WDAY,
+							(SELECT COUNT(0) FROM PPM_USER PU WHERE PU.USER_USE_YN = 'Y' AND DATE_FORMAT( SYS_REG_DTM, '%Y%m%d' ) = DATE_FORMAT( NOW(), '%Y%m%d' ) ) JOIN_CNT,
+							(SELECT COUNT(0) FROM PPM_USER PU WHERE PU.USER_USE_YN = 'N' AND DATE_FORMAT( SYS_MOD_DTM, '%Y%m%d' ) = DATE_FORMAT( NOW(), '%Y%m%d' ) ) JOIN_SLEE_CNT,
+							(SELECT COUNT(0) FROM PPM_USER PU WHERE PU.USER_REST_YN = 'Y' AND DATE_FORMAT( SYS_REST_DTM, '%Y%m%d' ) = DATE_FORMAT( NOW(), '%Y%m%d' ) ) JOIN_DEL_CNT,
+							(SELECT PSSJ.JOIN_ISSU FROM PPM_SITE_STAT_JOIN PSSJ WHERE MAIN_DTM = DATE_FORMAT( NOW(), '%Y-%m-%d' ) )  JOIN_ISSU,
+							IFNULL( (SELECT PSSJ.JOIN_IDX FROM PPM_SITE_STAT_JOIN PSSJ WHERE MAIN_DTM = DATE_FORMAT( NOW(), '%Y-%m-%d' )), 0 ) JOIN_IDX,
+							(SELECT COUNT(0) FROM PPM_USER PU WHERE PU.USER_DEL_YN = 'N' AND PU.USER_USE_YN = 'Y'  AND PU.USER_REST_YN = 'N' AND DATE_FORMAT( MAIN_DTM, '%Y-%m-%d' ) >= DATE_FORMAT( SYS_REG_DTM, '%Y-%m-%d' ) ) NOW_USERS
+					) A		
+					]]>
+				</when>
+				<otherwise>
+				
+				<![CDATA[
+				SELECT
+						MAIN_DTM 'ㄱ_일자',
+						WDAY 'ㄴ_요일',
+						NOW_USERS 'ㄷ_회원수',
+						JOIN_CNT 'ㄹ_가입',
+						JOIN_SLEE_CNT 'ㅁ_휴면',
+						JOIN_DEL_CNT 'ㅂ_탈퇴',
+						JOIN_ISSU 'ㅅ_이슈사항'
+					FROM(	
+					 SELECT B.*, (@rownumB:=@rownumB+1) as NUM_ASC FROM(  
+		    			SELECT A.*, (@rownumA:=@rownumA+1) as NUM_DESC FROM (				
+					
+					    SELECT 
+							JOIN_IDX, 
+							CASE DAYOFWEEK(MAIN_DTM )
+								WHEN 1 THEN '일'
+								WHEN 2 THEN '월'
+								WHEN 3 THEN '화'
+								WHEN 4 THEN '수'
+								WHEN 5 THEN '목'
+								WHEN 6 THEN '금'
+								WHEN 7 THEN '토'
+							END	WDAY		,		
+							DATE_FORMAT( MAIN_DTM, '%Y-%m-%d' ) MAIN_DTM,
+							(SELECT COUNT(0) FROM PPM_USER PU WHERE PU.USER_DEL_YN = 'N' AND PU.USER_USE_YN = 'Y'  AND PU.USER_REST_YN = 'N' AND DATE_FORMAT( MAIN_DTM, '%Y-%m-%d' ) >= DATE_FORMAT( SYS_REG_DTM, '%Y-%m-%d' ) ) NOW_USERS,
+							JOIN_WEEK,
+							JOIN_CNT, 
+							JOIN_SLEE_CNT, 
+							JOIN_DEL_CNT,
+							REPLACE(JOIN_ISSU, '\n', '<br>' ) JOIN_ISSU,
+							SYS_REG_IDX,
+							DATE_FORMAT( SYS_REG_DTM, '%Y-%m-%d' ) SYS_REG_DTM, 
+							SYS_MOD_IDX, 
+							SYS_MOD_DTM,
+							
+							(SELECT 
+								CONVERT(SUM(JOIN_CNT), UNSIGNED) 
+								FROM 
+									PPM_SITE_STAT_JOIN P1 
+									
+									]]>
+						<where>
+							<if test="searchRange not in {null, ''}">
+								<if test='searchRange.equals("WEEK") '>
+									<![CDATA[
+										AND 	MAIN_DTM BETWEEN DATE_FORMAT( DATE_SUB(NOW(), INTERVAL 7 DAY  ), '%Y-%m-%d' ) AND DATE_FORMAT( DATE_SUB(NOW(), INTERVAL 1 DAY  ), '%Y-%m-%d' )
+									]]>
+								</if>
+								<if test='searchRange.equals("MONTH") '>
+									<![CDATA[
+										MAIN_DTM BETWEEN DATE_FORMAT( DATE_SUB(NOW(), INTERVAL 1 MONTH  ), '%Y-%m-%d' ) AND DATE_FORMAT( DATE_SUB(NOW(), INTERVAL 1 DAY  ), '%Y-%m-%d' )
+									]]>
+								</if>
+								<if test='searchRange.equals("ALL") '>
+									<![CDATA[
+										MAIN_DTM < DATE_FORMAT( NOW(), '%Y-%m-%d' )
+									]]>
+								</if>
+								<if test='searchRange.equals("SEARCH") '>
+									<if test="timeDtmSrt not in {null, ''}">
+										<if test="timeDtmEnd not in {null, ''}">
+										<![CDATA[
+											MAIN_DTM BETWEEN DATE_FORMAT( #{timeDtmSrt} , '%Y-%m-%d' ) AND DATE_FORMAT( #{timeDtmEnd}, '%Y-%m-%d' )
+											]]>
+										</if>								
+									</if>
+								</if>
+							</if>
+						</where>
+								<![CDATA[
+									) ALL_JOIN_CNT,
+									
+							(SELECT 
+								CONVERT(SUM(JOIN_SLEE_CNT), UNSIGNED) 
+								FROM 
+									PPM_SITE_STAT_JOIN P1 
+									
+									]]>
+						<where>
+							<if test="searchRange not in {null, ''}">
+								<if test='searchRange.equals("WEEK") '>
+									<![CDATA[
+										AND 	MAIN_DTM BETWEEN DATE_FORMAT( DATE_SUB(NOW(), INTERVAL 7 DAY  ), '%Y-%m-%d' ) AND DATE_FORMAT( DATE_SUB(NOW(), INTERVAL 1 DAY  ), '%Y-%m-%d' )
+									]]>
+								</if>
+								<if test='searchRange.equals("MONTH") '>
+									<![CDATA[
+										MAIN_DTM BETWEEN DATE_FORMAT( DATE_SUB(NOW(), INTERVAL 1 MONTH  ), '%Y-%m-%d' ) AND DATE_FORMAT( DATE_SUB(NOW(), INTERVAL 1 DAY  ), '%Y-%m-%d' )
+									]]>
+								</if>
+								<if test='searchRange.equals("ALL") '>
+									<![CDATA[
+										MAIN_DTM < DATE_FORMAT( NOW(), '%Y-%m-%d' )
+									]]>
+								</if>
+								<if test='searchRange.equals("SEARCH") '>
+									<if test="timeDtmSrt not in {null, ''}">
+										<if test="timeDtmEnd not in {null, ''}">
+										<![CDATA[
+											MAIN_DTM BETWEEN DATE_FORMAT( #{timeDtmSrt} , '%Y-%m-%d' ) AND DATE_FORMAT( #{timeDtmEnd}, '%Y-%m-%d' )
+											]]>
+										</if>								
+									</if>
+								</if>
+							</if>
+						</where>
+								<![CDATA[
+									
+									) ALL_JOIN_SLEE_CNT,
+									
+							(SELECT 
+								CONVERT(SUM(JOIN_DEL_CNT), UNSIGNED) 
+								FROM 
+									PPM_SITE_STAT_JOIN P1 
+									]]>
+						<where>
+							<if test="searchRange not in {null, ''}">
+								<if test='searchRange.equals("WEEK") '>
+									<![CDATA[
+										AND 	MAIN_DTM BETWEEN DATE_FORMAT( DATE_SUB(NOW(), INTERVAL 7 DAY  ), '%Y-%m-%d' ) AND DATE_FORMAT( DATE_SUB(NOW(), INTERVAL 1 DAY  ), '%Y-%m-%d' )
+									]]>
+								</if>
+								<if test='searchRange.equals("MONTH") '>
+									<![CDATA[
+										MAIN_DTM BETWEEN DATE_FORMAT( DATE_SUB(NOW(), INTERVAL 1 MONTH  ), '%Y-%m-%d' ) AND DATE_FORMAT( DATE_SUB(NOW(), INTERVAL 1 DAY  ), '%Y-%m-%d' )
+									]]>
+								</if>
+								<if test='searchRange.equals("ALL") '>
+									<![CDATA[
+										MAIN_DTM < DATE_FORMAT( NOW(), '%Y-%m-%d' )
+									]]>
+								</if>
+								<if test='searchRange.equals("SEARCH") '>
+									<if test="timeDtmSrt not in {null, ''}">
+										<if test="timeDtmEnd not in {null, ''}">
+										<![CDATA[
+											MAIN_DTM BETWEEN DATE_FORMAT( #{timeDtmSrt} , '%Y-%m-%d' ) AND DATE_FORMAT( #{timeDtmEnd}, '%Y-%m-%d' )
+											]]>
+										</if>								
+									</if>
+								</if>
+							</if>
+						</where>
+								<![CDATA[
+									) ALL_JOIN_DEL_CNT
+									
+							FROM 
+								PPM_SITE_STAT_JOIN PSSJ 
+								
+						]]>
+						<where>
+										<![CDATA[
+						]]>
+									
+							<if test="searchRange not in {null, ''}">
+								<if test='searchRange.equals("WEEK") '>
+									<![CDATA[
+										AND 	MAIN_DTM BETWEEN DATE_FORMAT( DATE_SUB(NOW(), INTERVAL 7 DAY  ), '%Y-%m-%d' ) AND DATE_FORMAT( DATE_SUB(NOW(), INTERVAL 1 DAY  ), '%Y-%m-%d' )
+									]]>
+								</if>
+								<if test='searchRange.equals("MONTH") '>
+									<![CDATA[
+										MAIN_DTM BETWEEN DATE_FORMAT( DATE_SUB(NOW(), INTERVAL 1 MONTH  ), '%Y-%m-%d' ) AND DATE_FORMAT( DATE_SUB(NOW(), INTERVAL 1 DAY  ), '%Y-%m-%d' )
+									]]>
+								</if>
+								<if test='searchRange.equals("ALL") '>
+									<![CDATA[
+										MAIN_DTM < DATE_FORMAT( NOW(), '%Y-%m-%d' )
+									]]>
+								</if>
+								<if test='searchRange.equals("SEARCH") '>
+									<if test="timeDtmSrt not in {null, ''}">
+										<if test="timeDtmEnd not in {null, ''}">
+										<![CDATA[
+											MAIN_DTM BETWEEN DATE_FORMAT( #{timeDtmSrt} , '%Y-%m-%d' ) AND DATE_FORMAT( #{timeDtmEnd}, '%Y-%m-%d' )
+											]]>
+										</if>								
+									</if>
+								</if>
+							</if>
+						</where>
+								<![CDATA[
+						
+						
+						
+						
+								GROUP BY MAIN_DTM
+								ORDER BY MAIN_DTM 
+								
+						) A JOIN (SELECT @rownumA:=0) rownumA
+		  ) B JOIN (SELECT @rownumB:=0) rownumB ORDER BY MAIN_DTM DESC
+		) C 
+						]]>
+					
+				</otherwise>
+			</choose>	
+		<![CDATA[
+		]]>
+	</select>
+	
+	
+</mapper>

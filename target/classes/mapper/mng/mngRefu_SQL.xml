@@ -1,0 +1,534 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd"> 
+<mapper namespace="mngRefu">
+
+	<!-- 로그인 체크 -->
+	<select id="selectMngRefuList" parameterType="hashmap" resultType="hashmap">
+		<![CDATA[
+				]]>
+			<if test="status not in {'LIST'}">
+				<![CDATA[
+SELECT C.*, REPLACE(CONVERT(C.NUM_DESC, CHAR),'.0','') AS NUM_DESC_ORDER FROM (
+	SELECT B.*, (@rownumB:=@rownumB+1) as NUM_ASC FROM(  
+		SELECT A.*, (@rownumA:=@rownumA+1) as NUM_DESC FROM (
+				]]>
+			</if>
+		<![CDATA[
+			
+			 SELECT
+				BUY_IDX,
+				CATE_IDX,
+			 	BUY_REFU_DTM,
+				BUY_COMP_DTM,
+				BUY_NO,
+				BUY_NO_CNT,
+				PRDT_TYPE,
+				BUY_PRDT_CD,
+				PRDT_NM,
+				
+				MASTER_NM,
+				PARENT_CODE_NM,
+				CODE_NM,
+				USER_NM,
+				USER_PHONE,
+				
+				BUY_TYPE,
+				CONVERT( REPLACE(REAL_PAY_PRIC,',','') - REPLACE(REAL_DISC_PRIC,',','') , CHAR  ) PRDT_PRIC_REAL,
+				REAL_PAY_PRIC,
+				REAL_DISC_PRIC,
+				
+				COUP_DISC,
+				COUP_DISC_NM,
+				CASH_RECEIPT,
+				BUY_STAT
+				
+			FROM (
+			
+				SELECT
+					BUY_IDX,
+					PUB.CATE_IDX,
+					DATE_FORMAT(PUB.BUY_REFU_DTM, '%Y-%m-%d %H:%i:%S') AS BUY_REFU_DTM,
+					DATE_FORMAT(PUB.BUY_COMP_DTM, '%Y-%m-%d %H:%i:%S') AS BUY_COMP_DTM,
+					PUB.BUY_NO,
+					( SELECT COUNT(0) FROM PPM_USER_BUY WHERE BUY_NO = PUB.BUY_NO AND  BUY_REFU_YN != 'N'  ) AS BUY_NO_CNT,
+					(
+						CASE
+							WHEN PUB.BUY_PRDT_CD LIKE '%VL%' THEN 'VOD'
+							WHEN PUB.BUY_PRDT_CD LIKE '%FN%' THEN '화상'
+							WHEN PUB.BUY_PRDT_CD LIKE '%CN%' THEN '채팅'
+							WHEN PUB.BUY_PRDT_CD LIKE '%EN%' THEN '이메일'
+							WHEN PUB.BUY_PRDT_CD LIKE '%LN%' THEN 'LIVE CLASS'
+						END
+					) AS PRDT_TYPE,
+					PUB.BUY_PRDT_CD,
+					(
+						CASE
+							WHEN PUB.BUY_PRDT_CD LIKE '%VL%' THEN ( SELECT CONCAT(PIP.INFO_PRDT_TITL1, ' ', PIP.INFO_PRDT_TITL2 ) FROM PPM_INFO_PRDT PIP  WHERE  PIP.PRDT_CD =  PUB.BUY_PRDT_CD AND PIP.INFO_ORDE = 0 AND PIP.INFO_USE_YN = 'Y' )
+							WHEN PUB.BUY_PRDT_CD LIKE '%FN%' THEN ( SELECT CONCAT(PIP.INFO_PRDT_TITL1, ' ', PIP.INFO_PRDT_TITL2 ) FROM PPM_INFO_PRDT PIP  WHERE  PIP.PRDT_CD =  CONCAT( 'COACHING', PUB.CATE_IDX ) AND PIP.INFO_ORDE = 0 AND PIP.INFO_USE_YN = 'Y' )
+							WHEN PUB.BUY_PRDT_CD LIKE '%CN%' THEN ( SELECT CONCAT(PIP.INFO_PRDT_TITL1, ' ', PIP.INFO_PRDT_TITL2 ) FROM PPM_INFO_PRDT PIP  WHERE  PIP.PRDT_CD =  CONCAT( 'COACHING', PUB.CATE_IDX ) AND PIP.INFO_ORDE = 0 AND PIP.INFO_USE_YN = 'Y' )
+							WHEN PUB.BUY_PRDT_CD LIKE '%EN%' THEN ( SELECT CONCAT(PIP.INFO_PRDT_TITL1, ' ', PIP.INFO_PRDT_TITL2 ) FROM PPM_INFO_PRDT PIP  WHERE  PIP.PRDT_CD =  CONCAT( 'COACHING', PUB.CATE_IDX ) AND PIP.INFO_ORDE = 0 AND PIP.INFO_USE_YN = 'Y' )
+							WHEN PUB.BUY_PRDT_CD LIKE '%LN%' THEN ( SELECT CONCAT(PIP.INFO_PRDT_TITL1, ' ', PIP.INFO_PRDT_TITL2 ) FROM PPM_INFO_PRDT PIP  WHERE  PIP.PRDT_CD =  PUB.BUY_PRDT_CD AND PIP.INFO_ORDE = 0 AND PIP.INFO_USE_YN = 'Y' )
+						END
+					) AS PRDT_NM,
+					PU.USER_NM AS MASTER_NM,
+					P_CODE.CODE_NM AS PARENT_CODE_NM,
+					M_CODE.CODE_NM AS CODE_NM,
+					PU_U.USER_NM,
+					PU_U.USER_PHONE,
+					PUB.BUY_TYPE,
+					
+					PUB.REAL_PAY_PRIC,
+					PUB.REAL_DISC_PRIC,
+					
+					P_COUP.COUP_DISC,
+					PUB_CODE.CODE_NM AS COUP_DISC_NM,
+					CASH_RECEIPT,
+					
+					BUY_STAT
+				FROM
+					PPM_USER_BUY PUB
+						LEFT JOIN PPM_USER_COUP PUC ON PUB.COUP_IDX = PUC.COUP_IDX
+						LEFT JOIN PPM_COUP_DATA PCD ON PUC.DATA_IDX  = PCD.DATA_IDX 
+						LEFT JOIN PPM_COUP P_COUP ON PCD.COUP_IDX  = P_COUP.COUP_IDX
+						LEFT JOIN PPM_CODE PUB_CODE ON P_COUP.COUP_DISC_CD  = PUB_CODE.CODE_ID, 
+					PPM_CATE PC,
+					PPM_USER PU,
+					PPM_USER PU_U,
+					PPM_CODE P_CODE,
+					PPM_CODE M_CODE
+				WHERE
+					(PUB.BUY_STAT LIKE '%취소%' || PUB.BUY_STAT LIKE '%환불%')
+					AND PUB.BUY_NO IS NOT NULL
+					AND PUB.BUY_TYPE IS NOT NULL
+					
+					AND PUB.CATE_IDX = PC.CATE_IDX
+					AND PC.USER_IDX = PU.USER_IDX
+					AND PU_U.USER_IDX = PUB.USER_IDX
+					AND P_CODE.CODE_ID = SUBSTR(PC.CODE_ID, 1 , 5)
+					AND M_CODE.CODE_ID = PC.CODE_ID	
+			) MAIN
+				WHERE
+				 (BUY_STAT LIKE '%취소%' || BUY_STAT LIKE '%환불%')
+				]]>
+					<if test="prdtNmSearch not in {null, ''}">
+					<![CDATA[
+						AND PRDT_NM LIKE '%${prdtNmSearch}%'
+					]]>
+					</if>
+					<if test="buyCompDtmSearch not in {null, ''}">
+						<![CDATA[
+							AND DATE_FORMAT(BUY_COMP_DTM, '%Y-%m-%d') = DATE_FORMAT(#{buyCompDtmSearch}, '%Y-%m-%d')
+						]]>
+					</if>
+					<if test="buyRefuDtmSearch not in {null, ''}">
+						<![CDATA[
+							AND DATE_FORMAT(BUY_REFU_DTM, '%Y-%m-%d') = DATE_FORMAT(#{buyRefuDtmSearch}, '%Y-%m-%d')
+						]]>
+					</if>
+					<if test="userNmSearch not in {null, ''}">
+						<![CDATA[
+							AND USER_NM LIKE '%${userNmSearch}%'
+						]]>
+					</if>
+					<if test="buyTypeSearch not in {null, ''}">
+						<![CDATA[
+							AND BUY_TYPE LIKE '%${buyTypeSearch}%'
+						]]>
+					</if>
+					<if test="buyStatSearch not in {null, ''}">
+						<![CDATA[
+							AND BUY_STAT LIKE '%${buyStatSearch}%'
+						]]>
+					</if>
+				<![CDATA[  
+				]]>
+			<if test="status not in {'LIST'}">
+				<![CDATA[
+		) A JOIN (SELECT @rownumA:=0) rownumA ORDER BY   BUY_COMP_DTM
+	) B JOIN (SELECT @rownumB:=0) rownumB ORDER BY NUM_DESC DESC
+) C WHERE NUM_ASC BETWEEN '${startRow }' AND '${endRow }'
+				]]>
+			</if>
+	</select>
+	
+	<!-- 로그인 체크 -->
+	<select id="selectMngRefuListCnt" parameterType="hashmap" resultType="java.lang.Integer">
+		<![CDATA[
+			
+			SELECT
+				COUNT(0) AS CNT
+			FROM (
+			
+				SELECT
+					DATE_FORMAT(PUB.BUY_COMP_DTM, '%Y-%m-%d %H:%i:%S') AS BUY_COMP_DTM,
+					PUB.BUY_NO,
+					( SELECT COUNT(0) FROM PPM_USER_BUY WHERE BUY_NO = PUB.BUY_NO AND  BUY_REFU_YN != 'N' ) AS BUY_NO_CNT,
+					(
+						CASE
+							WHEN PUB.BUY_PRDT_CD LIKE '%VL%' THEN 'VOD'
+							WHEN PUB.BUY_PRDT_CD LIKE '%FN%' THEN '화상'
+							WHEN PUB.BUY_PRDT_CD LIKE '%CN%' THEN '채팅'
+							WHEN PUB.BUY_PRDT_CD LIKE '%EN%' THEN '이메일'
+							WHEN PUB.BUY_PRDT_CD LIKE '%LN%' THEN 'LIVE CLASS'
+						END
+					) AS PRDT_TYPE,
+					PUB.BUY_PRDT_CD,
+					(
+						CASE
+							WHEN PUB.BUY_PRDT_CD LIKE '%VL%' THEN ( SELECT LECT_NM FROM PPM_PRDT_LECT WHERE LECT_CD = PUB.BUY_PRDT_CD )
+							WHEN PUB.BUY_PRDT_CD LIKE '%FN%' THEN ( SELECT FACE_NM FROM PPM_PRDT_FACE WHERE FACE_CD = PUB.BUY_PRDT_CD )
+							WHEN PUB.BUY_PRDT_CD LIKE '%CN%' THEN ( SELECT CHAT_NM FROM PPM_PRDT_CHAT WHERE CHAT_CD = PUB.BUY_PRDT_CD )
+							WHEN PUB.BUY_PRDT_CD LIKE '%EN%' THEN ( SELECT MAIL_NM FROM PPM_PRDT_MAIL WHERE MAIL_CD = PUB.BUY_PRDT_CD )
+							WHEN PUB.BUY_PRDT_CD LIKE '%LN%' THEN ( SELECT LIVE_NM FROM PPM_PRDT_LIVE WHERE LIVE_CD = PUB.BUY_PRDT_CD )
+						END
+					) AS PRDT_NM,
+					PU.USER_NM AS MASTER_NM,
+					P_CODE.CODE_NM AS PARENT_CODE_NM,
+					M_CODE.CODE_NM AS CODE_NM,
+					PU_U.USER_NM,
+					PU_U.USER_PHONE,
+					PUB.BUY_TYPE,
+					P_COUP.COUP_DISC,
+					PUB_CODE.CODE_NM AS COUP_DISC_NM,
+					CASH_RECEIPT,
+					
+					BUY_REFU_DTM,
+					BUY_STAT
+				FROM
+					PPM_USER_BUY PUB
+						LEFT JOIN PPM_USER_COUP PUC ON PUB.COUP_IDX = PUC.COUP_IDX
+						LEFT JOIN PPM_COUP_DATA PCD ON PUC.DATA_IDX  = PCD.DATA_IDX 
+						LEFT JOIN PPM_COUP P_COUP ON PCD.COUP_IDX  = P_COUP.COUP_IDX
+						LEFT JOIN PPM_CODE PUB_CODE ON P_COUP.COUP_DISC_CD  = PUB_CODE.CODE_ID, 
+					PPM_CATE PC,
+					PPM_USER PU,
+					PPM_USER PU_U,
+					PPM_CODE P_CODE,
+					PPM_CODE M_CODE
+				WHERE
+					(PUB.BUY_STAT LIKE '%취소%' || PUB.BUY_STAT LIKE '%환불%')
+					AND PUB.BUY_NO IS NOT NULL
+					AND PUB.BUY_TYPE IS NOT NULL
+					
+					AND PUB.CATE_IDX = PC.CATE_IDX
+					AND PC.USER_IDX = PU.USER_IDX
+					AND PU_U.USER_IDX = PUB.USER_IDX
+					AND P_CODE.CODE_ID = SUBSTR(PC.CODE_ID, 1 , 5)
+					AND M_CODE.CODE_ID = PC.CODE_ID	
+			) MAIN
+				WHERE 
+					(BUY_STAT LIKE '%취소%' || BUY_STAT LIKE '%환불%')
+				]]>
+					<if test="prdtNmSearch not in {null, ''}">
+					<![CDATA[
+						AND PRDT_NM LIKE '%${prdtNmSearch}%'
+					]]>
+					</if>
+					<if test="buyCompDtmSearch not in {null, ''}">
+						<![CDATA[
+							AND DATE_FORMAT(BUY_COMP_DTM, '%Y-%m-%d') = DATE_FORMAT(#{buyCompDtmSearch}, '%Y-%m-%d')
+						]]>
+					</if>
+					<if test="buyRefuDtmSearch not in {null, ''}">
+						<![CDATA[
+							AND DATE_FORMAT(BUY_REFU_DTM, '%Y-%m-%d') = DATE_FORMAT(#{buyRefuDtmSearch}, '%Y-%m-%d')
+						]]>
+					</if>
+					<if test="userNmSearch not in {null, ''}">
+						<![CDATA[
+							AND USER_NM LIKE '%${userNmSearch}%'
+						]]>
+					</if>
+					<if test="buyTypeSearch not in {null, ''}">
+						<![CDATA[
+							AND BUY_TYPE LIKE '%${buyTypeSearch}%'
+						]]>
+					</if>
+					<if test="buyStatSearch not in {null, ''}">
+						<![CDATA[
+							AND BUY_STAT LIKE '%${buyStatSearch}%'
+						]]>
+					</if>
+				<![CDATA[  
+			]]>
+	</select>
+	
+	<update id="updateMngRefuData" parameterType="hashmap">
+		<![CDATA[
+			UPDATE
+		    	PPM_USER_BUY 
+    		SET
+    			BUY_STAT = '${buyStat}', 
+    			
+		]]>
+ 		<if test=' buyStat in { "취소완료", "환불완료" } '>
+		<![CDATA[
+				BUY_REFU_YN = 'Y',
+				BUY_REFU_DTM = DATE_FORMAT(NOW(), '%Y%m%d%H%i%S'),
+		]]>
+		</if>
+		<if test='buyStat in { "결제완료"} '>
+		<![CDATA[
+				BUY_COMP_YN = 'Y',
+				BUY_REFU_YN = 'N',
+				BUY_REFU_DTM = null,
+		]]>
+		</if>
+		
+		<![CDATA[
+    			SYS_MOD_IDX = #{mngLoginIdx}, 
+				SYS_MOD_DTM = DATE_FORMAT(NOW(), '%Y%m%d%H%i%S')
+	    	WHERE 
+				BUY_NO = #{buyNo} 
+		]]>
+	    		
+	</update>
+	
+	
+	<select id="selectMngRefuDetail" parameterType="hashmap" resultType="hashmap">
+		<![CDATA[
+			 SELECT
+			 	DISTINCT
+		    	 (SELECT USER_NM FROM PPM_USER PU WHERE PU.USER_IDX = PPM_USER_BUY.USER_IDX ) USER_NM,
+		    	 BUY_IDX,
+						PPM_USER_BUY.CATE_IDX,
+						PPM_USER_BUY.USER_IDX,
+						(SELECT USER_NICK FROM PPM_USER PU WHERE USER_IDX = PPM_USER_BUY.USER_IDX) USER_NICK,
+						(SELECT USER_EMAIL FROM PPM_USER PU2 WHERE USER_IDX = PPM_USER_BUY.USER_IDX) USER_EMAIL,
+						(SELECT USER_PHONE FROM PPM_USER PU2 WHERE USER_IDX = PPM_USER_BUY.USER_IDX) USER_PHONE,
+						TIME_IDX,
+						IFNULL(PPM_USER_BUY.COUP_IDX , "") COUP_IDX,
+						(SELECT PC.COUP_DISC FROM PPM_USER_COUP PUC , PPM_COUP_DATA PCD , PPM_COUP PC WHERE 
+									 PPM_USER_BUY.COUP_IDX = PUC.COUP_IDX
+									AND PUC.DATA_IDX  = PCD.DATA_IDX 
+									AND PCD.COUP_IDX  = PC.COUP_IDX ) COUP_DISC,
+						(SELECT CODE_NM FROM PPM_CODE WHERE PPM_CODE.CODE_ID = (SELECT PC.COUP_DISC_CD FROM PPM_USER_COUP PUC , PPM_COUP_DATA PCD , PPM_COUP PC WHERE 
+									 PPM_USER_BUY.COUP_IDX = PUC.COUP_IDX
+									AND PUC.DATA_IDX  = PCD.DATA_IDX 
+									AND PCD.COUP_IDX  = PC.COUP_IDX )) COUP_DISC_NM,
+						BUY_PRDT_CD,
+						BUY_CD,
+						BUY_ORDER_NUMBER,
+						BUY_NO,
+						BUY_TYPE,
+						BUY_PRIC,
+						PRDT.PRDT_PRIC_REAL,
+						
+						REAL_PAY_PRIC,
+						REAL_DISC_PRIC,
+						
+						BUY_COMP_YN,
+						BUY_STAT,
+						DATE_FORMAT(BUY_COMP_DTM, '%Y-%m-%d %H:%i:%S') BUY_COMP_DTM,
+						BUY_REFU_YN,
+						CASH_RECEIPT,
+
+						PRDT_TYPE,
+						PRDT_NM,
+						PPM_USER_BUY.SYS_REG_IDX,
+						DATE_FORMAT(PPM_USER_BUY.SYS_REG_DTM, '%Y%m%d%H%i%S') SYS_REG_DTM,
+						PPM_USER_BUY.SYS_MOD_IDX,
+						DATE_FORMAT(PPM_USER_BUY.SYS_MOD_DTM, '%Y%m%d%H%i%S') SYS_MOD_DTM
+		    	 
+					FROM 
+						PPM_USER_BUY,
+						(
+						SELECT '1:1화상상담' AS PRDT_TYPE, PSF.CATE_IDX, PSF.FACE_IDX AS PRDT_IDX, PPF.FACE_CD AS PRDT_CD, (SELECT CONCAT(PIP.INFO_PRDT_TITL1, ' ', PIP.INFO_PRDT_TITL2 ) FROM PPM_INFO_PRDT PIP  WHERE  PIP.PRDT_CD = CONCAT( 'COACHING', PPF.CATE_IDX ) AND PIP.INFO_ORDE = 0 AND PIP.INFO_USE_YN = 'Y') AS PRDT_NM, FACE_PRIC_REAL AS PRDT_PRIC_REAL, FACE_IMG_UUID AS PRDT_UUID, 'FACE_IMG_UUID' AS PRDT_UUID_NM
+							FROM PPM_SALE_FACE PSF, PPM_PRDT_FACE PPF WHERE PSF.FACE_IDX = PPF.FACE_IDX
+						UNION ALL
+							SELECT 'VOD' AS PRDT_TYPE, PSLE.CATE_IDX, PSLE.LECT_IDX AS PRDT_IDX, PPLE.LECT_CD AS PRDT_CD, (SELECT CONCAT(PIP.INFO_PRDT_TITL1, ' ', PIP.INFO_PRDT_TITL2 ) FROM PPM_INFO_PRDT PIP  WHERE  PIP.PRDT_CD = PPLE.LECT_CD AND PIP.INFO_ORDE = 0 AND PIP.INFO_USE_YN = 'Y') AS PRDT_NM, LECT_PRIC_REAL AS PRDT_PRIC_REAL, LECT_UUID AS PRDT_UUID, 'LECT_UUID' AS PRDT_UUID_NM
+							FROM PPM_SALE_LECT PSLE, PPM_PRDT_LECT PPLE WHERE PSLE.LECT_IDX = PPLE.LECT_IDX
+						UNION ALL
+							SELECT '1:1채팅상담' AS PRDT_TYPE, PSC.CATE_IDX, PSC.CHAT_IDX AS PRDT_IDX, PPC.CHAT_CD AS PRDT_CD, (SELECT CONCAT(PIP.INFO_PRDT_TITL1, ' ', PIP.INFO_PRDT_TITL2 ) FROM PPM_INFO_PRDT PIP  WHERE  PIP.PRDT_CD = CONCAT( 'COACHING', PPC.CATE_IDX ) AND PIP.INFO_ORDE = 0 AND PIP.INFO_USE_YN = 'Y') AS PRDT_NM, CHAT_PRIC_REAL AS PRDT_PRIC_REAL, CHAT_IMG_UUID AS PRDT_UUID, 'CHAT_IMG_UUID' AS PRDT_UUID_NM
+							FROM PPM_SALE_CHAT PSC, PPM_PRDT_CHAT PPC WHERE  PSC.CHAT_IDX = PPC.CHAT_IDX
+						UNION ALL
+							SELECT '1:1이메일상담' AS PRDT_TYPE, PSM.CATE_IDX, PSM.MAIL_IDX AS PRDT_IDX, PPM.MAIL_CD AS PRDT_CD, (SELECT CONCAT(PIP.INFO_PRDT_TITL1, ' ', PIP.INFO_PRDT_TITL2 ) FROM PPM_INFO_PRDT PIP  WHERE  PIP.PRDT_CD = CONCAT( 'COACHING', PPM.CATE_IDX ) AND PIP.INFO_ORDE = 0 AND PIP.INFO_USE_YN = 'Y') AS PRDT_NM, MAIL_PRIC_REAL AS PRDT_PRIC_REAL, MAIL_IMG_UUID AS PRDT_UUID, 'MAIL_IMG_UUID' AS PRDT_UUID_NM
+							FROM PPM_SALE_MAIL PSM, PPM_PRDT_MAIL PPM WHERE  PSM.MAIL_IDX = PPM.MAIL_IDX
+						UNION ALL
+							SELECT '라이브클래스' AS PRDT_TYPE, PSLI.CATE_IDX, PSLI.LIVE_IDX AS PRDT_IDX, PPLI.LIVE_CD AS PRDT_CD, (SELECT CONCAT(PIP.INFO_PRDT_TITL1, ' ', PIP.INFO_PRDT_TITL2 ) FROM PPM_INFO_PRDT PIP  WHERE  PIP.PRDT_CD = PPLI.LIVE_CD AND PIP.INFO_ORDE = 0 AND PIP.INFO_USE_YN = 'Y') AS PRDT_NM, LIVE_PRIC_REAL AS PRDT_PRIC_REAL, LIVE_IMG_UUID AS PRDT_UUID, 'LIVE_IMG_UUID' AS PRDT_UUID_NM
+							FROM PPM_SALE_LIVE PSLI, PPM_PRDT_LIVE PPLI WHERE PSLI.LIVE_IDX = PPLI.LIVE_IDX
+						) PRDT
+								
+					WHERE 
+						PRDT.PRDT_CD = PPM_USER_BUY.BUY_PRDT_CD 	
+						AND (BUY_STAT LIKE '%취소%' || BUY_STAT LIKE '%환불%' )
+						AND BUY_NO = #{buyNo}
+						
+	
+		]]>
+	</select>
+	
+	
+	<select id="selectMngRefuList_Excel" parameterType="hashmap" resultType="hashmap">
+		<![CDATA[
+				]]>
+			<if test="status not in {'LIST'}">
+				<![CDATA[
+SELECT 
+
+	CONVERT( REPLACE(CONVERT(C.NUM_DESC, CHAR),'.0',''), UNSIGNED ) AS 'ㄱ_No',
+	BUY_REFU_DTM AS 'ㄴ_취소/환불일자',
+	BUY_COMP_DTM AS 'ㄷ_결제일자',
+	CONCAT( BUY_NO, '(', BUY_NO_CNT ,')' ) AS 'ㄹ_결제번호',
+	PRDT_TYPE AS 'ㅁ_구분',
+	MASTER_NM AS 'ㅂ_마스터명',
+	PARENT_CODE_NM AS 'ㅅ_분야',
+	PRDT_NM AS 'ㅇ_상품명',
+	USER_NM AS 'ㅈ_회원명',
+	USER_PHONE AS 'ㅊ_연락처',
+	BUY_TYPE AS 'ㅋ_결제방법',
+	BUY_STAT AS 'ㅌ_결제상태',
+	REAL_PAY_PRIC AS 'ㅍ_취소/환불금액',
+	CASE 
+		WHEN COUP_DISC_NM = '%' THEN CONCAT( COUP_DISC, COUP_DISC_NM )
+		WHEN COUP_DISC_NM = '원' THEN COUP_DISC
+		ELSE '-'
+	END AS 'ㅎ_쿠폰',
+	IFNULL( 
+	CASE 
+		WHEN CASH_RECEIPT = 1 THEN 'Y'
+		ELSE 'N'
+	END,'' ) AS 'ㅏ_현금영수증'
+	-- BUY_STAT AS 'ㅑ_결제상태/결제취소'
+
+
+ FROM (
+	SELECT B.*, (@rownumB:=@rownumB+1) as NUM_ASC FROM(  
+		SELECT A.*, (@rownumA:=@rownumA+1) as NUM_DESC FROM (
+				]]>
+			</if>
+		<![CDATA[
+			
+			 SELECT
+			 	BUY_REFU_DTM,
+				BUY_COMP_DTM,
+				BUY_NO,
+				BUY_NO_CNT,
+				PRDT_TYPE,
+				BUY_PRDT_CD,
+				PRDT_NM,
+				
+				MASTER_NM,
+				PARENT_CODE_NM,
+				CODE_NM,
+				USER_NM,
+				USER_PHONE,
+				
+				BUY_TYPE,
+				CONVERT( REPLACE(REAL_PAY_PRIC,',','') - REPLACE(REAL_DISC_PRIC,',','') , CHAR  ) PRDT_PRIC_REAL,
+				REAL_PAY_PRIC,
+				REAL_DISC_PRIC,
+				
+				COUP_DISC,
+				COUP_DISC_NM,
+				CASH_RECEIPT,
+				BUY_STAT
+				
+			FROM (
+			
+				SELECT
+					DATE_FORMAT(PUB.BUY_REFU_DTM, '%Y-%m-%d %H:%i:%S') AS BUY_REFU_DTM,
+					DATE_FORMAT(PUB.BUY_COMP_DTM, '%Y-%m-%d %H:%i:%S') AS BUY_COMP_DTM,
+					PUB.BUY_NO,
+					( SELECT COUNT(0) FROM PPM_USER_BUY WHERE BUY_NO = PUB.BUY_NO AND  BUY_REFU_YN != 'N'  ) AS BUY_NO_CNT,
+					(
+						CASE
+							WHEN PUB.BUY_PRDT_CD LIKE '%VL%' THEN 'VOD'
+							WHEN PUB.BUY_PRDT_CD LIKE '%FN%' THEN '화상'
+							WHEN PUB.BUY_PRDT_CD LIKE '%CN%' THEN '채팅'
+							WHEN PUB.BUY_PRDT_CD LIKE '%EN%' THEN '이메일'
+							WHEN PUB.BUY_PRDT_CD LIKE '%LN%' THEN 'LIVE CLASS'
+						END
+					) AS PRDT_TYPE,
+					PUB.BUY_PRDT_CD,
+					(
+						CASE
+							WHEN PUB.BUY_PRDT_CD LIKE '%VL%' THEN ( SELECT CONCAT(PIP.INFO_PRDT_TITL1, ' ', PIP.INFO_PRDT_TITL2 ) FROM PPM_INFO_PRDT PIP  WHERE  PIP.PRDT_CD =  PUB.BUY_PRDT_CD AND PIP.INFO_ORDE = 0 AND PIP.INFO_USE_YN = 'Y' )
+							WHEN PUB.BUY_PRDT_CD LIKE '%FN%' THEN ( SELECT CONCAT(PIP.INFO_PRDT_TITL1, ' ', PIP.INFO_PRDT_TITL2 ) FROM PPM_INFO_PRDT PIP  WHERE  PIP.PRDT_CD =  CONCAT( 'COACHING', PUB.CATE_IDX ) AND PIP.INFO_ORDE = 0 AND PIP.INFO_USE_YN = 'Y' )
+							WHEN PUB.BUY_PRDT_CD LIKE '%CN%' THEN ( SELECT CONCAT(PIP.INFO_PRDT_TITL1, ' ', PIP.INFO_PRDT_TITL2 ) FROM PPM_INFO_PRDT PIP  WHERE  PIP.PRDT_CD =  CONCAT( 'COACHING', PUB.CATE_IDX ) AND PIP.INFO_ORDE = 0 AND PIP.INFO_USE_YN = 'Y' )
+							WHEN PUB.BUY_PRDT_CD LIKE '%EN%' THEN ( SELECT CONCAT(PIP.INFO_PRDT_TITL1, ' ', PIP.INFO_PRDT_TITL2 ) FROM PPM_INFO_PRDT PIP  WHERE  PIP.PRDT_CD =  CONCAT( 'COACHING', PUB.CATE_IDX ) AND PIP.INFO_ORDE = 0 AND PIP.INFO_USE_YN = 'Y' )
+							WHEN PUB.BUY_PRDT_CD LIKE '%LN%' THEN ( SELECT CONCAT(PIP.INFO_PRDT_TITL1, ' ', PIP.INFO_PRDT_TITL2 ) FROM PPM_INFO_PRDT PIP  WHERE  PIP.PRDT_CD =  PUB.BUY_PRDT_CD AND PIP.INFO_ORDE = 0 AND PIP.INFO_USE_YN = 'Y' )
+						END
+					) AS PRDT_NM,
+					PU.USER_NM AS MASTER_NM,
+					P_CODE.CODE_NM AS PARENT_CODE_NM,
+					M_CODE.CODE_NM AS CODE_NM,
+					PU_U.USER_NM,
+					PU_U.USER_PHONE,
+					PUB.BUY_TYPE,
+					
+					PUB.REAL_PAY_PRIC,
+					PUB.REAL_DISC_PRIC,
+					
+					P_COUP.COUP_DISC,
+					PUB_CODE.CODE_NM AS COUP_DISC_NM,
+					CASH_RECEIPT,
+					
+					BUY_STAT
+				FROM
+					PPM_USER_BUY PUB
+						LEFT JOIN PPM_USER_COUP PUC ON PUB.COUP_IDX = PUC.COUP_IDX
+						LEFT JOIN PPM_COUP_DATA PCD ON PUC.DATA_IDX  = PCD.DATA_IDX 
+						LEFT JOIN PPM_COUP P_COUP ON PCD.COUP_IDX  = P_COUP.COUP_IDX
+						LEFT JOIN PPM_CODE PUB_CODE ON P_COUP.COUP_DISC_CD  = PUB_CODE.CODE_ID, 
+					PPM_CATE PC,
+					PPM_USER PU,
+					PPM_USER PU_U,
+					PPM_CODE P_CODE,
+					PPM_CODE M_CODE
+				WHERE
+					(PUB.BUY_STAT LIKE '%취소%' || PUB.BUY_STAT LIKE '%환불%')
+					AND PUB.BUY_NO IS NOT NULL
+					AND PUB.BUY_TYPE IS NOT NULL
+					
+					AND PUB.CATE_IDX = PC.CATE_IDX
+					AND PC.USER_IDX = PU.USER_IDX
+					AND PU_U.USER_IDX = PUB.USER_IDX
+					AND P_CODE.CODE_ID = SUBSTR(PC.CODE_ID, 1 , 5)
+					AND M_CODE.CODE_ID = PC.CODE_ID	
+			) MAIN
+				WHERE
+				 (BUY_STAT LIKE '%취소%' || BUY_STAT LIKE '%환불%')
+				]]>
+					<if test="prdtNmSearch not in {null, ''}">
+					<![CDATA[
+						AND PRDT_NM LIKE '%${prdtNmSearch}%'
+					]]>
+					</if>
+					<if test="buyCompDtmSearch not in {null, ''}">
+						<![CDATA[
+							AND DATE_FORMAT(BUY_COMP_DTM, '%Y-%m-%d') = DATE_FORMAT(#{buyCompDtmSearch}, '%Y-%m-%d')
+						]]>
+					</if>
+					<if test="buyRefuDtmSearch not in {null, ''}">
+						<![CDATA[
+							AND DATE_FORMAT(BUY_REFU_DTM, '%Y-%m-%d') = DATE_FORMAT(#{buyRefuDtmSearch}, '%Y-%m-%d')
+						]]>
+					</if>
+					<if test="userNmSearch not in {null, ''}">
+						<![CDATA[
+							AND USER_NM LIKE '%${userNmSearch}%'
+						]]>
+					</if>
+					<if test="buyTypeSearch not in {null, ''}">
+						<![CDATA[
+							AND BUY_TYPE LIKE '%${buyTypeSearch}%'
+						]]>
+					</if>
+					<if test="buyStatSearch not in {null, ''}">
+						<![CDATA[
+							AND BUY_STAT LIKE '%${buyStatSearch}%'
+						]]>
+					</if>
+				<![CDATA[  
+				]]>
+			<if test="status not in {'LIST'}">
+				<![CDATA[
+		) A JOIN (SELECT @rownumA:=0) rownumA ORDER BY   BUY_COMP_DTM
+	) B JOIN (SELECT @rownumB:=0) rownumB ORDER BY NUM_DESC DESC
+) C 
+				]]>
+			</if>
+	</select>
+	
+</mapper>

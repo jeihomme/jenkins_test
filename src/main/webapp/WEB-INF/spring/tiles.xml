@@ -1,0 +1,76 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE tiles-definitions PUBLIC "-//Apache Software Foundation//DTD Tiles Configuration 2.1//EN" "http://tiles.apache.org/dtds/tiles-config_2_1.dtd">
+<tiles-definitions>
+
+	<!-- Empty Layout Template -->
+	<definition name="emptyLayout" template="/WEB-INF/tiles/empty.jsp">		
+		<put-attribute name="body" />		
+	</definition>
+	<definition name="mngEmptyLayout" template="/WEB-INF/tiles/mngEmpty.jsp">		
+		<put-attribute name="body" />		
+	</definition>
+	<definition name="/front/mypeoplemade/chat_solution" extends="emptyLayout">
+		<put-attribute name="body" value="/WEB-INF/views/front/mypeoplemade/chat_solution.jsp"/>		
+	</definition>
+	<definition name="/front/mypeoplemade/email_solution" extends="emptyLayout">
+		<put-attribute name="body" value="/WEB-INF/views/front/mypeoplemade/email_solution.jsp"/>		
+	</definition>
+	<definition name="/front/mypeoplemade/vod_player" extends="emptyLayout">
+		<put-attribute name="body" value="/WEB-INF/views/front/mypeoplemade/vod_player.jsp"/>		
+	</definition>
+	
+	<definition name="/front/popup/*" extends="emptyLayout">
+		<put-attribute name="body" value="/WEB-INF/views/front/popup/{1}.jsp"/>		
+	</definition>
+	<definition name="/front/membership/joinCallback" extends="emptyLayout">
+		<put-attribute name="body" value="/WEB-INF/views/front/account/joinCallback.jsp"/>		
+	</definition>
+	<definition name="/front/membership/loginCallback" extends="emptyLayout">
+		<put-attribute name="body" value="/WEB-INF/views/front/account/loginCallback.jsp"/>		
+	</definition>
+			
+	<!-- Front Layout Template -->
+	<definition name="frontLayout" template="/WEB-INF/tiles/front_layout.jsp">		
+		<put-attribute name="body" />		
+	</definition>
+	<definition name="/front/*/*" extends="frontLayout">		
+		<put-attribute name="body" value="/WEB-INF/views/front/{1}/{2}.jsp"/>		
+	</definition>
+	
+	
+	
+	<!-- Mng Layout Template -->
+<!-- 	<definition name="mngLayout" template="/WEB-INF/tiles/mng_layout.jsp">		 -->
+	<definition name="mngLayout" template="/WEB-INF/tiles/layout_mng.jsp">		
+		<put-attribute name="body" />		
+	</definition>	
+	<definition name="mngLogin" template="/WEB-INF/tiles/mng_login.jsp">		
+		<put-attribute name="body" />		
+	</definition>	
+	<definition name="/mng/login/*" extends="mngLogin">		
+		<put-attribute name="body" value="/WEB-INF/views/mng/login/{1}.jsp"/>		
+	</definition>
+	<definition name="/mng/*/*" extends="mngLayout">		
+		<put-attribute name="body" value="/WEB-INF/views/mng/{1}/{2}.jsp"/>		
+	</definition>
+	
+	
+	<!-- Cms Layout Template -->
+<!-- 	<definition name="cmsLayout" template="/WEB-INF/tiles/cms_layout.jsp">		 -->
+	<definition name="cmsLayout" template="/WEB-INF/tiles/layout_cms.jsp">		
+		<put-attribute name="body" />		
+	</definition>	
+	<definition name="cmsLogin" template="/WEB-INF/tiles/cms_login.jsp">		
+		<put-attribute name="body" />		
+	</definition>	
+	<definition name="/cms/login/*" extends="cmsLogin">		
+		<put-attribute name="body" value="/WEB-INF/views/cms/login/{1}.jsp"/>		
+	</definition>
+	<definition name="/cms/*/*" extends="cmsLayout">		
+		<put-attribute name="body" value="/WEB-INF/views/cms/{1}/{2}.jsp"/>
+	</definition>
+    
+    
+    
+	
+</tiles-definitions>

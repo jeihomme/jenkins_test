@@ -1,0 +1,378 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd"> 
+<mapper namespace="mngMasterappl">
+
+	<!-- 로그인 체크 -->
+	<select id="selectMngMasterapplList" parameterType="hashmap" resultType="hashmap">
+		<![CDATA[
+				]]>
+			<if test="status not in {'LIST'}">
+				<![CDATA[
+SELECT C.*, REPLACE(CONVERT(C.NUM_DESC, CHAR),'.0','') AS NUM_DESC_ORDER FROM (
+  SELECT B.*, (@rownumB:=@rownumB+1) as NUM_ASC FROM(  
+    SELECT A.*, (@rownumA:=@rownumA+1) as NUM_DESC FROM (
+				]]>
+			</if>
+		<![CDATA[
+			   SELECT 
+					APPL_IDX,
+					PUMA.USER_IDX,
+					PU.USER_NM ,
+					PU.USER_NICK ,
+					PU.USER_EMAIL ,
+					PU.USER_PHONE ,
+					
+					( SELECT CODE_NM FROM PPM_CODE WHERE CODE_ID = APPL_CD ) AS APPL_CD,
+					APPL_CD_CNTN,
+					APPL_USE_YN, 
+					APPL_UUID, 
+					APPL_HOPE_PARENT_CD, 
+					(SELECT CODE_NM FROM PPM_CODE PC WHERE CODE_ID = APPL_HOPE_PARENT_CD)  APPL_HOPE_PARENT, 
+					APPL_HOPE_CD_1,
+					(SELECT CODE_NM FROM PPM_CODE PC WHERE CODE_ID = APPL_HOPE_CD_1)  APPL_HOPE_1, 
+					APPL_HOPE_CD_2,
+					(SELECT CODE_NM FROM PPM_CODE PC WHERE CODE_ID = APPL_HOPE_CD_2)  APPL_HOPE_2, 
+					APPL_HOPE_CD_3, 
+					(SELECT CODE_NM FROM PPM_CODE PC WHERE CODE_ID = APPL_HOPE_CD_3)  APPL_HOPE_3, 
+					APPL_SVCE_CD, 
+					
+					APPL_SHORT_PR, 
+					APPL_MAST_QUAL, 
+					APPL_MAST_QUAL_CORP,
+					APPL_MAST_TYPE_CD, 
+					(SELECT CODE_NM FROM PPM_CODE PC WHERE CODE_ID = APPL_MAST_TYPE_CD)  APPL_MAST_TYPE, 
+					APPL_MAST_SNS_YOUT, 
+					APPL_MAST_SNS_INST, 
+					APPL_MAST_SNS_FACE, 
+					APPL_MAST_SNS_BLOG,
+					APPL_MAST_SNS_CAFE, 
+					APPL_MAST_SNS_ETC, 
+					APPL_BOOK_NM, 
+					APPL_BOOK_PUBL, 
+					APPL_BOOK_PUBL_DATE, 
+					APPL_LICE_NM1,
+					APPL_LICE_NM2,
+					APPL_LICE_ACQU_DATE1, 
+					APPL_LICE_ACQU_DATE2,
+					APPL_LICE_AGEN1, 
+					APPL_LICE_AGEN2, 
+					APPL_REAS,
+					APPL_OPEN_CLAS,
+					APPL_LECT_CARE, 
+					PUMA.SYS_REG_IDX,
+					DATE_FORMAT(PUMA.SYS_REG_DTM, '%Y-%m-%d') AS SYS_REG_DTM,
+					PUMA.SYS_MOD_IDX, 
+					DATE_FORMAT(PUMA.SYS_MOD_DTM, '%Y-%m-%d') AS SYS_MOD_DTM
+					FROM 
+						PPM_USER_MAST_APPL PUMA LEFT JOIN PPM_USER PU 
+						ON( PUMA.USER_IDX = PU.USER_IDX )
+						
+						WHERE 
+						APPL_USE_YN = 'Y'
+		
+				]]>
+				<if test="applHopeParent not in {null, ''}">
+					<![CDATA[
+					AND APPL_HOPE_PARENT_CD = #{applHopeParent}
+					]]>
+				</if>
+				<if test="applHope not in {null, ''}">
+					<![CDATA[
+					AND ( APPL_HOPE_CD_1 LIKE '%${applHope}%' OR 
+							APPL_HOPE_CD_2 LIKE '%${applHope}%'  OR
+							APPL_HOPE_CD_3 LIKE '%${applHope}%'
+					)
+					]]>
+				</if>
+				<if test='applLiceYn == "Y" '>
+					<![CDATA[
+					AND ( IFNULL(APPL_LICE_NM1 , '') != '' OR  IFNULL(APPL_LICE_NM2, '') != '' )
+					]]>
+				</if>
+				<if test='applLiceYn == "N" '>
+					<![CDATA[
+					AND ( IFNULL(APPL_LICE_NM1 , '') = '' AND  IFNULL(APPL_LICE_NM2, '') = '' )
+					]]>
+				</if>
+				<if test="applMastType not in {null, ''}">
+					<![CDATA[
+					AND APPL_MAST_TYPE_CD = #{applMastType}
+					]]>
+				</if>
+
+				<if test="applCd not in {null, ''}">
+					<![CDATA[
+					AND APPL_CD = #{applCd}
+					]]>
+				</if>
+
+				<if test="applMasterNm not in {null, ''}">
+					<![CDATA[
+					AND (
+								PU.USER_NM LIKE '%${applMasterNm}%' OR
+								PU.USER_NICK LIKE '%${applMasterNm}%' OR
+								PU.USER_EMAIL LIKE '%${applMasterNm}%' 
+							) 
+					]]>
+				</if>
+						
+				
+						<![CDATA[
+				
+				
+				
+				
+				]]>
+			<if test="status not in {'LIST'}">
+				<![CDATA[
+						) A JOIN (SELECT @rownumA:=0) rownumA
+  ) B JOIN (SELECT @rownumB:=0) rownumB ORDER BY NUM_DESC DESC
+) C WHERE NUM_ASC BETWEEN '${startRow }' AND '${endRow }'
+				]]>
+			</if>
+		<![CDATA[
+		]]>
+	</select>
+	
+	<!-- 로그인 체크 -->
+	<select id="selectMngMasterapplListCnt" parameterType="hashmap" resultType="java.lang.Integer">
+		<![CDATA[
+		SELECT COUNT(*) CNT FROM
+			(    SELECT 
+					APPL_IDX,
+					PUMA.USER_IDX,
+					PU.USER_NM ,
+					PU.USER_NICK ,
+					PU.USER_EMAIL ,
+					PU.USER_PHONE ,
+					
+					( SELECT CODE_NM FROM PPM_CODE WHERE CODE_ID = APPL_CD ) AS APPL_CD,
+					APPL_CD_CNTN,
+					APPL_USE_YN, 
+					APPL_UUID, 
+					APPL_HOPE_PARENT_CD, 
+					(SELECT CODE_NM FROM PPM_CODE PC WHERE CODE_ID = APPL_HOPE_PARENT_CD)  APPL_HOPE_PARENT, 
+					APPL_HOPE_CD_1,
+					(SELECT CODE_NM FROM PPM_CODE PC WHERE CODE_ID = APPL_HOPE_CD_1)  APPL_HOPE_1, 
+					APPL_HOPE_CD_2,
+					(SELECT CODE_NM FROM PPM_CODE PC WHERE CODE_ID = APPL_HOPE_CD_2)  APPL_HOPE_2, 
+					APPL_HOPE_CD_3, 
+					(SELECT CODE_NM FROM PPM_CODE PC WHERE CODE_ID = APPL_HOPE_CD_3)  APPL_HOPE_3, 
+					APPL_SVCE_CD, 
+					
+					APPL_SHORT_PR, 
+					APPL_MAST_QUAL, 
+					APPL_MAST_QUAL_CORP,
+					APPL_MAST_TYPE_CD, 
+					(SELECT CODE_NM FROM PPM_CODE PC WHERE CODE_ID = APPL_MAST_TYPE_CD)  APPL_MAST_TYPE, 
+					APPL_MAST_SNS_YOUT, 
+					APPL_MAST_SNS_INST, 
+					APPL_MAST_SNS_FACE, 
+					APPL_MAST_SNS_BLOG,
+					APPL_MAST_SNS_CAFE, 
+					APPL_MAST_SNS_ETC, 
+					APPL_BOOK_NM, 
+					APPL_BOOK_PUBL, 
+					APPL_BOOK_PUBL_DATE, 
+					APPL_LICE_NM1,
+					APPL_LICE_NM2,
+					APPL_LICE_ACQU_DATE1, 
+					APPL_LICE_ACQU_DATE2,
+					APPL_LICE_AGEN1, 
+					APPL_LICE_AGEN2, 
+					APPL_REAS,
+					APPL_OPEN_CLAS,
+					APPL_LECT_CARE, 
+					PUMA.SYS_REG_IDX,
+					DATE_FORMAT(PUMA.SYS_REG_DTM, '%Y-%m-%d') AS SYS_REG_DTM,
+					PUMA.SYS_MOD_IDX, 
+					DATE_FORMAT(PUMA.SYS_MOD_DTM, '%Y-%m-%d') AS SYS_MOD_DTM
+					FROM 
+						PPM_USER_MAST_APPL PUMA LEFT JOIN PPM_USER PU 
+						ON( PUMA.USER_IDX = PU.USER_IDX )
+						
+						WHERE 
+						APPL_USE_YN = 'Y'
+		
+				]]>
+				<if test="applHopeParent not in {null, ''}">
+					<![CDATA[
+					AND APPL_HOPE_PARENT_CD = #{applHopeParent}
+					]]>
+				</if>
+				<if test="applHope not in {null, ''}">
+					<![CDATA[
+					AND ( APPL_HOPE_CD_1 LIKE '%${applHope}%' OR 
+							APPL_HOPE_CD_2 LIKE '%${applHope}%'  OR
+							APPL_HOPE_CD_3 LIKE '%${applHope}%'
+					)
+					]]>
+				</if>
+				<if test='applLiceYn == "Y" '>
+					<![CDATA[
+					AND ( IFNULL(APPL_LICE_NM1 , '') != '' OR  IFNULL(APPL_LICE_NM2, '') != '' )
+					]]>
+				</if>
+				<if test='applLiceYn == "N" '>
+					<![CDATA[
+					AND ( IFNULL(APPL_LICE_NM1 , '') = '' AND  IFNULL(APPL_LICE_NM2, '') = '' )
+					]]>
+				</if>
+				<if test="applMastType not in {null, ''}">
+					<![CDATA[
+					AND APPL_MAST_TYPE_CD = #{applMastType}
+					]]>
+				</if>
+
+				<if test="applCd not in {null, ''}">
+					<![CDATA[
+					AND APPL_CD = #{applCd}
+					]]>
+				</if>
+
+				<if test="applMasterNm not in {null, ''}">
+					<![CDATA[
+					AND (
+								PU.USER_NM LIKE '%${applMasterNm}%' OR
+								PU.USER_NICK LIKE '%${applMasterNm}%' OR
+								PU.USER_EMAIL LIKE '%${applMasterNm}%' 
+							) 
+					]]>
+				</if>
+						<![CDATA[
+						) A
+		]]>
+	</select>
+	
+	
+	<select id="selectMngMasterapplDetail" parameterType="hashmap" resultType="hashmap">
+		<![CDATA[
+			    
+		    SELECT 
+					APPL_IDX,
+					PUMA.USER_IDX,
+					PU.USER_NM ,
+					PU.USER_NICK ,
+					PU.USER_EMAIL ,
+					PU.USER_PHONE ,
+					
+					APPL_CD,
+					APPL_CD_CNTN,
+					APPL_USE_YN, 
+					APPL_UUID, 
+					APPL_HOPE_PARENT_CD, 
+					(SELECT CODE_NM FROM PPM_CODE PC WHERE CODE_ID = APPL_HOPE_PARENT_CD)  APPL_HOPE_PARENT, 
+					APPL_HOPE_CD_1,
+					(SELECT CODE_NM FROM PPM_CODE PC WHERE CODE_ID = APPL_HOPE_CD_1)  APPL_HOPE_1, 
+					APPL_HOPE_CD_2,
+					(SELECT CODE_NM FROM PPM_CODE PC WHERE CODE_ID = APPL_HOPE_CD_2)  APPL_HOPE_2, 
+					APPL_HOPE_CD_3, 
+					(SELECT CODE_NM FROM PPM_CODE PC WHERE CODE_ID = APPL_HOPE_CD_3)  APPL_HOPE_3, 
+					APPL_SVCE_CD, 
+					
+					APPL_SHORT_PR, 
+					APPL_MAST_QUAL, 
+					APPL_MAST_QUAL_CORP,
+					APPL_MAST_TYPE_CD, 
+					(SELECT CODE_NM FROM PPM_CODE PC WHERE CODE_ID = APPL_MAST_TYPE_CD)  APPL_MAST_TYPE, 
+					APPL_MAST_SNS_YOUT, 
+					APPL_MAST_SNS_INST, 
+					APPL_MAST_SNS_FACE, 
+					APPL_MAST_SNS_BLOG,
+					APPL_MAST_SNS_CAFE, 
+					APPL_MAST_SNS_ETC, 
+					APPL_BOOK_NM, 
+					APPL_BOOK_PUBL, 
+					DATE_FORMAT(APPL_BOOK_PUBL_DATE, '%Y-%m-%d') APPL_BOOK_PUBL_DATE, 
+					APPL_LICE_NM1,
+					APPL_LICE_NM2,
+					DATE_FORMAT(APPL_LICE_ACQU_DATE1, '%Y-%m-%d') APPL_LICE_ACQU_DATE1, 
+					DATE_FORMAT(APPL_LICE_ACQU_DATE2, '%Y-%m-%d') APPL_LICE_ACQU_DATE2,
+					APPL_LICE_AGEN1, 
+					APPL_LICE_AGEN2, 
+					APPL_REAS,
+					APPL_OPEN_CLAS,
+					APPL_LECT_CARE, 
+					
+					APPL_BANK_OWN,
+					APPL_BANK_NM,
+					APPL_BANK_ACNT,
+			
+					PUMA.SYS_REG_IDX,
+					DATE_FORMAT(PUMA.SYS_REG_DTM, '%Y-%m-%d') AS SYS_REG_DTM,
+					PUMA.SYS_MOD_IDX, 
+					PUMA.SYS_MOD_DTM
+					FROM 
+						PPM_USER_MAST_APPL PUMA LEFT JOIN PPM_USER PU 
+						ON( PUMA.USER_IDX = PU.USER_IDX )
+						
+						WHERE 
+						APPL_USE_YN = 'Y'
+						AND APPL_IDX = #{applIdx}
+		]]>
+	</select>
+	
+	<update id="deleteMngMasterapplData" parameterType="hashmap" >
+		<![CDATA[
+			    
+		    UPDATE
+		    	PPM_USER 
+		    		SET PREV_USE_YN = 'N'
+		    	
+		    	WHERE 
+		    		PREV_USE_YN = 'Y'
+		    		AND
+		    		PREV_IDX = #{mngIdx}
+		]]>
+	</update>
+	
+	<update id="updateMngMasterapplData" parameterType="hashmap">
+		<![CDATA[
+			UPDATE PPM_USER_MAST_APPL 
+				SET 
+					APPL_CD = #{applCd},
+					APPL_CD_CNTN=#{applCdCntn},
+					APPL_BANK_OWN			= #{applBankOwn }, 
+					APPL_BANK_NM			= #{applBankNm },
+					APPL_BANK_ACNT			= #{applBankAcnt },
+					  
+					  SYS_MOD_IDX=#{mngLoginIdx}, 
+					  SYS_MOD_DTM=DATE_FORMAT(NOW(), '%Y%m%d%H%i%S')
+					  
+					WHERE 
+						APPL_IDX=#{applIdx}
+
+		]]>
+	</update>
+	<update id="updateMngUserMasterYn" parameterType="hashmap">
+		<![CDATA[
+			UPDATE 
+				PPM_DEV.PPM_USER
+						SET 
+						USER_TYPE=#{userType}, 
+		]]>
+		<if test='userType in {"M"}'>
+			<![CDATA[
+						USER_MAST_JOIN_DTM=DATE_FORMAT(NOW(), '%Y%m%d%H%i%S'),
+						PREV_IDX=2,
+			]]>
+		</if>
+		<if test='userType in {"U"}'>
+			<![CDATA[
+						PREV_IDX=NULL, 
+						USER_MAST_JOIN_DTM= NULL,
+			]]>
+		</if>
+		<![CDATA[
+						SYS_MOD_IDX=#{mngLoginIdx}, 
+					  	SYS_MOD_DTM=DATE_FORMAT(NOW(), '%Y%m%d%H%i%S')
+						
+					WHERE 
+						USER_IDX= (SELECT USER_IDX FROM PPM_USER_MAST_APPL WHERE APPL_IDX = #{applIdx})  
+
+		]]>
+	</update>
+	
+	
+	
+</mapper>

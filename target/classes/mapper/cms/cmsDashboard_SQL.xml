@@ -1,0 +1,80 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd"> 
+<mapper namespace="cmsDashboard">
+
+	<!-- 접수내역 목록 조회 -->
+	<select id="selectDashboardNtcList" parameterType="hashmap" resultType="hashmap">
+		<![CDATA[
+							
+				SELECT
+					@rownum:=@rownum+1 as NO,
+					NTC_IDX,
+					NTC_TITLE,
+					(
+						CASE NTC_CATE
+							WHEN '1' THEN '공지사항'
+							WHEN '2' THEN '이벤트'
+							WHEN '3' THEN '보도자료'
+						END
+					) AS  NTC_CATE,
+					
+					DATE_FORMAT( SYS_REG_DTM, "%Y-%m-%d") AS SYS_REG_DTM
+				FROM
+					BLE_BMO_NTC JOIN (SELECT @rownum:=0) rownum
+				WHERE
+					(@rownum:=0)=0
+					AND NTC_USE_YN = 'Y'
+				ORDER BY NTC_IDX DESC
+				LIMIT 5
+
+		]]>
+	</select>
+
+	<!-- 접수내역 목록 조회 -->
+	<select id="selectDashboardEvtAppList" parameterType="hashmap" resultType="hashmap">
+		<![CDATA[
+							
+				SELECT
+					APP_IDX,
+					EVT_IDX,
+					USR_IDX,
+					( SELECT EVT_TITLE FROM BLE_EVT WHERE EVT_IDX = APP.EVT_IDX ) AS EVT_TITLE,
+					APP_NM,
+					DATE_FORMAT( SYS_REG_DTM, "%Y-%m-%d") AS SYS_REG_DTM
+				FROM
+					BLE_EVT_APP APP
+				WHERE
+					EVT_IDX = ( SELECT EVT_IDX FROM BLE_EVT WHERE EVT_IDX = APP.EVT_IDX AND USR_IDX =  '${cmsLoginIdx}' )
+					
+				ORDER BY APP_IDX DESC
+				LIMIT 5
+		]]>
+	</select>
+	
+	
+	<!-- 접수내역 목록 조회 -->
+	<select id="selectDashboardCnt" parameterType="hashmap" resultType="hashmap">
+		<![CDATA[
+		SELECT
+			( 	SELECT 
+					COUNT(APP_IDX)
+				FROM
+					BLE_EVT_APP APP
+				WHERE
+					DATE_FORMAT( SYS_REG_DTM, "%Y-%m-%d") = DATE_FORMAT( CURDATE(), "%Y-%m-%d")
+					AND EVT_IDX = ( SELECT EVT_IDX FROM BLE_EVT WHERE EVT_IDX = APP.EVT_IDX AND USR_IDX =  '${cmsLoginIdx}' )
+			) AS APP_CNT,
+			( 	SELECT
+					COUNT(NTC_IDX)
+				FROM
+					BLE_BMO_NTC
+				WHERE
+					DATE_FORMAT( SYS_REG_DTM, "%Y-%m-%d") = DATE_FORMAT( CURDATE(), "%Y-%m-%d")
+					AND NTC_USE_YN = 'Y'
+			) AS NTC_CNT
+							
+		]]>
+	</select>
+	
+	
+</mapper>

@@ -1,0 +1,435 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd"> 
+<mapper namespace="frontAccount">
+
+<select id="selectFrontAccountIdDuple" parameterType="hashmap" resultType="hashmap">
+		
+		<choose>
+			<when test="division in {'NICK'} ">
+			<![CDATA[
+			    SELECT
+					COUNT(*) CNT
+				FROM
+				    PPM_USER
+				WHERE
+				    (USER_USE_YN = 'Y' OR DATEDIFF( SYS_MOD_DTM, NOW() ) > -30)
+				    AND USER_NICK = #{dupleId}
+			]]>
+			</when>
+			<when test="division in {'EMAIL'} ">
+			<![CDATA[
+			    SELECT
+					COUNT(*) CNT,
+					CASE USER_SNS_TYPE
+					WHEN 'G' THEN '구글'
+					WHEN 'N' THEN '네이버'
+					WHEN 'K' THEN '카카오' 
+					ELSE '일반회원'
+					END SNS_TYPE
+				FROM
+				    PPM_USER
+				WHERE
+				    (USER_USE_YN = 'Y' OR DATEDIFF( SYS_MOD_DTM, NOW() ) > -30)
+				    AND USER_EMAIL = #{dupleId}
+			]]>										
+			</when>
+			<when test="division in {'PHONE2'} ">
+			<![CDATA[
+			    SELECT
+					COUNT(*) CNT
+				FROM
+				    PPM_USER
+				WHERE
+				    (USER_USE_YN = 'Y' OR DATEDIFF( SYS_MOD_DTM, NOW() ) > -30)
+				    AND USER_PHONE = #{dupleId}
+			]]>										
+			</when>
+
+			<when test="division in {'SNS'} ">
+			<![CDATA[
+			    SELECT
+					COUNT(*) CNT
+				FROM
+				    PPM_USER
+				WHERE
+				    USER_USE_YN = 'Y'
+				    ]]>	 
+				    <if test='snsType in {"K"}'>
+			<![CDATA[		
+				AND	KAKAO_ID=#{dupleId}
+					]]>	 
+					</if>
+					<if test='snsType in {"G"}'>
+			<![CDATA[		
+				AND	GOOGLE_ID=#{dupleId}
+					]]>	 
+					</if>
+					<if test='snsType in {"N"}'>
+			<![CDATA[		
+				AND	NAVER_ID=#{dupleId}
+					]]>	 
+					</if>
+			<![CDATA[		
+				    AND USER_SNS_TYPE= #{snsType}
+			]]>										
+			</when>
+
+			<otherwise>
+			<![CDATA[
+			    SELECT
+					COUNT(*) CNT
+				FROM
+				    PPM_USER
+				WHERE
+				    (USER_USE_YN = 'Y' OR DATEDIFF( SYS_MOD_DTM, NOW() ) > -30)
+				    AND USER_EMAIL = #{dupleId}
+			]]>
+			</otherwise>
+		
+		</choose>
+		
+</select>
+
+<!-- 로그인 체크 -->
+<select id="selectFrontLoginCheck" parameterType="hashmap" resultType="hashmap">
+	<choose>
+		<when test='snsType in {"", null}'>
+	<![CDATA[
+		
+		SELECT
+			USER_IDX,
+			USER_EMAIL,
+			USER_NICK,
+			USER_PHONE,
+		  	USER_NM,
+		  	USER_INFO,
+		  	USER_SNS_TYPE,
+		  	USER_TYPE,
+		  	USER_LONG_NON_CONN_YN,
+		  	USER_REST_YN,
+		  	USER_UUID
+		FROM
+		    PPM_USER PU
+		WHERE
+		    USER_EMAIL = #{userEmail}
+		    AND USER_PW = #{userPw}
+		    AND USER_USE_YN = 'Y'
+	]]>
+		</when>
+		<otherwise>
+	<![CDATA[
+		
+		SELECT
+			USER_IDX,
+			USER_EMAIL,
+			USER_NICK,
+			USER_PHONE,
+		  	USER_NM,
+		  	USER_INFO,
+		  	USER_SNS_TYPE,
+		  	USER_TYPE,
+		  	USER_LONG_NON_CONN_YN,
+		  	USER_REST_YN,
+		  	USER_UUID
+		FROM
+		    PPM_USER PU
+		WHERE
+	]]>
+	<if test='snsType in {"K"}'>
+	<![CDATA[
+		    KAKAO_ID = #{userSnsId}
+	]]>
+	</if>
+	<if test='snsType in {"G"}'>
+	<![CDATA[
+		    GOOGLE_ID = #{userSnsId}
+	]]>
+	</if>
+	<if test='snsType in {"N"}'>
+	<![CDATA[
+		    NAVER_ID = #{userSnsId}
+	]]>
+	</if>
+	<![CDATA[
+		    AND USER_SNS_TYPE = #{snsType}
+		    AND USER_USE_YN = 'Y'
+	]]>
+		</otherwise>	
+	</choose>
+</select>
+
+<!-- 로그인 체크 -->
+<update id="updateFrontLoginDtm" parameterType="hashmap">
+	<![CDATA[
+		UPDATE  PPM_USER 
+			SET 
+			USER_LOGIN_DTM = DATE_FORMAT(NOW(), '%Y%m%d%H%i%S'),
+			USER_REST_YN = 'N'
+		WHERE
+		    USER_EMAIL = #{userEmail}
+		    AND USER_PW = #{userPw}
+		    AND USER_USE_YN = 'Y'
+	]]>
+</update>
+
+<insert id="insertFrontAccountData" parameterType="hashmap" >
+<selectKey order="BEFORE" resultType="int" keyProperty="newUserIdx">
+<![CDATA[
+ 	SELECT MAX(USER_IDX)+1 
+ 		FROM 
+ 	       		PPM_USER 
+ ]]>	 
+</selectKey>
+<![CDATA[
+INSERT INTO 
+	PPM_USER
+			(
+			USER_EMAIL, 
+			USER_PW, 
+			USER_PHONE, 
+			USER_NM, 
+			USER_NICK, 
+			USER_SNS_TYPE, 
+			USER_MAIL_YN, 
+			USER_PUSH_YN, 
+			USER_SMS_YN, 
+			USER_REST_YN, 
+			USER_USE_YN,
+			USER_DEL_YN, 
+			USER_LINK,
+			USER_KEYW, 
+			USER_LONG_NON_CONN_YN,
+			USER_TYPE, 
+			USER_PARENT_NM,
+			USER_PARENT_BIRTH,
+			USER_PARENT_EMAIL,
+			]]>	 
+	<choose>
+			<when test='userSnsType in {"K"}'>
+	<![CDATA[		
+			KAKAO_ID,
+			]]>	 
+			</when>
+			<when test='userSnsType in {"G"}'>
+	<![CDATA[		
+			GOOGLE_ID,
+			]]>	 
+			</when>
+			<when test='userSnsType in {"N"}'>
+	<![CDATA[		
+			NAVER_ID,
+			]]>	 
+			</when>
+	</choose>
+	<![CDATA[		
+			
+			SYS_REG_IDX,
+			SYS_REG_DTM, 
+			SYS_MOD_IDX, 
+			SYS_MOD_DTM
+			)
+VALUES(
+			#{userEmail }, 
+			#{userPw }, 
+			#{userPhone },
+			#{userNm },
+			#{userNick }, 
+			#{userSnsType }, 
+			#{userMailYn },
+			#{userPushYn },
+			#{userSmsYn }, 
+			'N',
+			'Y', 
+			'N', 
+			#{userLink}, 
+			#{userKeyw }, 
+			#{userLongNonConnYn }, 
+			'U',
+			#{userParentNm}, 
+			#{userParentBirth }, 
+			#{userParentEmail }, 
+			
+			]]>	 
+	<choose>
+			<when test='userSnsType in {"K"}'>
+	<![CDATA[		
+			#{userSnsId}, 
+			]]>	 
+			</when>
+			<when test='userSnsType in {"G"}'>
+	<![CDATA[		
+			#{userSnsId}, 
+			]]>	 
+			</when>
+			<when test='userSnsType in {"N"}'>
+	<![CDATA[		
+			#{userSnsId}, 
+			]]>	 
+			</when>
+	</choose>
+	<![CDATA[		
+			
+			#{newUserIdx}, 
+			DATE_FORMAT(NOW(), '%Y%m%d%H%i%S'), 
+			#{newUserIdx}, 
+			DATE_FORMAT(NOW(), '%Y%m%d%H%i%S')
+			)
+]]>
+</insert>	
+	
+<insert id="insertFrontJoinCoup" parameterType="hashmap">
+<![CDATA[
+	INSERT INTO 
+	PPM_USER_COUP
+		(
+		USER_IDX,
+		DATA_IDX,
+		COUP_USE_YN,
+		COUP_DEL_YN,
+		
+		SYS_REG_IDX,
+		SYS_REG_DTM, 
+		SYS_MOD_IDX, 
+		SYS_MOD_DTM
+		)
+		VALUES
+		(
+		#{userIdx},
+		(SELECT DATA_IDX FROM PPM_COUP_DATA PCD  WHERE COUP_IDX = (SELECT COUP_IDX FROM PPM_COUP PC WHERE PC.COUP_TYPE = 'CPT02' AND PC.COUP_USE_YN = 'Y' ORDER BY PC.SYS_REG_DTM DESC LIMIT 1) AND DATA_USE_YN = 'Y' LIMIT 1), 
+		'N',
+		'N',	
+			
+		#{userIdx}, 
+		DATE_FORMAT(NOW(), '%Y%m%d%H%i%S'), 
+		#{userIdx}, 
+		DATE_FORMAT(NOW(), '%Y%m%d%H%i%S')
+		)
+]]>
+</insert>	
+	
+
+<!-- 로그인 체크 -->
+<update id="updateFrontAccountData" parameterType="hashmap">
+	<![CDATA[
+		UPDATE
+			PPM_USER 
+		SET 
+			USER_PW = #{userPwMd5},
+			USER_REST_YN = 'N',
+			USER_USE_YN = 'Y'
+		WHERE
+			USER_USE_YN = 'Y'
+		    AND USER_NM = #{pwUserNm}
+		    AND USER_EMAIL = #{pwUserEmail}
+		    AND USER_PHONE = #{pwUserPhone} 
+	]]>
+	
+</update>
+	
+<select id="selectFrontAccountFindId" parameterType="hashmap" resultType="hashmap">
+	<![CDATA[
+	 SELECT 
+	 
+	 	USER_EMAIL,
+	 	USER_USE_YN 
+	 	
+	 		FROM
+	 			PPM_USER 
+	 		
+	 				WHERE 
+	 					USER_PHONE = #{idUserPhone}
+	 					AND USER_NM = #{idUserNm}
+	]]>
+</select>
+	
+	
+	<!-- 로그인 체크 -->
+<select id="selectFrontUserData" parameterType="hashmap" resultType="hashmap">
+	<choose>
+		<when test='snsType in {"", null}'>
+	<![CDATA[
+		
+		SELECT
+			USER_IDX,
+			USER_EMAIL,
+			USER_NICK,
+			USER_PHONE,
+		  	USER_NM,
+		  	USER_INFO,
+		  	USER_SNS_TYPE,
+		  	USER_TYPE,
+		  	USER_LONG_NON_CONN_YN,
+		  	USER_REST_YN,
+		  	USER_USE_YN,
+		  	USER_UUID
+		FROM
+		    PPM_USER PU
+		WHERE
+		    USER_EMAIL = #{userEmail}
+		    AND USER_PW = #{userPw}
+		    AND DATEDIFF( SYS_MOD_DTM, NOW() ) > -30
+	]]>
+		</when>
+		<otherwise>
+	<![CDATA[
+		
+		SELECT
+			USER_IDX,
+			USER_EMAIL,
+			USER_NICK,
+			USER_PHONE,
+		  	USER_NM,
+		  	USER_INFO,
+		  	USER_SNS_TYPE,
+		  	USER_TYPE,
+		  	USER_LONG_NON_CONN_YN,
+		  	USER_REST_YN,
+		  	USER_USE_YN,
+		  	USER_UUID
+		FROM
+		    PPM_USER PU
+		WHERE
+	]]>
+	<if test='snsType in {"K"}'>
+	<![CDATA[
+		    KAKAO_ID = #{userSnsId}
+	]]>
+	</if>
+	<if test='snsType in {"G"}'>
+	<![CDATA[
+		    GOOGLE_ID = #{userSnsId}
+	]]>
+	</if>
+	<if test='snsType in {"N"}'>
+	<![CDATA[
+		    NAVER_ID = #{userSnsId}
+	]]>
+	</if>
+	<![CDATA[
+		    AND USER_SNS_TYPE = #{snsType}
+	]]>
+		</otherwise>	
+	</choose>
+</select>
+	
+	<select id="selectFrontAccountData" parameterType="hashmap" resultType="hashmap">
+	<![CDATA[
+		SELECT
+			USER_IDX,
+			USER_EMAIL,
+		  	USER_NM,
+		  	USER_SNS_TYPE,
+		  	USER_TYPE,
+		  	USER_LONG_NON_CONN_YN,
+		  	USER_REST_YN,
+		  	USER_USE_YN
+		FROM
+		    PPM_USER PU
+		WHERE
+		    USER_EMAIL = #{pwUserEmail}
+		    AND USER_NM = #{pwUserNm}
+		   	AND USER_PHONE = #{pwUserPhone}
+	]]>
+	</select>
+	
+</mapper>

@@ -1,0 +1,493 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd"> 
+<mapper namespace="mngMasterinfo">
+
+	<!-- 로그인 체크 -->
+	<select id="selectMngMasterinfoList" parameterType="hashmap" resultType="hashmap">
+		<![CDATA[
+				]]>
+			<if test="status not in {'LIST'}">
+				<![CDATA[
+SELECT C.*, REPLACE(CONVERT(C.NUM_DESC, CHAR),'.0','') AS NUM_DESC_ORDER FROM (
+  SELECT B.*, (@rownumB:=@rownumB+1) as NUM_ASC FROM(  
+    SELECT A.*, (@rownumA:=@rownumA+1) as NUM_DESC FROM (
+				]]>
+			</if>
+		<![CDATA[
+			   SELECT
+					USER_IDX,
+				  	USER_EMAIL,
+					USER_PW,
+				  	USER_PHONE,
+				  	USER_NM,
+				  	
+				  	USER_SNS_TYPE,
+				  	PREV_IDX,
+				  	IFNULL( (SELECT PREV_NM FROM PPM_PREV PP WHERE PP.PREV_IDX =  PU.PREV_IDX AND PREV_USE_YN = 'Y'), '없음' ) PREV_NM,
+				  	USER_GENDER,
+				  	USER_BIRTH,
+				  	USER_ZONE,
+				  	
+				  	USER_MAIL_YN,
+				  	USER_PUSH_YN,
+				  	USER_SMS_YN,
+				  	USER_REST_YN,
+				  	USER_USE_YN,
+				  	
+				  	USER_DEL_YN,
+				  	DATE_FORMAT(USER_LOGIN_DTM, '%Y-%m-%d %H:%i:%S') USER_LOGIN_DTM,
+				  	DATE_FORMAT(USER_CONS_DTM, '%Y-%m-%d %H:%i:%S') USER_CONS_DTM,
+				  	DATE_FORMAT(USER_MAST_JOIN_DTM, '%Y-%m-%d') USER_MAST_JOIN_DTM,
+				  	USER_INFO,
+				  	
+				  	USER_LINK,
+				  	USER_KEYW,
+				  	
+				  	CASE 
+				  		WHEN (SELECT CODE_NM FROM PPM_CODE PC WHERE PC.CODE_ID =  SUBSTRING( ( SELECT GROUP_CONCAT(CODE_ID) FROM PPM_CATE WHERE USER_IDX = PU.USER_IDX ), 1 , 7 ) ) IS NOT NULL 
+				  		THEN (
+				  			CASE 
+				  				WHEN LENGTH( REPLACE(( SELECT GROUP_CONCAT(CODE_ID) FROM PPM_CATE WHERE USER_IDX = PU.USER_IDX ),',','') ) / 7 -1 > 0 THEN CONCAT((SELECT CODE_NM FROM PPM_CODE PC WHERE PC.CODE_ID =  SUBSTRING( ( SELECT GROUP_CONCAT(CODE_ID) FROM PPM_CATE WHERE USER_IDX = PU.USER_IDX ), 1 , 7 ) ),' 외 ', CAST( LENGTH( REPLACE(( SELECT GROUP_CONCAT(CODE_ID) FROM PPM_CATE WHERE USER_IDX = PU.USER_IDX ),',','') ) / 7 -1 AS UNSIGNED ),'건')
+				  				ELSE (SELECT CODE_NM FROM PPM_CODE PC WHERE PC.CODE_ID =  SUBSTRING( ( SELECT GROUP_CONCAT(CODE_ID) FROM PPM_CATE WHERE USER_IDX = PU.USER_IDX ), 1 , 7 ) )
+				  			END 
+				  			)
+				  		ELSE '-'
+				  	END USER_KEYW_NM, 
+				  	
+				  	USER_TYPE,
+				  	
+				  	SYS_REG_IDX,
+				  	DATE_FORMAT(SYS_REG_DTM, '%Y-%m-%d') SYS_REG_DTM,
+				  	SYS_MOD_IDX,
+				  	SYS_MOD_DTM,
+				  	(SELECT DATE_FORMAT(PC.SYS_REG_DTM, '%Y-%m-%d') FROM PPM_CATE PC WHERE PU.USER_IDX = PC.USER_IDX ORDER BY PC.SYS_REG_DTM ASC LIMIT 1) MASTER_DATE,
+				  	(SELECT COUNT(CATE_CD) FROM PPM_CATE WHERE USER_IDX = PU.USER_IDX AND CATE_USE_YN = 'Y') CATE_CD_CNT,
+				  	( SELECT COUNT(0) FROM PPM_USER WHERE USER_TYPE = 'M' AND USER_USE_YN = 'Y' ) AS MASTER_CNT,
+				  	
+				  	(
+						SELECT
+							( SELECT CODE_NM FROM PPM_CODE WHERE CODE_ID = PC.CODE_ID )
+						FROM
+							PPM_CATE PC
+						WHERE
+							USER_IDX = PU.USER_IDX
+							AND CATE_USE_YN = 'Y'
+							AND CODE_ID IN ( ( SELECT CODE_ID FROM PPM_CODE WHERE CODE_ID = PC.CODE_ID ) )
+						LIMIT 1
+					) AS CODE_LIST
+				  	
+				FROM
+				    PPM_USER PU
+				WHERE
+					USER_TYPE = 'M'
+				]]>
+				
+							<if test="searchCate not in {null, ''}">
+								<![CDATA[
+									AND (
+										USER_NM LIKE '%${searchCate}%' 
+										
+										OR USER_EMAIL LIKE '%${searchCate}%' 
+										
+										
+									--	OR USER_IDX IN ( 
+									--			SELECT USER_IDX
+									--				FROM  PPM_CATE
+									--					WHERE CODE_ID IN (
+									--						SELECT CODE_ID 
+									--							FROM PPM_CODE PC 
+									--								WHERE PC.CODE_NM LIKE '%${searchCate}%' 
+									--						)
+									--					OR 
+									--						SUBSTRING( CODE_ID, 1,5 ) IN (
+									--						SELECT CODE_ID 
+									--							FROM PPM_CODE PC 
+									--								WHERE PC.CODE_NM LIKE '%${searchCate}%' 
+									--								AND CODE_PARENT_IDX = 0
+									--						)					
+									--				)  
+										)
+					
+								]]>
+							</if>
+							<if test="masterStrDtm not in {null, ''} and masterEndDtm not in {null, ''}">
+								<![CDATA[
+									AND 
+										DATE_FORMAT( PU.USER_MAST_JOIN_DTM, '%Y-%m-%d')
+													
+													BETWEEN #{masterStrDtm} AND #{masterEndDtm}
+
+								]]>
+							</if>
+				
+						<![CDATA[
+				
+				
+				
+				
+				]]>
+			<if test="status not in {'LIST'}">
+				<![CDATA[
+						) A JOIN (SELECT @rownumA:=0) rownumA
+  ) B JOIN (SELECT @rownumB:=0) rownumB ORDER BY USER_IDX DESC
+) C WHERE NUM_ASC BETWEEN '${startRow }' AND '${endRow }'
+				]]>
+			</if>
+		<![CDATA[
+		]]>
+	</select>
+	
+	<!-- 로그인 체크 -->
+	<select id="selectMngMasterinfoListCnt" parameterType="hashmap" resultType="java.lang.Integer">
+		<![CDATA[
+			    SELECT
+					COUNT(*) AS CNT
+				FROM
+				    PPM_USER PU
+				WHERE
+					USER_TYPE = 'M'
+				]]>
+				<if test="searchCate not in {null, ''}">
+								<![CDATA[
+									AND (
+										USER_NM LIKE '%${searchCate}%' 
+										
+										OR USER_EMAIL LIKE '%${searchCate}%' 
+										
+										
+										OR USER_IDX IN ( 
+												SELECT USER_IDX 
+												
+													FROM  PPM_CATE 
+													
+														WHERE CODE_ID IN ( 
+														
+																						SELECT CODE_ID
+																							FROM PPM_CODE PC 
+																								WHERE PC.CODE_NM LIKE '%${searchCate}%' 
+																						)
+																	OR 
+																	SUBSTRING( CODE_ID, 1,5 ) IN ( 
+														
+																						SELECT CODE_ID 
+																							FROM PPM_CODE PC 
+																								WHERE PC.CODE_NM LIKE '%${searchCate}%' 
+																								AND CODE_PARENT_IDX = 0
+																						)
+																	 
+																)  
+									
+											)
+					
+								]]>
+							</if>
+							<if test="masterStrDtm not in {null, ''} and masterEndDtm not in {null, ''}">
+								<![CDATA[
+									AND 
+										DATE_FORMAT( PU.USER_MAST_JOIN_DTM, '%Y-%m-%d')
+													
+													BETWEEN #{masterStrDtm} AND #{masterEndDtm}
+
+								]]>
+							</if>
+						<![CDATA[
+		]]>
+	</select>
+	
+	
+	<!-- 로그인 체크 -->
+	<select id="selectMngMasterinfoList_Excel" parameterType="hashmap" resultType="hashmap">
+		<![CDATA[
+				]]>
+			<if test="status not in {'LIST'}">
+				<![CDATA[
+SELECT CONVERT( NUM_DESC, UNSIGNED ) AS 'ㄱ_NO' ,ㄴ_마스터명, ㄷ_계정, ㄹ_분야내역, ㅁ_회원가입일, ㅂ_마스터승인일 , ㅅ_보유_마스터코드_수, ㅇ_권한 FROM (
+  SELECT B.*, (@rownumB:=@rownumB+1) as NUM_ASC FROM(  
+    SELECT A.*, (@rownumA:=@rownumA+1) as NUM_DESC FROM (
+				]]>
+			</if>
+		<![CDATA[
+			   SELECT
+				  	USER_NM AS 'ㄴ_마스터명',
+				  	USER_EMAIL AS 'ㄷ_계정',
+				  	
+				  	CASE 
+				  		WHEN (SELECT CODE_NM FROM PPM_CODE PC WHERE PC.CODE_ID =  SUBSTRING( ( SELECT GROUP_CONCAT(CODE_ID) FROM PPM_CATE WHERE USER_IDX = PU.USER_IDX ), 1 , 7 ) ) IS NOT NULL 
+				  		THEN (
+				  			CASE 
+				  				WHEN LENGTH( REPLACE(( SELECT GROUP_CONCAT(CODE_ID) FROM PPM_CATE WHERE USER_IDX = PU.USER_IDX ),',','') ) / 7 -1 > 0 THEN CONCAT((SELECT CODE_NM FROM PPM_CODE PC WHERE PC.CODE_ID =  SUBSTRING( ( SELECT GROUP_CONCAT(CODE_ID) FROM PPM_CATE WHERE USER_IDX = PU.USER_IDX ), 1 , 7 ) ),' 외 ', CAST( LENGTH( REPLACE(( SELECT GROUP_CONCAT(CODE_ID) FROM PPM_CATE WHERE USER_IDX = PU.USER_IDX ),',','') ) / 7 -1 AS UNSIGNED ),'건')
+				  				ELSE (SELECT CODE_NM FROM PPM_CODE PC WHERE PC.CODE_ID =  SUBSTRING( ( SELECT GROUP_CONCAT(CODE_ID) FROM PPM_CATE WHERE USER_IDX = PU.USER_IDX ), 1 , 7 ) )
+				  			END 
+				  			)
+				  		ELSE '-'
+				  	END 'ㄹ_분야내역', 
+				  	
+				  	DATE_FORMAT(SYS_REG_DTM, '%Y-%m-%d') AS 'ㅁ_회원가입일',
+				  	DATE_FORMAT(USER_MAST_JOIN_DTM, '%Y-%m-%d') AS 'ㅂ_마스터승인일',
+				  	(SELECT COUNT(PC.CATE_CD) FROM PPM_CATE PC WHERE PU.USER_IDX = PC.USER_IDX AND CATE_USE_YN = 'Y') AS 'ㅅ_보유_마스터코드_수',
+				  	IFNULL( (SELECT PREV_NM FROM PPM_PREV PP WHERE PP.PREV_IDX =  PU.PREV_IDX AND PREV_USE_YN = 'Y'), '없음' ) 'ㅇ_권한'
+				FROM
+				    PPM_USER PU
+				WHERE
+					USER_TYPE = 'M'
+				]]>
+				
+							<if test="searchCate not in {null, ''}">
+								<![CDATA[
+									AND (
+										USER_NM LIKE '%${searchCate}%' 
+										
+										OR USER_EMAIL LIKE '%${searchCate}%' 
+										
+										
+										OR USER_IDX IN ( 
+												SELECT USER_IDX 
+												
+													FROM  PPM_CATE 
+													
+														WHERE CODE_ID IN ( 
+														
+																						SELECT CODE_ID 
+																							FROM PPM_CODE PC 
+																								WHERE PC.CODE_NM LIKE '%${searchCate}%' 
+																						)
+																	OR 
+																	SUBSTRING( CODE_ID, 1,5 ) IN ( 
+														
+																						SELECT CODE_ID 
+																							FROM PPM_CODE PC 
+																								WHERE PC.CODE_NM LIKE '%${searchCate}%' 
+																								AND CODE_PARENT_IDX = 0
+																						)					
+																	 
+																)  
+									
+											)
+					
+								]]>
+							</if>
+							<if test="masterStrDtm not in {null, ''} and masterEndDtm not in {null, ''}">
+								<![CDATA[
+									AND 
+										DATE_FORMAT( PU.USER_MAST_JOIN_DTM, '%Y-%m-%d')
+													
+													BETWEEN #{masterStrDtm} AND #{masterEndDtm}
+
+								]]>
+							</if>
+				
+						<![CDATA[
+				
+				
+				
+				
+				]]>
+			<if test="status not in {'LIST'}">
+				<![CDATA[
+						) A JOIN (SELECT @rownumA:=0) rownumA
+  ) B JOIN (SELECT @rownumB:=0) rownumB ORDER BY NUM_DESC DESC
+) C
+				]]>
+			</if>
+		<![CDATA[
+		]]>
+	</select>
+	
+	<select id="selectMngMasterinfoDetail" parameterType="hashmap" resultType="hashmap">
+		<![CDATA[
+			    
+		    SELECT
+					USER_IDX,
+					USER_NM,
+					PREV_IDX,
+					USER_EMAIL,
+				  	DATE_FORMAT(SYS_REG_DTM, '%Y-%m-%d') AS SYS_REG_DTM,
+				  	DATE_FORMAT(USER_MAST_JOIN_DTM, '%Y-%m-%d') AS USER_MAST_JOIN_DTM,
+				  	
+				  	DATE_FORMAT(USER_LOGIN_DTM, '%Y-%m-%d %H:%i:%S') AS USER_LOGIN_DTM,
+				  	DATE_FORMAT(USER_CONS_DTM, '%Y-%m-%d') AS USER_CONS_DTM
+				  	
+				FROM
+				   PPM_USER
+				WHERE
+					USER_IDX = #{userIdx}
+		]]>
+	</select>
+	
+	<select id="selectMngMasterinfoDetailList" parameterType="hashmap" resultType="hashmap">
+		<![CDATA[
+			 
+SELECT C.*, REPLACE(CONVERT(C.NUM_DESC, CHAR),'.0','') AS NUM_DESC_ORDER FROM (
+  SELECT B.*, (@rownumB:=@rownumB+1) as NUM_ASC FROM(  
+    SELECT A.*, (@rownumA:=@rownumA+1) as NUM_DESC FROM (
+       
+		    SELECT
+				CATE_IDX,
+				CATE_CD AS DATA1,
+				( SELECT CODE_NM FROM PPM_CODE WHERE CODE_IDX = PARENT_CODE_IDX ) AS DATA2,
+				CODE_NM AS DATA3,
+				DATE_FORMAT(SYS_REG_DTM, '%Y-%m-%d ') AS DATA4,
+			--	CATE_INFO AS DATA5,
+			--	CATE_SLOG AS DATA6,
+				CATE_USE_YN,
+				CATE_READ_YN
+				
+			FROM (
+				SELECT
+				  	CATE_IDX,
+				  	USER_IDX,
+				  	CODE_ID,
+				  	( SELECT CODE_NM FROM PPM_CODE WHERE CODE_ID = PC.CODE_ID ) AS CODE_NM,
+				  	( SELECT CODE_PARENT_IDX FROM PPM_CODE WHERE CODE_ID = PC.CODE_ID ) AS PARENT_CODE_IDX,
+				  	CATE_CD,
+				--  CATE_SLOG,
+				--  CATE_INFO,
+				  	CATE_USE_YN,
+				  	CATE_READ_YN,
+				  	SYS_REG_DTM
+				FROM
+					PPM_CATE PC
+				WHERE
+					USER_IDX = #{userIdx}
+			) TEMP
+						) A JOIN (SELECT @rownumA:=0) rownumA
+  ) B JOIN (SELECT @rownumB:=0) rownumB ORDER BY CATE_IDX DESC
+) C WHERE NUM_ASC BETWEEN '1' AND '9999'
+		]]>
+	</select>
+
+	<select id="selectMngMasterinfoDetailData" parameterType="hashmap" resultType="hashmap">
+		<![CDATA[
+			SELECT COUNT(0) CNT 
+				FROM PPM_CATE
+					WHERE USER_IDX = #{userIdx}
+					AND CODE_ID = #{codeId}
+		]]>		
+	</select>
+	
+	<insert id="insertMngMasterinfoDetailData" parameterType="hashmap">
+		<![CDATA[
+			INSERT 
+			
+				INTO PPM_CATE
+					(
+					USER_IDX, 
+					CODE_ID, 
+					CATE_CD, 
+					CATE_SLOG, 
+					CATE_INFO, 
+					CATE_USE_YN, 
+					CATE_READ_YN, 
+					
+					SYS_REG_IDX, 
+					SYS_REG_DTM, 
+					SYS_MOD_IDX, 
+					SYS_MOD_DTM
+					)
+					
+				VALUES(
+					#{userIdx}, 
+					#{codeId}, 
+					(
+							SELECT
+									CONCAT(
+										CONCAT(
+											'${cateCd}',
+											(
+												CASE
+													WHEN COUNT(PPF.CATE_IDX) BETWEEN 0 AND 9999 THEN 'A'
+													WHEN COUNT(PPF.CATE_IDX) > 9999 THEN CHAR(ASCII('A') + FLOOR(COUNT(PPF.CATE_IDX)/10000))
+													WHEN COUNT(PPF.CATE_IDX) = 0 THEN 'A'
+												END
+											)
+										),
+										(
+											CASE 
+												WHEN COUNT(PPF.CATE_IDX) BETWEEN 0 AND 9999 THEN LPAD( COUNT(PPF.CATE_IDX)+1 , 4 , 0)
+												WHEN COUNT(PPF.CATE_IDX) > 9999 THEN LPAD( COUNT(PPF.CATE_IDX)+1 - 9999 , 4 , 0)
+												WHEN COUNT(PPF.CATE_IDX) = 0 THEN '0001'
+											END
+										)
+									)
+							FROM
+								PPM_CATE PPF
+							WHERE
+								CATE_CD LIKE '%${cateCd}%'
+						),
+					#{cateSlog}, 
+					#{cateInfo}, 
+					'N', 
+					'N', 
+					
+					#{mngLoginIdx}, 
+					DATE_FORMAT(NOW(), '%Y%m%d%H%i%S'), 
+					#{mngLoginIdx}, 
+					DATE_FORMAT(NOW(), '%Y%m%d%H%i%S')
+					)
+		]]>
+	</insert>
+	
+	
+	
+	
+	
+	<update id="updateMngMasterinfoData" parameterType="hashmap">
+		<![CDATA[
+			UPDATE
+				PPM_USER
+			SET 
+				PREV_NM=#{mngNm},
+				PREV_USE_YN=#{mngUseYn}, 
+				SYS_MOD_IDX=#{mngLoginIdx}, 
+				SYS_MOD_DTM=DATE_FORMAT(NOW(), '%Y%m%d%H%i%S')
+			WHERE 
+				PREV_IDX=#{mngIdx}
+
+		]]>
+	</update>
+	<update id="updateMngUseYn" parameterType="hashmap">
+		<![CDATA[
+			UPDATE
+				PPM_CATE
+			SET 
+				CATE_USE_YN='${useYn}', 
+				SYS_MOD_IDX=#{mngLoginIdx}, 
+				SYS_MOD_DTM=DATE_FORMAT(NOW(), '%Y%m%d%H%i%S')
+					  
+			WHERE 
+				CATE_IDX=#{idx}
+
+		]]>
+	</update>
+
+	<update id="updateMngMasterPrev" parameterType="hashmap">
+		<![CDATA[
+			UPDATE
+				PPM_USER
+			SET 
+				PREV_IDX=#{prevIdx}, 
+				SYS_MOD_IDX=#{mngLoginIdx}, 
+				SYS_MOD_DTM=DATE_FORMAT(NOW(), '%Y%m%d%H%i%S')
+					  
+			WHERE 
+				USER_IDX=#{userIdx}
+
+		]]>
+	</update>
+	
+	<update id="updateMngReadYn" parameterType="hashmap">
+		<![CDATA[
+			UPDATE
+				PPM_CATE
+			SET 
+				CATE_READ_YN='${readYn}', 
+				SYS_MOD_IDX=#{mngLoginIdx}, 
+				SYS_MOD_DTM=DATE_FORMAT(NOW(), '%Y%m%d%H%i%S')
+					  
+			WHERE 
+				CATE_IDX=#{idx}
+
+		]]>
+	</update>
+	
+</mapper>

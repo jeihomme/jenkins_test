@@ -1,0 +1,1425 @@
+@charset "utf-8";
+#wrap{width: 100%}
+#header{width: 100%; position: relative}
+.hideHeading{width: 1px; height: 1px; overflow: hidden; position: absolute; left: -9999px}
+.topMenu{width: 1200px; margin: 0 auto; height: 80px; display: -webkit-flex; display: flex; -webkit-justify-content: space-between; justify-content: space-between}
+.topMenu h1{width: 200px; margin-top: 20px}
+.topMenu h1 a{display: block}
+.topMenu h1 a img{width: 100%}
+.topMenu p{width: 450px; height: 45px; line-height: 45px; border: 2px solid #2EA8AA; box-sizing: border-box; overflow: hidden; margin-top: 17.5px; position: relative}
+.topMenu p input{display: block; width: 100%; height: 100%; border: none; text-indent: 10px}
+.topMenu p .btn_srch{top: 3px}
+.topMenu div{width: 300px; height: 60px; margin-top: 10px}
+.topMenu div ul{width: 100%; height: 100%}
+.topMenu div ul li{float: left; margin-top: 22px; font-size: 14px}
+.topMenu div ul li span{display: inline-block; padding: 0 8px; cursor: default; color: #ccc}
+.topMenu div ul li:last-child{float: right; margin-top: 10px}
+.topMenu div ul li button{width: 150px; height: 40px; background-color: #2EA8AA; border: none; color: #fff; cursor: pointer}
+.topMenu div ul li a{color: #767676}
+
+/* 로그인 완료된 레이아웃 */
+.topMenu_loggedProfile{width: 120px; text-align: center; margin-left: 10px; margin-top: 0!important; text-align: center; position: relative; transition: all 0.5s}
+.topMenu_loggedProfile a{display: block; width: 60px; height: 60px; position: relative}
+.topMenu_loggedProfile a i{position: absolute; right: 0; bottom: 0; width: 16px; height: 16px; border-radius: 50%; background-color: #FF6004; box-sizing: border-box; border: 2px solid #ededed}
+.topMenu_loggedProfile a img{width: 60px; height: 60px; border-radius: 50%; box-sizing: border-box; border: 3px solid #3d3d3d}
+.topMenu_loggedMenu{display: none; width: 120px!important; height: 184px!important; background-color: #fff; z-index: 10; border: 1px solid #444; position: absolute; left: -30px; top: 60px}
+.topMenu_loggedMenu li{width: 90%; margin: 0 auto!important; line-height: 30px; border-bottom: 1px solid #ececec; float: none!important}
+.topMenu_loggedMenu li a{display: block; width: 100%; height: 30px}
+
+#gnb{width: 100%; border-top: 1px solid #ededed; border-bottom: 1px solid #ededed; box-sizing: border-box}
+#gnb ul{width: 800px; height: 50px; margin: 0 auto; display: -webkit-flex; display: flex; -webkit-justify-content: space-between; justify-content: space-between}
+#gnb ul li{width: 100px; height: 50px; line-height: 50px; text-align: center; font-weight: 600}
+#gnb ul li a{display: block; color: #767676}
+#gnb .active a{color: #008eb1}
+.m_topMenu{display: none; width: 100%; height: 60px; position: relative; overflow: hidden}
+.m_topMenu h1{width: 200px; margin: 10px auto 0}
+.m_topMenu h1 a{display: block}
+.m_topMenu h1 a img{width: 100%}
+.m_topMenu p{position: absolute; top: 0; width: 50px; height: 60px; text-align: center; line-height: 60px}
+.m_topMenu p a{display: block}
+.m_topMenu p a i{font-size: 24px; color: #2EA8AA}
+.m_topMenu_menu{left: 10px}
+.m_topMenu_search{right: 60px}
+.m_topMenu_profile{right: 10px}
+.btn_srch{position: absolute; right: 0; top: 0; background-color: rgba(255, 255, 255, 0); border: none; width: 36px; height: 36px; text-align: center; padding: 0; cursor: pointer}
+
+/*################################################################################*/
+
+/* 임시_로그인 멤버 아이콘 스타일 */
+.member_icon_function{width: 100px; position: absolute; right: 520px; top: 20px; z-index: 20}
+.member_icon a{display: block}
+.member_icon_function i{opacity: 0; margin-left: -24px}
+.member_list{opacity: 0; margin-left: -38px; margin-top: -12px}
+
+/*################################################################################*/
+
+/* modal popup */
+#screenCover{background-color: rgba(0,0,0,0.2); position: absolute; left: 0; top: 0; z-index: 50}
+#menuMobile{position: absolute; left: 0; top: 0; z-index: 51; width: 300px; background-color: #fff; display: none}
+.menuMobileWrap{width: 100%}
+.menuMobile_listM{width: 100%}
+.menuMobile_listM li{width: 100%; height: 44px; line-height: 44px; font-size: 15px; text-indent: 20px}
+.menuMobile_listM li:nth-child(3){height: 308px}
+.menuMobile_listM li a{display: block}
+.menuMobile_listM li a img{max-width: 24px; vertical-align: middle; padding-right: 12px}
+.menuMobile_listM li a i{display: inline; font-size: 22px; vertical-align: middle; padding-right: 9px; color: #2B7C7D; margin-left: -4px}
+.menuMobile_listS{width: 100%}
+.menuMobile_listS li{width: 100%; height: 44px; line-height: 44px; font-size: 15px; text-indent: 50px}
+.menuMobile_listS li:nth-child(3){height: 44px}
+.menuMobile_listS li a i{margin-left: -1px; padding-right: 10px}
+
+#menuSearch{position: absolute; left: 0; top: 0; z-index: 51; width: 100%; background-color: #fff; display: none}
+#menuSearch p{width: 100%; position: relative}
+#menuSearch p input{display: block; width: 100%; border: none; height: 57px; line-height: 57px; text-indent: 10px; font-size: 18px}
+#menuSearch p .btn_srch{top: 12px; right: 10px}
+
+#modal_guide_banner{position: fixed; left: 50%; top: 10%; z-index: 52; width: 600px; margin-left: -300px; display: none}
+.modal_guide_banner_close{width: 30px; height: 30px; margin: 0 auto}
+.modal_guide_banner_close a{display: block}
+.modal_guide_banner_close a img{width: 100%}
+.modal_guide_bannerImg{width: 100%; padding-top: 20px}
+.modal_guide_bannerImg img{width: 100%}
+
+/* expire_modal popup */
+#modal_expire{position: fixed; left: 50%; top: 40%; margin-left: -160px; width: 320px; height: 180px; font-size: 14px; z-index: 52; display: none}
+.modal_expire_desc{width: 100%; height: 140px; text-align: center; background-color: #fff}
+.modal_expire_desc span{display: inline-block; width: 80%; margin: 0 auto; padding-top: 40px; word-break: keep-all; line-height: 24px}
+.modal_submit_button{width: 100%; height: 60px; line-height: 60px; overflow: hidden}
+.modal_submit_button a{display: block; width: 50%; height: 100%; float: left; background-color: #444; color: #fff; text-align: center}
+.modal_submit_button a:last-child{background-color: #2ea8aa}
+
+/* contest, social sub modal popup */
+.modal_team_view{position: fixed; top: 10%; left: 50%; margin-left: -200px; width: 400px; font-size: 14px; z-index: 52; display: none}
+.modal_team_view .modal_guide_banner_close{margin-bottom: 30px}
+.modal_team_viewWrap{width: 100%}
+.modal_team_viewWrap h3{text-align: center; font-weight: 500; font-size: 18px; padding: 20px 0; background-color: #f4f4f4}
+.modal_team_viewContents{width: 100%; background-color: #fff}
+.modal_team_viewContents p{width: 90%; margin: 0 auto}
+.modal_team_viewContents p input{width: 100%; height: 40px; border: 1px solid #929292; box-sizing: border-box; text-indent: 10px}
+.modal_team_viewContents p textarea{resize: none; width: 100%; min-height: 140px; border: 1px solid #929292; box-sizing: border-box; padding: 10px}
+.modal_team_viewContents p:first-child{padding: 16px 0}
+.modal_team_viewContents p:last-child{padding-bottom: 16px}
+.modal_posterContents{padding: 0!important; background-color: #444}
+#modal_showPolicy{width: 600px; margin-left: -300px; z-index: 53}
+#modal_showPrivacy{width: 600px; margin-left: -300px; z-index: 53}
+#modal_contestPoster{width: 600px; margin-left: -300px}
+#modal_profileEditAccess{top: 30%}
+.fn_profileEditAccess i{color: #757575}
+#modal_contestReport{top: 20%}
+
+/* team_contest modal popup */
+.teamAdd_search{position: relative}
+.teamAdd_search .btn_srch{right: 0; top: 18px}
+.teamAdd_list{width: 90%; height: 200px; margin: 0 auto; overflow: auto; padding: 10px 0; border-top: 1px solid #ededed; border-bottom: 1px solid #ededed; box-sizing: border-box}
+.teamAdd_list li{width: 100%; overflow: hidden; padding: 10px 0; border-bottom: 1px solid #ededed; box-sizing: border-box}
+.teamAdd_list li:last-child{border-bottom: 0}
+.teamAdd_list li a{display: block; overflow: hidden}
+.teamAdd_list li .alarm_pic{width: 40px; height: 40px; padding: 0; border: 5px solid #444}
+.teamAdd_list li .alarm_txt{width: 70%; height: 50px; margin: 0; padding: 0; padding-left: 5%; line-height: 20px}
+.teamAdd_list li .alarm_txt strong{display: block}
+.teamAdd_list_active .alarm_pic{border-color: #2EA8AA!important}
+.teamAdd_list_active .alarm_txt strong{color: #2EA8AA; font-weight: 500}
+.teamAdd_title{padding: 10px 0}
+
+/* awards popup */
+.modal_awardRegContents p{padding-bottom: 16px}
+
+/* myteam_detail modal popup */
+.modal_addTodoList_list{width: 90%; margin: 0 auto}
+.modal_addTodoList_list h4{padding-top: 30px}
+.modal_addTodoList_list ul{width: 100%; overflow: auto; padding: 20px 0 30px}
+.modal_addTodoList_list ul li{width: 20%; float: left; text-align: center}
+.modal_addTodoList_list ul li a{display: block}
+.todoList_img{width: 50px !important; height: 50px; overflow: hidden; border-radius: 50%; padding: 0 !important; border: 5px solid #444}
+.todoList_img img{width: 100%}
+.todoList_txt{padding-top: 10px; font-size: 12px; padding: 0 !important; margin-top: 6px!important}
+.todoList_active .todoList_img{border-color: #2EA8AA}
+.todoList_active .todoList_txt{color: #2EA8AA; font-weight: 500}
+.modal_addTodo_Date{margin: 20px auto 0 !important; padding-bottom: 30px !important}
+
+/* policy+privacy modal popup */
+.modal_polpriv_wrap{width: 90%; margin: 0 auto; max-height: 400px; overflow: auto; padding: 20px 0}
+
+/* profile_review modal popup */
+.modal_team_viewContents{width: 100%; padding: 20px 0}
+.modal_viewReview_list{width: 100%; overflow: hidden; padding-bottom: 15px}
+.modal_viewReview_title{width: 45%; float: left; text-align: center}
+.modal_viewReview_title h3{font-size: 18px; background-color: #fff; font-weight: 600; line-height: 24px}
+.modal_viewReview_title h3 strong{display: block; font-size: 16px; font-weight: 500}
+.modal_viewReview_title h4{font-size: 18px; color: #2ea8aa; font-weight: 500; line-height: 20px}
+.modal_viewReview_title h4 strong{display: block; font-size: 18px; color: #444; font-weight: 600}
+.modal_viewReview_title i{display: inline-block; width: 120px}
+.modal_viewReview_title i img{width: 100%}
+.modal_viewReview_detail{width: 50%; float: left; padding-top: 12px; padding-left: 2%; padding-right: 3%}
+.modal_viewReview_detail h4{font-size: 18px; color: #2ea8aa; font-weight: 500; line-height: 20px; padding-bottom: 12px}
+.modal_viewReview_detail_list{width: 100%}
+.modal_viewReview_detail_list li{line-height: 24px}
+.modal_viewReview_detail_list li a{display: inline-block; width: 80px; text-align: center}
+.modal_viewReview_detail_list li i{display: inline-block; width: 90px; vertical-align: middle; padding-left: 10px}
+.modal_viewReview_detail_list li i img{width: 100%}
+.modal_viewReview_detail_list .active a{text-decoration: underline}
+.modal_viewReview_contents{width: 100%; padding-top: 15px; border-top: 1px solid #ededed}
+.modal_viewReview_contents_list{width: 100%}
+.modal_viewReview_contents_list li{display: none}
+.modal_viewReview_contents_list li h4{text-align: center; font-size: 18px; color: #2ea8aa; font-weight: 500}
+.modal_viewReview_contents_list li strong{display: block; text-align: center; font-size: 18px; color: #444; font-weight: 600; padding: 12px 0 6px}
+.modal_viewReview_contents_list li i{display: block; width: 90px; margin: 0 auto; padding-bottom: 15px}
+.modal_viewReview_contents_list li i img{width: 100%}
+.modal_viewReview_contents_list li p{padding: 15px 0; font-size: 16px; line-height: 20px}
+.modal_viewReview_contents_list_content{border-top: 1px solid #ededed; border-bottom: 1px solid #ededed}
+.modal_viewReview_contents_list .active{display: block}
+
+/* profile_award modal popup */
+.modal_profileAward_imgWrap{width: 100%}
+.modal_profileAward_imgWrap img{width: 100%}
+
+/* info_guide_estimate popup */
+.pd6{padding: 6px 0 !important}
+.estimate_commercial_date{width: 90%; margin: 0 auto}
+.estimate_commercial_date span{display: block; padding-top: 20px}
+.estimate_commercial_date strong{display: inline-block; width: 10%; margin: 0 -4px; text-align: center}
+.estimate_commercial_date p{width: 45%; display: inline-block}
+.estimate_package_name{padding: 16px 0 6px!important}
+.estimate_checkbox{padding-top: 12px}
+.estimate_checkbox button{display: inline-block; height: 30px; border-radius: 3px; background-color: #fff; border: 1px solid #848484; color: #848484; vertical-align: middle; font-size: 13px; cursor: pointer; float: right; margin-top: -3px}
+
+/* membership_searchidpw popup */
+#modal_findEmail{top: 30%}
+.modal_findEmail{width: 100%; text-align: center; padding: 20px 0}
+.modal_findEmail span{display: block}
+.modal_findEmail input{background-color: #fff!important; border: none!important; font-size: 16px; font-weight: 500; color: #2EA8AA; text-align: center}
+
+/* datepicker 달력 아이콘 */
+.datepicker_wrap{position: relative; padding-top: 16px}
+.ui-datepicker-trigger{position: absolute; right: 2px; top: 20px}
+/*################################################################################*/
+
+#section{width: 100%}
+.sectionWrap{width: 1200px; margin: 0 auto; overflow: hidden}
+
+/*################################################################################*/
+/* main */
+/* main_common */
+.main_sectionTitle{width: 100%; padding: 85px 0 40px; font-size: 16px; font-weight: 700}
+.btn_transp{width: 180px; height: 60px; background-color: rgba(255, 255, 255, 0.2); color: #fff; font-size: 16px; font-weight: 700; border: 1px solid #fff; box-sizing: border-box; cursor: pointer}
+
+/* main swiper */
+.main_swiper{width: 100%; height: 500px}
+.main_swiper .swiper-slide{width: 100%; height: 100%; background-image: url(/resources/images/mainBg.png); background-repeat: no-repeat; background-position: top center}
+.main_swiper .swiper-slide{display: -webkit-flex; -webkit-justify-content: center}
+.main_swiper .swiper-pagination{width: 260px !important; right: 350px !important}
+.main_swiper .swiper-pagination-bullet{width: 55px; height: 55px; text-align: right; opacity: 1; background: rgba(0,0,0,0.2); background-repeat: no-repeat; background-position: center center; background-size: 100% 100%; border-radius: 10px}
+.main_swiper .swiper-pagination-bullet:nth-child(1){background-image: url(/resources/images/mainswiper_bullet01.png)}
+.main_swiper .swiper-pagination-bullet:nth-child(2){background-image: url(/resources/images/mainswiper_bullet02.png)}
+.main_swiper .swiper-pagination-bullet:nth-child(3){background-image: url(/resources/images/mainswiper_bullet03.png)}
+.main_swiper .swiper-pagination-bullet:nth-child(4){background-image: url(/resources/images/mainswiper_bullet04.png)}
+.main_swiper .swiper-pagination-bullet-active{border: 1px solid #fff; box-sizing: border-box; box-shadow: 2px 2px 5px rgba(0,0,0,0.3)}
+.main_slide{width: 1200px; margin: 0 auto; position: relative; color: #fff}
+.main_slide p{padding-top: 130px; font-size: 36px; font-weight: 700; line-height: 48px}
+.main_slide span{display: block; padding: 20px 0; font-size: 18px; font-weight: 600; line-height: 30px}
+
+/* recruit */
+.main_recruit{width: 100%; overflow: hidden; background-color: #fafafa; padding-bottom: 100px}
+.main_recruit_listWrap{width: 49%; float: left}
+.main_recruit_listWrap h3{width: 100%; height: 80px; background-size: 100%; background-repeat: no-repeat; background-position: center center; margin-bottom: 50px}
+.main_recruit_listWrap h3 a{display: block}
+.main_recruit_listWrap h3 a span{display: inline-block; text-indent: 50px; line-height: 80px; color: #fff; font-size: 20px; font-weight: 600}
+.main_recruit_listWrap h3 a span i{display: inline-block; margin-left: 15px; text-indent: 0}
+.main_recruit_listWrap ul{width: 100%; overflow: hidden}
+.main_recruit_listWrap ul li{width: 48%; background-color: #fff; float: left; border: 1px solid #ececec; box-sizing: border-box; margin-bottom: 25px}
+.main_recruit_listWrap ul li:nth-child(2n){float: right}
+.main_recruit_listWrap ul li:hover{border-color: #acacac}
+.main_recruit_listWrap ul li a{display: block; position: relative}
+.main_recruit_img{width: 100%; text-align: center}
+.main_recruit_img img{max-width: 100%; width: 100%}
+.main_recruit_txt{width: 100%; padding: 20px; height: 140px; box-sizing: border-box; color: #3d3d3d; position: relative}
+.main_recruit_txt strong{display: block; font-weight: 600; max-width: 100%; overflow: hidden; white-space: nowrap; text-overflow: ellipsis}
+.main_recruit_txt span{font-size: 15px; padding-top: 8px; line-height: 20px; word-break: keep-all; overflow: hidden; display: -ms-flexbox; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical}
+.main_recruit_txt_detail{width: calc(100% - 40px); font-size: 13px; position: absolute; left: 20px; bottom: 20px; display: -webkit-flex; display: flex; -webkit-justify-content: space-between; justify-content: space-between}
+.main_recruit_txt_detail span{display: inline-block; max-width: 33%; padding: 0; font-size: 13px; line-height: 14px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap}
+.main_recruit_txt_detail b{display: inline-block}
+.main_recruit_txt_detail b i{display: inline-block; margin-right: 4px}
+.main_recruit_txt_detail strong{display: inline-block; color: #008eb1}
+.main_recruit_cate{position: absolute; left: 10px; top: 10px; width: 80px; height: 30px; line-height: 30px; text-align: center; background-color: #2a989b; color: #fff; font-size: 15px}
+.cate_social{background-color: #732e9d}
+.recruit_gong h3{background-image: url(/resources/images/recruit_gong.png)}
+.recruit_social{float: right}
+.recruit_social h3{background-image: url(/resources/images/recruit_social.png)}
+
+/* sub swiper */
+.sub_swiper{width: 100%; height: 250px}
+.sub_swiper .swiper-slide{width: 100%; height: 100%; background-image: url(/resources/images/subBg.png); background-repeat: no-repeat; background-position: top center}
+.sub_swiper .swiper-slide{display: -webkit-flex; -webkit-justify-content: center}
+.sub_slide{width: 1200px; margin: 0 auto; color: #fff; text-align: center}
+.sub_slide p{font-size: 28px; font-weight: 600; padding-top: 50px}
+.sub_slide span{display: block; font-size: 18px; font-weight: 600; padding: 20px 0 30px}
+.sub_swiperPrev{left: 300px !important; background-image: url("data:image/svg+xml;charset=utf-8,%3Csvg%20xmlns%3D'http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg'%20viewBox%3D'0%200%2027%2044'%3E%3Cpath%20d%3D'M0%2C22L22%2C0l2.1%2C2.1L4.2%2C22l19.9%2C19.9L22%2C44L0%2C22L0%2C22L0%2C22z'%20fill%3D'%23ffffff'%2F%3E%3C%2Fsvg%3E") !important}
+.sub_swiperNext{right: 300px !important; background-image: url("data:image/svg+xml;charset=utf-8,%3Csvg%20xmlns%3D'http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg'%20viewBox%3D'0%200%2027%2044'%3E%3Cpath%20d%3D'M27%2C22L27%2C22L5%2C44l-2.1-2.1L22.8%2C22L2.9%2C2.1L5%2C0L27%2C22L27%2C22z'%20fill%3D'%23ffffff'%2F%3E%3C%2Fsvg%3E") !important}
+
+/* hot */
+.hot_swiper{width: 100%; padding-top: 50px!important}
+/* .hot_swiper{width: 100%; height: 380px; padding-top: 50px!important} */
+.hot_swiper .swiper-slide{width: 100%; height: 100%; display: -webkit-flex; -webkit-justify-content: center}
+.recruit_hot{width: 100%; overflow: hidden; background-color: #fafafa; padding-bottom: 100px; border-bottom: 1px solid #ccc; box-sizing: border-box}
+.recruit_hot .main_sectionTitle{width: 1200px; margin: 0 auto; padding: 85px 0 40px; font-size: 16px; font-weight: 700}
+.recruit_hot_listWrap{width: 1200px; margin: 0 auto; overflow: hidden; padding: 10px 0}
+.recruit_hot_listWrap li{width: 23%; background-color: #fff; float: left; border: 1px solid #ececec; box-sizing: border-box; margin-right: 2%; margin-bottom: 2%}
+.recruit_hot_listWrap li a{display: block}
+.recruit_hot_listWrap li:hover{border-color: #acacac}
+.recruit_hot_listWrap li a .main_recruit_txt_detail b{color: #ff6004; font-weight: 600}
+.main_hot_cate{display: inline-block; min-width: 60px; height: 24px; padding: 0 6px; line-height: 24px; text-align: center; font-size: 14px; color: #fff; background-color: #444; border-radius: 20px}
+.hot_swiperPrev{left: 260px !important; background-image: url("data:image/svg+xml;charset=utf-8,%3Csvg%20xmlns%3D'http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg'%20viewBox%3D'0%200%2027%2044'%3E%3Cpath%20d%3D'M0%2C22L22%2C0l2.1%2C2.1L4.2%2C22l19.9%2C19.9L22%2C44L0%2C22L0%2C22L0%2C22z'%20fill%3D'%23c8c8c8'%2F%3E%3C%2Fsvg%3E") !important}
+.hot_swiperNext{right: 280px !important; background-image: url("data:image/svg+xml;charset=utf-8,%3Csvg%20xmlns%3D'http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg'%20viewBox%3D'0%200%2027%2044'%3E%3Cpath%20d%3D'M27%2C22L27%2C22L5%2C44l-2.1-2.1L22.8%2C22L2.9%2C2.1L5%2C0L27%2C22L27%2C22z'%20fill%3D'%23c8c8c8'%2F%3E%3C%2Fsvg%3E") !important}
+
+/* recent */
+.recruit_recent{width: 100%; overflow: hidden; padding-bottom: 100px}
+.mgb15{margin-bottom: 15px}
+.mgb30{margin-bottom: 30px}
+.mgb60{margin-bottom: 60px}
+.mgb90{margin-bottom: 90px}
+
+/* ongoing */
+.recruit_on{width: 100%; overflow: hidden; background-color: #fafafa; padding-bottom: 100px; border-top: 1px solid #ccc; box-sizing: border-box}
+.ongoing_title{width: 100%; height: 80px; margin: 120px 0 40px; line-height: 80px; background-color: #e0ead7; border: 1px solid #d3dec8; box-sizing: border-box}
+.ongoing_title a{display: block; overflow: hidden}
+.ongoing_title a p{width: 46%; float: left}
+.ongoing_title a p:first-child{font-weight: 700; padding-left: 4%}
+.ongoing_title a p:first-child strong{display: inline-block; margin-left: 18px; width: 80px; height: 32px; line-height: 32px; background-color: #ff6004; color: #fff; text-align: center; font-weight: 400; font-size: 14px}
+.ongoing_title a p:last-child{text-align: right; font-size: 14px; padding-right: 4%}
+.ongoing_title a p:last-child span{color: #ff6004}
+.ongoing_title a p:last-child i{display: inline-block; margin-left: 14px}
+.recruit_on_listWrap{width: 100%; overflow: hidden}
+.recruit_on_listWrap li{width: 49%; float: left; background-color: #fff; border: 1px solid #ececec; box-sizing: border-box; margin-bottom: 20px; overflow: hidden}
+.recruit_on_listWrap li:nth-child(2n){float: right}
+.recruit_on_listWrap li:hover{border-color: #acacac}
+.recruit_on_listWrap li a{display: block; overflow: hidden}
+.recruit_on_listWrap li a .main_recruit_img{width: 40%; height: 140px; float: left; overflow: hidden}
+.recruit_on_listWrap li a .main_recruit_txt{width: 60%; height: 140px; float: left; position: relative}
+.recruit_on_listWrap li a .main_recruit_txt span{position: absolute; left: 20px; top: 20px; width: calc(100% - 40px); font-size: 16px; font-weight: 600; line-height: 24px; padding: 0}
+.recruit_on_listWrap li a .main_recruit_txt .main_recruit_txt_detail{position: absolute; left: 20px; bottom: 20px; width: calc(100% - 40px)}
+.recruit_on_listWrap li a .main_recruit_txt .main_recruit_txt_detail i{display: inline-block; max-width: 30%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap}
+.recruit_on_listWrap li a .main_recruit_txt .main_recruit_txt_detail b{color: #ff6004; font-weight: 600}
+
+/*################################################################################*/
+
+/* contest_index */
+.contest_main_visual .swiper-slide{background-image: url(/resources/images/contest_bg.png)!important}
+.contest_main_visual .swiper-pagination-bullet:nth-child(1){background-image: url(/resources/images/mainswiper_bullet04.png)!important}
+.contest_main_visual .swiper-pagination-bullet:nth-child(2){background-image: url(/resources/images/mainswiper_bullet03.png)!important}
+.contest_main_visual .swiper-pagination-bullet:nth-child(3){background-image: url(/resources/images/mainswiper_bullet02.png)!important}
+.contest_main_visual .swiper-pagination-bullet:nth-child(4){background-image: url(/resources/images/mainswiper_bullet01.png)!important}
+.recruit_gong_sub{width: 100%}
+.recruit_gong_sub ul{width: 100%}
+.recruit_gong_sub ul li{width: 23%; float: left; margin-right: 2%}
+.recruit_gong_sub ul li:nth-child(2n){float: left}
+.recruit_gong_sub ul li:nth-child(4n){margin-right: 0}
+
+.recruit_categoryMenu{width: 100%; overflow: hidden}
+.recruit_categoryMenu ol{width: 100%; display: -webkit-flex; display: flex; -webkit-justify-content: space-between; justify-content: space-between; padding: 20px 0 30px}
+.recruit_categoryMenu ol li{width: 9%; text-align: center; cursor: pointer}
+
+.main_recruit_area{width: 100%; height: 40px; line-height: 40px; border-top: 1px solid #ececec; border-bottom: 1px solid #ececec; margin: 10px 0 30px}
+.main_recruit_areaListWrap{width: 400px; height: 40px; float: right; position: relative; margin-right: 25px}
+.main_recruit_areaList_btn{width: 80px; height: 40px; background-color: #fff; cursor: pointer; text-align: center; float: right; box-sizing: border-box; border: 1px solid #ededed; font-size: 14px; color: #3d3d3d}
+.main_recruit_areaList_btn i{padding-left: 6px}
+.main_recruit_areaListWrap ul{position: absolute; right: 0; top: 40px; width: 100%; overflow: hidden; box-sizing: border-box; border: 1px solid #ededed; background-color: #fff; z-index: 1; display: none}
+.main_recruit_areaListWrap ul li{width: 20%; height: 40px; line-height: 40px; float: left; margin-right: 0; margin-bottom: 0; border: 0; text-align: center; font-size: 14px}
+.main_recruit_areaListWrap ul li a{color: #3d3d3d}
+.main_recruit_areaListWrap ul li:hover{background-color: #ededed}
+.main_recruit_areaToTeam{position: absolute; right: 80px; width: 100px; height: 40px; border: 1px solid #ededed!important}
+.main_recruit_areaToTeam i{padding-left: 6px}
+
+.recruit_gong_onList{width: 100%; padding-bottom: 100px; overflow: hidden; background-color: #fafafa}
+.recruit_gong_onList .main_sectionTitle{width: 67%; float: left}
+.recruit_gong_onList_sort{width: 33%; float: right; padding: 85px 0 40px; font-size: 14px; overflow: hidden; text-align: right}
+.recruit_gong_onList_sort li{display: inline-block}
+.recruit_gong_onList_sort li a{color: #656565}
+.recruit_gong_onList_sort li span{display: inline-block; padding: 0 8px}
+.sort_active a{font-weight: 700}
+
+.recruit_gong_onList table{width: 100%; background-color: #fff; border-top: 1px solid #333; box-sizing: border-box; table-layout: fixed; overflow: hidden}
+.recruit_gong_onList table tr{width: 100%; height: 90px; border-bottom: 1px solid #c8c8c8; box-sizing: border-box}
+.recruit_gong_onList table tr:first-child{height: 50px; line-height: 50px; background-color: #F3F3F3; border: none}
+.recruit_gong_onList table tr:last-child{border-bottom: 1px solid #333; box-sizing: border-box}
+.recruit_gong_onList table tr th{font-weight: 600}
+.recruit_gong_onList table tr td{text-align: center; word-break: keep-all; overflow: hidden; vertical-align: middle; color: #696969}
+.recruit_gong_onList table tr td:first-child{text-align: left}
+.recruit_gong_onList table tr:first-child th:first-child{text-align: left; text-indent: 30px}
+.recruit_gong_onList table tr td a{display: inline-block; width: 100%; height: 90px; position: relative}
+.recruit_gong_onList table tr td a span{display: inline-block; max-width: 80%; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; text-indent: 30px; margin-top: 48px}
+.recruit_gong_onList table tr td a b{position: absolute; left: 30px; top: 22px; font-size: 14px; color: #898989}
+.recruit_gong_onList table tr td a strong{display: inline-block; background-color: #2EA8AA; color: #fff; text-align: center; padding: 10px; margin-left: 20px}
+
+.titleCol{max-width: 70%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap}
+.collapseCol{width: 15%}
+
+.recruit_paging{width: 250px; margin: 0 auto; overflow: hidden; display: flex; justify-content: space-between; padding-top: 50px}
+.recruit_paging li{width: 30px; height: 30px; line-height: 28px; text-align: center; border: 1px solid #979797; box-sizing: border-box; font-size: 15px}
+.recruit_paging li:last-child{margin-right: 0}
+.recruit_paging li i{font-size: 12px}
+.recruit_paging li a{display: block; width: 100%; height: 100%; color: #3d3d3d}
+.paging_active{background-color: #2EA8AA; border: 1px solid #2EA8AA}
+.paging_active a{color: #fff !important;}
+
+/*################################################################################*/
+
+/* social_index */
+.social_main_visual .swiper-slide{background-image: url(/resources/images/social_bg.png)!important}
+.social_main_visual .swiper-pagination-bullet:nth-child(1){background-image: url(/resources/images/mainswiper_bullet02.png)!important}
+.social_main_visual .swiper-pagination-bullet:nth-child(2){background-image: url(/resources/images/mainswiper_bullet04.png)!important}
+.social_main_visual .swiper-pagination-bullet:nth-child(3){background-image: url(/resources/images/mainswiper_bullet01.png)!important}
+.social_main_visual .swiper-pagination-bullet:nth-child(4){background-image: url(/resources/images/mainswiper_bullet03.png)!important}
+
+.social_indexLists{width: 100%}
+.social_categoryMenu ol{width: 70%; padding-right: 30%}
+.social_loadMore{width: 100%; text-align: center; padding-top: 50px}
+.social_loadMore button{width: 280px; height: 60px; background-color: #fff; border: 1px solid #c8c8c8; box-sizing: border-box; cursor: pointer; font-size: 16px}
+.social_loadMore button i{padding-left: 4px}
+
+/*################################################################################*/
+
+/* contest, social sub common */
+.sub_common{width: 100%; background-color: #fafafa}
+.sub_box{background-color: #fff; border: 1px solid #ececec; box-sizing: border-box; padding: 25px}
+.sub_common_left{width: 59%; float: left; margin-top: 40px}
+.sub_common_right{width: 39%; float: right; margin-top: 40px}
+.sub_titleImg{width: 100%; margin-bottom: 25px}
+.sub_titleImg img{max-width: 100%}
+.sub_box h3{color: #2ea8aa; font-weight: 600; margin-bottom: 15px}
+.sub_box_txt{width: 100%; margin-bottom: 40px; line-height: 24px; word-break: keep-all}
+.sub_box_list{width: 100%; overflow: hidden}
+.sub_box_list li{width: 16.66%; float: left; text-align: center; font-size: 14px}
+.sub_box_list li i{display: block; width: 74px; height: 74px; box-sizing: border-box; margin: 0 auto}
+.sub_box_list li i img{width: 100%}
+.sub_box_list li p{margin-top: 10px}
+.sub_box_button{width: 100%; text-align: center; padding: 40px 0 70px}
+.sub_box_button button{width: 160px; height: 40px}
+.sub_share{width: 100%; padding-bottom: 25px; color: #444; font-size: 14px}
+.sub_share i{display: inline-block; padding: 0 10px 0 25px}
+
+.sub_common_title{width: 100%; overflow: hidden; position: relative; margin-bottom: 25px}
+.sub_common_title h3{color: #444}
+.sub_common_title h4{padding-bottom: 10px}
+.sub_common_title ul{width: 50%; float: right}
+.sub_common_title ul li{width: 100%; color: #2ea8aa; padding-bottom: 20px}
+.sub_common_title ul li i{display: inline-block; width: 24px; font-size: 24px; vertical-align: middle; text-align: center; padding-right: 10px; color: #7f8489}
+.sub_common_title_m{width: 100%; margin-bottom: 25px; display: none}
+.sub_common_title_m ul{width: 100%}
+.sub_common_title_m ul li{width: 50%; float: left}
+.sub_share_m{display: none}
+.sub_common_report{font-size: 12px; position: absolute; right: 20px; top: 20px}
+.sub_common_report a{color: #f00}
+.sub_common_report i{padding-right: 4px}
+
+.sub_common_teams{width: 100%; margin-bottom: 25px}
+.sub_common_teams h3{text-align: center}
+.sub_common_teams h3 strong{color: #444}
+.sub_common_teams ul{width: 100%}
+.sub_common_teams ul li{width: 20%; text-align: center; position: relative; float: left}
+.sub_common_teams_img{width: 60px; height: 60px; border-radius: 50%; overflow: hidden; margin: 0 auto}
+.sub_common_teams_img img{max-width: 100%}
+.sub_common_teams_txt{font-size: 12px; padding: 10px 0 20px}
+.sub_common_teams_leader{width: 24px; height: 24px; border: 1px solid #ececec; box-sizing: border-box; border-radius: 50%; position: absolute; left: 8px; top: 0; color: #2ea8aa; line-height: 20px; text-align: center; font-size: 12px; background-color: #fff}
+.sub_common_apply{width: 100%}
+.sub_common_apply h3{text-align:center; color: #444; line-height: 24px}
+.apply_subtitle{font-size: 15px; font-weight: 400}
+.sub_common_apply .sub_box_button{padding: 20px 0 30px}
+.sub_common_teams_swiper{width: 100%; height: 110px}
+.sub_common_teams_swiper .swiper-slide{display: -webkit-flex; -webkit-justify-content: center}
+
+.sub_common_qna{margin-top: 25px; margin-bottom: 100px}
+.sub_common_qna h3 strong{color: #444}
+.sub_common_qna ul{width: 100%; border-top: 1px solid #444; border-bottom: 1px solid #444; box-sizing: border-box}
+.sub_common_qna ul li{width: 100%; overflow: hidden}
+.sub_common_qna ul li h4{width: 100%; height: 55px; line-height: 55px}
+.sub_common_qna ul li h4 a{display: block}
+.sub_common_qna ul li h4 a strong{display: block; width: 26px; float: left; padding-right: 12px}
+.sub_common_qna ul li h4 a strong img{vertical-align: middle}
+.sub_common_qna ul li h4 a i{float: right; margin-top: 20px; padding-left: 10px}
+.sub_common_qna ul li h4 a span{display: inline-block; max-width: 70%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap}
+.sub_common_qna ul li h4 a b{width: 96px; float: right; display: inline-block; text-align: right}
+.sub_common_qna ul li h4 a b button{width: 45px; border-radius: 3px; height: 24px; line-height: 20px}
+.sub_common_qna ul li h4 a b button:last-child{margin-left: 6px}
+
+.sub_common_qna_a{width: 100%; height: 55px; line-height: 55px; border-top: 1px solid #ececec; border-bottom: 1px solid #ececec; box-sizing: border-box; background-color: #fafafa}
+.sub_common_qna_a strong{display: block; width: 26px; float: left; padding-left: 12px}
+.sub_common_qna_a span{display: inline-block; max-width: 70%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap}
+.sub_common_qna_a b{width: 96px; float: right; display: inline-block; text-align: right}
+.sub_common_qna_a b button{width: 45px; border-radius: 3px; height: 24px; line-height: 20px}
+.sub_common_qna_a b button:last-child{margin-left: 6px}
+
+.sub_team_list_m{width: 50%!important}
+.sub_team_list_m li{width: 100%!important}
+
+/*################################################################################*/
+
+/* sub_social */
+.social_content .mypage_notice_category{margin-bottom: 25px}
+.social_content .mypage_notice_category li{width: 50%}
+.social_content .mypage_notice_category_scroll li{width: 50%}
+.social_by{font-size: 12px; padding-bottom: 20px}
+.social_dday{font-size: 30px; font-weight: 600; color: #2ea8aa; margin-top: 40px}
+.sub_social_applicant{font-weight: 500; color: #2ea8aa; text-align: center; padding: 10px 0}
+
+/*################################################################################*/
+
+/* sub_contest */
+.contest_right .sub_common_title ul{width: 100%; overflow: hidden}
+.contest_right .sub_common_title ul li{width: 50%; float: left; padding: 10px 0}
+.contest_right .sub_share i{padding: 0 10px 0 20px}
+
+.contest_content .mypage_notice_category{margin-bottom: 25px}
+.contest_content .mypage_notice_category li{width: 33.33%}
+.contest_content .mypage_notice_category_scroll li{width: 33.33%}
+.mypage_notice_category_scroll{position: fixed; top: 0; left: -9999px; z-index: 50; opacity: 0}
+
+.sub_contest_calendar_list{width: 100%; overflow: hidden; background-image: url(/resources/images/sub_contest_calendarBar.png); background-repeat: no-repeat; background-position: 13px center; background-size: 5px 100%}
+.sub_contest_calendar_list li{width: 100%; padding: 16px 0}
+.myteam_schedule_chart{padding: 20px 0}
+.sche_blank i{display: inline-block; width: 30px; height: 30px; border-radius: 50%; border: 1px solid #2ea8aa; box-sizing: border-box; vertical-align: middle; background-color: #fff}
+.sche_blank strong{display: inline-block; width: 30px; color: #2ea8aa; vertical-align: middle; padding: 0 12px}
+.sche_blank span{display: inline-block; vertical-align: middle; padding-right: 6px}
+.sche_chk i{background-image: url(/resources/images/sche_chk.png); background-repeat: no-repeat; background-position: center center}
+.sche_special i{width: 20px; height: 20px; background-color: #2ea8aa; margin: 0 6px}
+.sche_special span{color: #008eb1; font-weight: 500; font-size: 12px}
+.sche_comment_control{display: inline-block; vertical-align: middle; cursor: pointer}
+.sche_comment_close{display: none}
+.sche_memo{width: 50%; margin-left: 87px}
+.sche_memo_option{text-align: right; font-size: 12px; padding-bottom: 10px}
+.sche_memo_option a{color: #838383}
+.sche_memo_option span{padding: 0 4px; vertical-align: top}
+.sche_memo_content{width: 100%; padding: 25px; background-color: #fafafa; border: 1px solid #ececec; box-sizing: border-box; border-radius: 3px; word-break: keep-all; font-size: 14px; line-height: 20px}
+
+.sub_contest_teams{overflow: hidden; margin: 25px 0}
+.sub_contest_teams_title{width: 50%; float: left; height: 25px}
+.sub_contest_teams_listWrap{width: 100%; height: 100%; padding-top: 50px!important}
+.sub_contest_teams_list{width: 100%; box-sizing: border-box; padding: 10px}
+.sub_contest_teams_list li{width: 49%; border: 1px solid #ececec; box-sizing: border-box; display: -webkit-flex; display: flex; -webkit-justify-content: center; justify-content: center}
+.sub_contest_teams_list li a{display: block; width: 100%; height: 100%}
+.sub_contest_teams_list li:hover{border-color: #acacac}
+.sub_contest_recommend{overflow: hidden; margin-bottom: 100px}
+.sub_contest_recommend .recruit_on_listWrap{width: 100%}
+.sub_contest_recommend .recruit_on_listWrap li{width: 100%; float: none}
+.contest_team_move_left{left: auto!important; right: 50px!important; top: 0!important; margin-top: 0!important; background-image: url(/resources/images/btn_prev.png)!important; width: 40px!important; height: 40px!important; background-size: 100%!important}
+.contest_team_move_right{right: 0!important; top: 0!important; margin-top: 0!important; background-image: url(/resources/images/btn_next.png)!important; width: 40px!important; height: 40px!important; background-size: 100%!important}
+
+/*################################################################################*/
+
+/* mypage_index */
+.mypage_subGnb{width: 100%; border-top: 1px solid #F3F3F3; border-bottom: 1px solid #F3F3F3; box-sizing: border-box; background-color: #FAFAFA}
+.mypage_subGnb ul{width: 840px; height: 40px; margin: 0 auto; display: -webkit-flex; display: flex; -webkit-justify-content: space-between; justify-content: space-between}
+.mypage_subGnb ul li{width: 120px; height: 40px; line-height: 40px; text-align: center; font-weight: 600; font-size: 14px}
+.mypage_subGnb ul li a{display: block; color: #767676}
+.mypage_subGnb .active a{color: #2EA8AA}
+
+.mypage_wrap{width: 100%; background-color: #FAFAFA; overflow: hidden; color: #3d3d3d}
+.mypage_wrap .sectionWrap{padding: 40px 0 120px}
+.mypage_layout{width: 49%; float: left; background-color: #fff; border: 1px solid #F3F3F3; box-sizing: border-box; overflow: hidden; padding: 20px}
+.mypage_myInfo{height: 190px; position: relative}
+.myInfo_pic{width: 110px; height: 110px; margin-left: 20px; margin-top: 20px; border-radius: 50%; overflow: hidden; float: left}
+.myInfo_pic a{display: block}
+.myInfo_pic a img{width: 100%}
+.myInfo_content{margin-top: 20px; float: left; padding-left: 40px}
+.myInfo_content strong{display: block; font-size: 18px; font-weight: 700; padding-top: 20px}
+.myInfo_content span{display: block; font-size: 14px; padding: 10px 0}
+.myInfo_content select{display: block; width: 100px; border: 1px solid #f3f3f3; box-sizing: border-box}
+.myInfo_edit{position: absolute; right: 20px; top: 20px; font-size: 24px; cursor: pointer; color: #757575}
+.mypage_myActive{height: 190px; float: right}
+.mypage_myActive h3{height: 40px; line-height: 40px; font-size: 18px; font-weight: 700}
+.mypage_myActive ul{width: 90%; overflow: hidden; padding: 30px 0; margin: 0 auto}
+.mypage_myActive ul li{width: 30%; margin-left: 3.33%; float: left}
+.myActive_wrap{display: block; overflow: hidden}
+.myActive_img{width: 40%; height: 50px; line-height: 50px; float: left; font-size: 40px; text-align: center; color: #2e7e7f}
+.myActive_img i{display: inline-block; width: 36px}
+.myActive_img i img{width: 100%}
+.myActive_txt{width: 55%; height: 50px; float: left; padding-left: 5%}
+.myActive_txt strong{display: block; padding-bottom: 10px}
+.myActive_txt span{font-size: 24px; font-weight: 500; color: #3d3d3d}
+.mypage_alarm{height: 350px; margin-top: 20px}
+.mypage_alarm h3{height: 40px; line-height: 40px; font-size: 18px; font-weight: 700}
+.mypage_alarm ul{width: 100%; height: 270px; overflow: auto}
+.mypage_alarm ul li{width: 100%; height: 80px; border-bottom: 1px solid #f3f3f3; box-sizing: border-box; overflow: hidden; margin: 18px 0}
+.alarm_pic{width: 50px; float: left; border-radius: 50%; overflow: hidden; margin-right: 20px; margin-top: 15px}
+.alarm_pic img{max-width: 100%}
+.alarm_txt{width: 80%; height: 80px; line-height: 80px; float: left; overflow: hidden; display: -ms-flexbox; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical}
+.alarm_txt a{display: inline-block; vertical-align: middle; line-height: normal}
+.alarm_txt strong{font-weight: 700}
+.mypage_etc{height: 350px; margin-top: 20px; float: right}
+.mypage_etc ul{width: 100%; overflow: hidden}
+.mypage_etc ul li{width: 33.33%; float: left; text-align: center; margin-top: 25px}
+.mypage_etc ul li a{display: block; color: #3d3d3d}
+.mypage_etc ul li a i{display: block; width: 100px; height: 100px; line-height: 100px; margin:0 auto; border-radius: 50%; color: #2b7c7d; background-color: #fafafa; border: 1px solid #eeeeee; box-sizing: border-box; font-size: 32px}
+.mypage_etc ul li a span{display: block; margin-top:12px}
+.mypage_etc ul li a i img{width: 32px; vertical-align: middle; margin-bottom: 8px}
+.mypage_logout{width: 100%; clear: both; text-align: right; padding-top: 30px}
+
+/* mypage_profile */
+.mypage_profileWrap{width: 100%; overflow: hidden}
+.mypage_profileWrap .mypage_myActive{float: left; margin-top: 20px}
+.mypage_search{width: 100%; padding: 40px 0 20px; text-align: right}
+.mypage_search input{width: 360px; height: 42px; line-height: 42px; border: 1px solid #929292; box-sizing: border-box; background-image: url(/resources/images/top_srch.png); background-repeat: no-repeat; background-position: 99.5% 3px; text-indent: 10px}
+.mypage_chart{height: 400px; float: right; position: relative; padding: 0!important}
+.mypage_chart_avg{width: 60px; height: 60px; border: 1px solid #ededed; box-sizing: border-box; background-color: #fff; position: absolute; left: 20px; top: 20px; text-align: center; line-height: 18px; font-size: 14px}
+.mypage_chart_avg span{display: block; padding-top: 10px}
+.mypage_chart_avg strong{display: block; font-size: 16px; font-weight: 500; color: #2EA8AA}
+.mypage_table{width: 100%; overflow: hidden; padding-bottom: 80px}
+.mypage_table h3{width: 100%; font-weight: 700; padding: 120px 0 20px}
+.mypage_table h3 i{font-weight: 400; margin-right: 12px; display: inline-block; vertical-align: middle}
+.mypage_table_desc{padding-bottom: 20px; line-height: 24px}
+.mypage_table_desc span{color: #008eb1}
+.mypage_table_common{width: 100%; background-color: #fff; border-top: 1px solid #333; border-bottom: 1px solid #333; box-sizing: border-box; table-layout: fixed; overflow: hidden}
+.mypage_table_common i img{width: 100%}
+.mypage_table_common tr{border-bottom: 1px solid #ececec; box-sizing: border-box}
+.mypage_table_common tr:last-child{border-bottom: 0}
+.mypage_table_common tr th{height: 50px; vertical-align: middle; background-color: #f3f3f3; font-weight: 600; text-align: center}
+.mypage_table_common tr td{height: 70px; vertical-align: middle; text-align: center}
+.tdwidth30{width: 30%}
+.tdwidth50{width: 50%}
+.tdwidth70{width: 70%}
+.mypage_table_reviewRating{display: inline-block; width: 30px; font-weight: 600; color: #008eb1}
+.mypage_table_reviewRating_star{display: inline-block; width: 90px; vertical-align: middle}
+.mypage_table_reviewIcon{font-size: 30px}
+.mypage_table_reviewIcon i{display: inline-block; width: 24px}
+
+/* mypage_bookmark */
+.mypage_bookmarkWrap{width: 100%; overflow: hidden}
+.mypage_bookmarkWrap h3{padding: 50px 0 30px; font-weight: 600}
+.mypage_bookmark_apply{width: 100%}
+.mypage_bookmark_apply ul{width: 100%; overflow: hidden}
+.mypage_bookmark_apply ul li{width: 49%; float: left}
+.mypage_bookmark_apply ul li:nth-child(2n){float: right}
+.mypage_bookmark_applyWrap{width: 100%; border: 1px solid #ececec; box-sizing: border-box; position: relative; background-color: #fff; overflow: hidden}
+.bookmark_img{width: 30%; float: left; text-align: center}
+.bookmark_img img{width: 100%; max-width: 100%}
+.bookmark_txt{width: 70%; float: left; padding: 20px; box-sizing: border-box}
+.bookmark_txt_title{width: 80%; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; font-weight: 600}
+.bookmark_txt_subTitle{display: block; width: 80%; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; font-size: 15px; padding: 15px 0 30px}
+.bookmark_txt_detail{width: 100%; display: -webkit-flex; display: flex; -webkit-justify-content: space-between; justify-content: space-between; font-size: 13px}
+.bookmark_txt_detail i{display: inline-block; padding-right: 4px}
+.bookmark_txt_detail strong{color: #008eb1}
+.bookmark_txt_detail b{color: #ff6400}
+.bookmark_cancel{position: absolute; right: 10px; top: 10px; width: 100px; height: 30px; line-height: 30px; text-align: center; background-color: #444; border-radius: 5px}
+.bookmark_cancel a{display: block; color: #fff; font-size: 14px}
+.bookmark_bookmarked{position: absolute; left: 10px; top: 10px; width: 30px; height: 30px; line-height: 28px; text-align: center; border-radius: 50%; background-color: #fff}
+.bookmark_bookmarked a{display: block; color: #2ea8aa}
+.bookmark_chartArea{width: 100%; overflow: hidden; padding: 20px; border: 1px solid #ececec; box-sizing: border-box; background-color: #fff; margin-top: 10px}
+.bookmark_chartArea h4{width: 50%; float: left; font-weight: 600}
+.bookmark_chart_btns{width: 50%; float: left; text-align: right}
+.bookmark_chart_btns button{background-color: #fff; border: 1px solid #008eb1; color: #008eb1; box-sizing: border-box; cursor: pointer}
+.bookmark_chart{width: 100%; overflow: hidden}
+.bookmark_chart div{width: 49%; float: left}
+.bookmark_chart ul{width: 49%; float: right; margin-top: 20px}
+.bookmark_chart ul li{width: 70%; padding-left: 15%; height: 36px; line-height: 36px; border: none}
+.bookmark_chart ul li:nth-child(2n){float: left}
+.bookmark_chart ul li i{display: inline-block; width: 24px; padding-right: 6px; color: #008eb1}
+.bookmark_chart ul li strong{display: inline-block; float: right}
+
+/* mypage_team_contest */
+.mypage_teamWrap{width: 800px; margin: 0 auto; overflow: hidden; color: #3d3d3d}
+.mypage_teamWrap h2{width: 100%; height: 76px; line-height: 76px; border-radius: 5px; background-color: #e0ead7; border: 1px solid #d3dec8; box-sizing: border-box; text-align: center; margin: 40px 0 20px}
+.mypage_teamWrap h2 p{font-size: 20px}
+.mypage_teamWrap h2 p img{display: inline-block; vertical-align: middle; margin-right: 12px}
+.mypage_team{width: 100%; background-color: #fff; border: 1px solid #eaeaea; box-sizing: border-box; border-radius: 5px; padding: 0 36px; margin-bottom: 120px}
+.mypage_team h3{width: 100%; padding: 50px 0 10px; font-weight: 500}
+.mypage_team input[type="text"]{width: 400px; border: 1px solid #929292; height: 45px; font-size: 14px; text-indent: 10px; box-sizing: border-box}
+.mypage_team input[type="date"]{border: 1px solid #929292; font-size: 14px; box-sizing: border-box}
+.mypage_team select{background-color: #fff; border: 1px solid #929292; box-sizing: border-box; font-size: 14px}
+.btn_team_common{text-align: center; font-size: 14px; vertical-align: middle; cursor: pointer}
+.btn_blk{border: 1px solid #444; background-color: #444; color: #fff}
+.btn_fff{border: 1px solid #444; background-color: #fff; color: #444}
+.btn_grn{border: 1px solid #2ea8aa; background-color: #2ea8aa; color: #fff}
+.btn_lightblue{border: 1px solid #2ea8aa; background-color: #fff; color: #008eb1}
+.team_sortGroup{width: 100%; text-align: left; overflow: hidden}
+.team_sortGroup button{width: 160px; height: 45px; float: left}
+.team_contestName{width: 100%}
+.team_contestName button{width: 100px; height: 45px; margin-left: 10px}
+.team_contestMember ul{width: 100%; overflow: hidden}
+.team_contestMember ul li{width: 100px; height: 100px; border-radius: 50%; border: 1px solid #ececec; box-sizing: border-box; overflow: hidden; float: left; margin-right: 20px; margin-bottom: 20px; text-align: center}
+.team_contestMember ul li:last-child{margin-right: 0}
+.team_contestMember ul li img{max-width: 100%}
+.team_add{line-height: 106px}
+.team_add a{display: block}
+.team_submitWrap{width: 100%; border-top: 1px solid #d8d8d8; text-align: center}
+.team_submitWrap button{width: 160px; height: 45px; margin: 30px 0 50px}
+
+/* mypage_team_social */
+.team_socialLocation select{width: 160px; height: 40px}
+.team_category{width: 100%; padding-top: 20px; display: -webkit-flex; display: flex; -webkit-justify-content: space-between; justify-content: space-between}
+.team_category li{width: 20%; text-align: center}
+.team_category li a{display: block; color: #3d3d3d}
+.team_category li a i{display: inline-block; width: 70px; height: 70px; border-radius: 50%}
+.team_category li a i img{width: 100%}
+.team_category li a p{font-size: 14px; padding-top: 8px}
+.wd400{width: 400px}
+.pdb50{padding-bottom: 50px}
+.team_socialCategory_active_img{display: none}
+.team_socialCategory_active a i img{display: none}
+.team_socialCategory_active .team_socialCategory_active_img{display: block !important}
+.team_socialOnCategory_active_img{display: none}
+.team_socialOnCategory_active a i img{display: none}
+.team_socialOnCategory_active .team_socialOnCategory_active_img{display: block !important}
+
+/* mypage_myteam_detail */
+.myteam_areaTitle{font-weight: 500; color: #3d3d3d}
+.myteam_areaTitle strong{color: #008eb1}
+.myteam_detail_category{width: 100% !important; float: none !important; overflow: hidden; padding-top: 10px; padding-bottom: 14px}
+.myteam_detail_category li{width: 25% !important; float: left !important; padding-bottom: 0 !important}
+.myteam_detail_category li i{width: 16px !important; font-size: 16px !important; padding-right: 4px !important}
+.myteam_detail_category li i img{width: 100%}
+.myteam_detail_option{width: 100% !important; float: none; overflow: hidden; padding-top: 20px; border-top: 1px solid #d8d8d8; box-sizing: border-box}
+.myteam_detail_option li{width: 30% !important; margin-right: 3.33%; height: 36px; font-size: 14px; float: left !important; border: 1px solid #2ea8aa; box-sizing: border-box; border-radius: 3px; text-align: center; padding-bottom: 0 !important; margin-bottom: 16px}
+.myteam_detail_option li a{display: block; color: #008eb1; line-height: 28px}
+.myteam_detail_option li a img{display: inline-block; vertical-align: middle; padding-right: 6px}
+.myteam_detail_option li a span{vertical-align: middle}
+.myteam_detail_members{width: 100%}
+.myteam_detail_members h3{text-align: left !important}
+.myteam_detail_memberlist{width: 100%; display: block !important}
+.myteam_detail_memberlist:after{content: ""; display: block; clear: both}
+.myteam_detail_memberlist li{width: 50% !important; float: left; height: 120px}
+.myteam_detail_memberlist .team_add{line-height: 0}
+.myteam_detail_memberlist .sub_common_teams_img{width: 90px; height: 90px; margin: 0; float: left}
+.myteam_detail_memberlist .sub_common_teams_txt{width: 40%; float: left; padding-top: 0; line-height: 90px; font-size: 14px}
+.myteam_detail_memo h3{font-weight: 400; text-align: center; color: #3d3d3d; margin-bottom: 0}
+.myteam_detail_memo .sub_box_button{padding: 25px 0 40px}
+.myteam_detail_memo_title{padding-top: 30px; border-top: 1px solid #ededed; box-sizing: border-box}
+.myteam_addImg{position: relative; width: 100%; height: 500px; text-align: center; background-color: #fafafa; border: 1px solid #ececec; box-sizing: border-box}
+.myteam_addImg_guide{position: absolute; left: 50%; top: 50%; margin-left: -150px; margin-top: -75px; width: 300px; height: 150px}
+.myteam_addImg_guide a{display: block; width: 100px; height: 100px; margin: 0 auto}
+.myteam_addImg_guide a img{width: 100%}
+.myteam_addImg_guide p{padding-top: 20px}
+.myteam_detail_notice_category li{width: 33.33% !important}
+.myteam_todolist h3{padding: 10px 0 16px}
+.myteam_todolist table{width: 100%; border-top: 1px solid #444; box-sizing: border-box; table-layout: fixed}
+.myteam_todolist table tr{width: 100%; height: 60px; border-bottom: 1px solid #ececec; box-sizing: border-box}
+.myteam_todolist table tr:nth-child(6){border-bottom: 1px solid #444}
+.myteam_todolist table tr:last-child{border-bottom: 1px solid #444}
+.myteam_todolist table tr td{text-align: center; line-height: 60px}
+.myteam_todolist table tr td span{display: block; width: 100%; overflow: hidden; white-space: nowrap; text-overflow: ellipsis}
+.myteam_todolist table tr td:nth-child(1){width: 35%}
+.myteam_todolist table tr td:nth-child(2){width: 35%}
+.myteam_todolist_more{width: 100%; text-align: center; padding: 20px 0 70px}
+.myteam_todolist_more button{width: 160px; height: 40px}
+.myteam_detail_qna{margin: 25px 0!important}
+
+.myteam_detail_applicants{margin-bottom: 100px}
+.myteam_applicant_list{width: 100%; overflow: hidden}
+.myteam_applicant_list li{width: 100%; overflow: hidden; border: 1px solid #ececec; box-sizing: border-box; margin-bottom: 25px}
+.myteam_applicant_list li .mypage_myInfo{height: 160px}
+.myteam_applicant_list li .mypage_myInfo .myInfo_content{margin-top: 10px; width: 60%}
+.myteam_applicant_invite{position: absolute; right: 20px; top: 20px}
+.myteam_applicant_refuse{right: 80px}
+.myteam_applicant_invite a{display: block; text-align: center}
+.myteam_applicant_invite a i{display: block; width: 50px; height: 50px; border: 1px solid #ececec; box-sizing: border-box; line-height: 60px}
+.myteam_applicant_invite a span{display: block; font-size: 12px; padding-top: 6px}
+.myteam_applicant_actives{width: 60%; padding-left: 36px; overflow: hidden}
+.myteam_applicant_actives li{width: 33.33%; float: left; border: 0; margin-bottom: 0}
+.myteam_applicant_actives li .myActive_img{width: 30%}
+.myteam_applicant_actives li .myActive_img i{width: 30px}
+.myteam_applicant_actives li .myActive_img i img{width: 100%}
+.myteam_applicant_actives li .myActive_txt{line-height: 20px}
+.myteam_applicant_actives li .myActive_txt strong{font-size: 14px; padding-bottom: 0}
+.myteam_applicant_actives li .myActive_txt span{display: block; padding: 0; font-size: 16px; font-weight: 500}
+.myteam_applicant_stat{width: 100%; overflow: hidden}
+.myteam_applicant_stat_control{width: 100%; height: 50px; text-align: center; background-color: #fafafa; border-top: 1px solid #ececec; border-bottom: 1px solid #ececec; box-sizing: border-box}
+.myteam_applicant_stat_control a{display: block}
+.myteam_applicant_stat_control a span{vertical-align: middle; line-height: 50px}
+.myteam_applicant_stat .mypage_chart{width: 45%; height: 200px; float: left}
+.myteam_applicant_descWrap{width: 55%; float: left; padding: 20px; box-sizing: border-box}
+.myteam_applicant_desc{width: 100%; background-color: #fafafa; border: 1px solid #ececec; padding: 20px; box-sizing: border-box; font-size: 14px; border-radius: 3px; line-height: 20px}
+.myteam_applicant_desc p{padding-top: 20px}
+.myteam_applicant_desc p i{display: inline-block; padding-right: 6px}
+.sub_myteam_detail_qna{margin: 25px 0}
+
+/* mypage_myteam */
+.mypage_myteam{width: 100%; overflow: hidden}
+.mypage_myteam h3{padding: 50px 0 40px; font-weight: 500}
+.mypage_myteam ul{width: 100%; overflow: hidden}
+.mypage_myteam ul li{width: 49%; height: 180px; float: left; border: 1px solid #ededed; box-sizing: border-box; background-color: #fff; padding: 20px}
+.mypage_myteam ul li:nth-child(2n){float: right}
+.myteam_myteamBoxWrap{display: block; width: 100%; height: 100%}
+.myTeam_name{display: block; max-width: 70%; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; padding-bottom: 10px; font-weight: 500}
+.myTeam_pic{width: 100px; height: 100px; border-radius: 50%; overflow: hidden; float: left; margin: 20px 15px 0 15px}
+.myTeam_pic img{max-width: 100%}
+.myTeam_txt{width: 70%; float: left}
+.myTeam_detail{width: 100%; position: relative}
+.myTeam_detail p{width: 100%; position: absolute; left: 0; top: 70px; font-size: 14px}
+.myTeam_detail p i{display: inline-block; width: 14px; vertical-align: middle; margin-right: 6px}
+.myTeam_detail p i img{width: 100%}
+.myTeam_detail p span{display: inline-block; vertical-align: middle; font-weight: 500}
+.myTeam_detail p strong{display: inline-block; float: right; vertical-align: middle}
+.myTeam_title{display: block; max-width: 70%; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; margin-top: 2px}
+.mypage_myteamCategory{margin-top: 24px}
+.mypage_myteam_closed li{height: 140px !important; position: relative}
+.mypage_myteam_closed .myTeam_pic{margin: 0 15px}
+.mypage_myteam_closed .myTeam_title{margin: 10px 0 20px}
+.mypage_myteam_closed .myTeam_txt{margin-top: 5px}
+.mypage_myteam_closed .myTeam_txt p{margin: 0 0 30px}
+.mypage_myteam_closed .myTeam_detail p{top: 0}
+.mypage_myteam_closed .myTeam_detail p strong{float: none; padding: 0 20px}
+.mypage_myteam_closed .myTeam_detail p b{vertical-align: middle}
+.myTeam_closed_btn{position: absolute; height: 34px; right: 20px; top: 50%; margin-top: -17px}
+.myTeam_closed_btn button{padding: 6px; color: #008eb1; border-color: #2ea8aa}
+.myTeam_closed_complete span{color: #008eb1}
+
+/* mypage_team_member */
+.team_coverTitle{font-size: 18px; font-weight: 600 !important; padding-top: 40px !important}
+.team_memberCategory_active a i{border-color: #2ea8aa !important}
+.member_detail{width: 600px}
+.member_detail li{width: 100%; line-height: 80px}
+.member_detail li strong{display: inline-block; width: 20%}
+.member_detail li input{width: 80% !important; margin: 0 -4px}
+.member_event{width: 600px}
+.member_event li{width: 100%; height: 40px; position: relative}
+.member_event li p{float: left}
+.member_event li a{display: block; width: 16px; height: 16px; position: absolute; right: -30px; top: 6px}
+.deleted_event{display: none}
+.member_eventDate{width: 30%; height: 28px}
+.member_eventDate input{width: 100%!important; height: 28px !important; box-sizing: border-box!important}
+.member_eventInput{width: 69%; height: 28px; float: right!important}
+.member_eventInput input{width: 100% !important; height: 28px !important; box-sizing: border-box}
+.member_info{width: 600px}
+.member_info li{width: 100%; position: relative; margin-bottom: 40px}
+.member_info li:last-child{margin: 0}
+.member_info li a{display: block; width: 16px; height: 16px; position: absolute; right: -30px; top: 14px}
+.member_infoTitle{width: 100%}
+.member_infoTitle input{width: 100% !important}
+.member_infoContent{width: 100%}
+.member_infoContent textarea{width: 100%; height: 150px; resize: none; margin-top: 10px; border: 1px solid #929292; box-sizing: border-box; padding: 10px}
+.btn_memberInfoAdd{width: 600px; padding: 20px 0 40px; text-align: right}
+.btn_memberInfoAdd button{width: 160px; height: 40px}
+.team_memberCategory{width: 600px; padding-bottom: 40px}
+.team_memberCategory_active_img{display: none}
+.team_memberCategory_active a i img{display: none}
+.team_memberCategory_active .team_memberCategory_active_img{display: block !important}
+
+/* mypage_team_expire */
+.mypage_expireInfo{width: 100%; overflow: hidden}
+.mypage_expireInfo h3{text-align: center; font-size: 24px; font-weight: 600; padding: 60px 0 50px}
+.mypage_expireInfo ul{width: 100%; display: -webkit-flex; display: flex; -webkit-justify-content: space-between; justify-content: space-between}
+.mypage_expireInfo ul li{width: 18%; text-align: center}
+.expire_img{width: 77px; height: 77px; margin: 0 auto; background-color: #efefef; border-radius: 10px}
+.expire_img img{vertical-align: middle}
+.expire_txt{font-size: 14px; word-break: keep-all; line-height: 20px; padding-bottom: 60px}
+.expire_txt strong{display: block; color: #008eb1; font-size: 16px; padding: 30px 0 10px}
+.mypage_expireSubmit{height: 120px; overflow: hidden}
+
+.mypage_expire{margin: 50px 0 80px}
+.mypage_expire li{margin-top: 30px}
+.mypage_expire li h3{position: absolute; left: 0; top: -30px; padding: 0}
+.expire_teammates{width: 20%; float: left; text-align: center}
+.expire_teammates a{display: block}
+.expire_teammates_img{width: 50px; height: 50px; margin: 0 auto; border-radius: 50%; overflow: hidden; border: 5px solid #444}
+.expire_teammates_img img{max-width: 100%}
+.expire_teammates_txt{width: 100%; font-size: 14px; color: #008eb1}
+.expire_teammates_txt strong{display: block; font-size: 16px; color: #3d3d3d; padding: 12px 0 6px}
+.expire_teammates_active .expire_teammates_img{border-color: #2EA8AA!important}
+.expire_teammates_active .expire_teammates_txt strong{color: #2EA8AA; font-weight: 500}
+
+.mypage_expireScore{width: 100%; background-color: #fff}
+.mypage_expireScorepanel{width: 600px; height: 620px}
+.mypage_expireScorepanel h3{text-align: center; font-weight: 500; padding: 40px 0 20px; word-break: keep-all}
+.expire_scoreProfile{width: 100%; overflow: hidden}
+.expire_scoreProfile_img{width: 90px; height: 90px; border-radius: 50%; overflow: hidden; float: left}
+.expire_scoreProfile_img img{max-width: 100%}
+.expire_scoreProfile_txt{width: 60%; float: left; line-height: 90px; text-indent: 20px}
+.expire_scoreProfile_txt b{font-weight: 500}
+.expire_scoreProfile_txt strong{font-weight: 500; color: #008eb1}
+.expire_scoreRating{width: 420px; margin: 50px auto 30px; overflow: hidden}
+.expire_scoreRating_img{width: 77px; height: 77px; margin: 13px auto 0; background-color: #efefef; border-radius: 10px; margin-right: 13px; float: left}
+.expire_scoreRating_img img{vertical-align: middle}
+.expire_scoreRating_txt{width: 320px; height: 100px; float: left; color: #008eb1}
+.expire_scoreRating_txt strong{display: block; padding-bottom: 10px}
+.expire_scoreRating_txt span{display: inline-block; width: 100px; vertical-align: middle}
+.expire_scoreRating_txt span input{display: inline-block; width: 100%; font-size: 32px}
+.expire_scoreRating_txt i{display: inline-block; width: 200px; vertical-align: middle; padding-left: 10px}
+.expire_scoreRating_txt i img{width: 100%}
+.expire_scoreComment{width: 100%; overflow: hidden; margin-bottom: 90px}
+.expire_scoreComment .member_infoContent{width: 100%}
+
+.myteam_expire_movePrev{left: 390px!important; top: 550px!important; background-image: none!important; width: 100px!important; height: 45px!important; background-color: #444; color: #fff; margin-top: 0!important; text-align: center; line-height: 45px}
+.myteam_expire_moveNext{right: 0px!important; top: 550px!important; background-image: none!important; width: 100px!important; height: 45px!important; background-color: #444; color: #fff; margin-top: 0!important; text-align: center; line-height: 45px}
+
+/* mypage_award */
+.mypage_award{width: 400px; margin: 0 auto; text-align: center}
+.mypage_award_txt{line-height: 24px; word-break: keep-all; padding: 50px 0 30px}
+.mypage_award_btn{padding-bottom: 60px}
+.mypage_award_btn button{width: 160px; height: 45px}
+.mypage_award_table h3{padding: 60px 0 20px; font-weight: 400}
+.mypage_award_table h3 i{display: inline-block; vertical-align: middle}
+.mypage_award_table h3 span{display: inline-block; vertical-align: middle; padding-left: 8px}
+.mypage_award_table_summary{padding-bottom: 30px}
+.mypage_award_table_summary strong{color: #008eb1}
+.award_editDelete{display: inline-block}
+.award_editDelete button{border-radius: 3px}
+.award_editDelete button:last-child{margin-left: 6px}
+
+/* mypage_notice */
+.mypage_notice{width: 100%; overflow: hidden}
+.mypage_notice h2{padding: 70px 0 50px; font-weight: 600; font-size: 24px; text-align: center}
+.mypage_notice_category{width: 100%; overflow: hidden}
+.mypage_notice_category li{width: 25%; height: 45px; line-height: 45px; text-align: center; float: left; border: 1px solid #444; border-right: 0; box-sizing: border-box; background-color: #fff; color: #444}
+.mypage_notice_category li:last-child{border-right: 1px solid #444}
+.mypage_notice_category li a{display: block}
+.mypage_notice_active{background-color: #444 !important}
+.mypage_notice_active a{color: #fff !important}
+.mypage_notice_category_scroll{width: 100%; overflow: hidden}
+.mypage_notice_category_scroll li{width: 25%; height: 45px; line-height: 45px; text-align: center; float: left; border: 1px solid #444; border-right: 0; box-sizing: border-box; background-color: #fff; color: #444}
+.mypage_notice_category_scroll li:last-child{border-right: 1px solid #444}
+.mypage_notice_category_scroll li a{display: block}
+.mypage_notice_scroll_active{background-color: #444 !important}
+.mypage_notice_scroll_active a{color: #fff !important}
+.mypage_notice_listWrap{width: 100%; background-color: #fff; border: 1px solid #ededed; box-sizing: border-box; border-radius: 5px; margin-top: 10px; padding: 60px}
+.mypage_notice_list{width: 100%; display: none}
+.mypage_notice_list li{width: 100%; height: 80px; line-height: 80px; position: relative; border-bottom: 1px solid #ededed; box-sizing: border-box}
+.mypage_notice_list li strong{position: absolute; left: 0; top: 18px; line-height: 0}
+.mypage_notice_list li b{position: absolute; right: 0; top: 0}
+.mypage_notice_list li span{display: inline-block; max-width: 70%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap}
+.mypage_notice_view{width: 100%; border-top: 1px solid #444; border-bottom: 1px solid #444; box-sizing: border-box}
+.notice_view_titleWrap{width: 100%; background-color: #F3F3F3}
+.notice_view_titleWrap h3{padding: 20px 30px; box-sizing: border-box; font-weight: 500}
+.notice_view_titleWrap h3 b{display: inline-block; float: right}
+.notice_view_contentWrap{width: 100%; background-color: #fff; min-height: 200px}
+.notice_view_content{padding: 30px; box-sizing: border-box; line-height: 24px; word-break: keep-all}
+.mypage_notice_view_btn{width: 100%; text-align: center; margin-top: 60px}
+.mypage_notice_view_btn button{width: 160px; height: 40px}
+
+.notice_view_commentWrap{width: 100%; background-color: #fff; border: 1px solid #ededed; box-sizing: border-box; margin-bottom: 10px}
+.notice_view_comment{width: 100%; padding: 30px; box-sizing: border-box; border-bottom: 1px solid #ededed; box-sizing: border-box}
+.commentTitle{width: 100%}
+.commentTitle strong{display: inline-block; font-weight: 600; padding-right: 10px; vertical-align: middle}
+.commentDetail{display: inline-block; font-size: 12px; color: #767676}
+.commentDetail span{display: inline-block; vertical-align: middle; padding: 0 4px}
+.commentDetail a{color: #767676; vertical-align: middle}
+.commentDetail b{vertical-align: middle}
+.commentContents{display: block; padding: 20px 0; line-height: 24px; word-break: keep-all}
+.notice_view_commentWriteWrap{width: 100%; background-color: #fff; border: 1px solid #ededed; border-bottom: 0; box-sizing: border-box; margin-top: 10px}
+.notice_view_commentWrite{width: 100%; padding: 30px; box-sizing: border-box; border-bottom: 1px solid #ededed; box-sizing: border-box}
+.notice_view_commentWrite textarea{width: 85%; min-height: 120px; box-sizing: border-box; resize: none; vertical-align: middle; padding: 10px}
+.notice_view_commentWrite button{width: 15%; height: 120px}
+
+/* info_guide */
+.info_guide{width: 100%; overflow: hidden; color; #444}
+.guide_intro{width: 100%; height: 515px; position: relative}
+.guide_intro_desc{width: 500px; height: 150px; padding: 150px 0 50px; line-height: 24px; word-break: keep-all}
+.guide_intro_desc h3{font-size: 24px; font-weight: 600; padding-bottom: 30px}
+.guide_intro_btn{width: 100%}
+.guide_intro_btn button{width: 160px; height: 40px}
+.guide_intro_img{width: 630px; position: absolute; top: 0; right: 400px}
+.guide_intro_img img{width: 100%}
+
+.guide_tab{width: 100%; background-color: #fafafa}
+.guide_tab_content{width: 40%; float: left; text-align: center; padding: 150px 5% 120px}
+.guide_tab_content h3{font-size: 24px; font-weight: 600; padding: 30px 0}
+.guide_tab_img{width: 100%; height: 350px}
+.tab_img02 img{width: 350px !important}
+.guide_tab_img img{width: 100%}
+.guide_tab_desc{word-break: keep-all; line-height: 24px}
+.guide_tab_btn{width: 100%; padding-top: 50px}
+.guide_tab_btn button{width: 160px; height: 40px}
+
+.guide_package{width: 100%}
+.guide_package h3{font-size: 24px; font-weight: 600; text-align: center; padding: 90px 0 40px}
+.guide_package_list{width: 100%; overflow: hidden}
+.guide_package_list li{width: 23%; margin: 0 1%; float: left}
+.guide_package_list_box{width: 100%; border: 1px solid #ececec; padding: 20px; box-sizing: border-box}
+.guide_package_list_price{width: 100%; padding-bottom: 30px; border-bottom: 1px solid #ececec; box-sizing: border-box; text-align: center}
+.guide_package_list_price h4{padding-top: 10px; font-weight: 500}
+.guide_package_list_price b{display: block; font-size: 14px; font-weight: 600; color: #c9c9c9; padding: 10px 0 12px}
+.guide_package_list_price strong{display: block; font-size: 24px; font-weight: 600; color: #008eb1}
+.guide_package_list_price strong span{font-size: 16px}
+.guide_package_list_sublist{width: 100%}
+.guide_package_list_sublist ul{width: 100%; height: 220px; padding: 20px 0}
+.guide_package_list_sublist li{width: 100%; float: none; padding: 10px 0; margin: 0}
+.guide_package_list_sublist li i{display: inline-block; padding-right: 8px}
+.guide_package_list_sublist p{color: #838383; font-size: 13px}
+.guide_package_list_desc{color: #838383; font-size: 13px; padding-top: 10px; line-height: 18px}
+.warning{color: #ff6004; font-weight: 500; font-size: 13px; line-height: 18px}
+.warning a{color: #ff6004; text-decoration: underline}
+.guide_package_warning{padding: 30px 0 80px}
+
+.guide_option{width: 100%; background-color: #fafafa}
+.guide_option h3{font-size: 24px; font-weight: 600; text-align: center; padding: 90px 0 40px}
+.guide_option_table{border-bottom: 0}
+.guide_option_table tr:last-child{border: 1px solid #ececec; box-sizing: border-box}
+.guide_option_table tr td button{display: inline-block; margin-left: 20px; width: 110px; height: 30px; border-radius: 5px; color: #2ea8aa; background-color: #fff; border: 1px solid #2ea8aa; box-sizing: border-box; cursor: pointer}
+.guide_option_table tr td i{display: inline-block; cursor: pointer}
+.guide_option_table_first{border-right: 1px solid #ececec; box-sizing: border-box}
+.guide_option_warning{padding: 20px 0 30px}
+
+/*################################################################################*/
+
+/* info_reg */
+.reg{width: 100%; background-color: #fafafa; color: #444}
+.reg h2{width: 100%; padding: 60px 0 20px; font-weight: 600}
+.reg_stat{width: 100%; background-color: #fff; border: 1px solid #ececec; border-radius: 10px; box-sizing: border-box}
+.stat_title{text-align: center; padding: 60px 0 20px}
+.stat_inputArea{width: 600px; margin: 0 auto; overflow: hidden; padding-bottom: 60px}
+.stat_input{width: 79%; height: 90px; float: left}
+.stat_input input{display: block; width: 100%; height: 40px; box-sizing: border-box; text-indent: 10px}
+.stat_input input:last-child{margin-top: 10px}
+.stat_btn{width: 19%; height: 90px; float: right}
+.stat_btn button{width: 100%; height: 100%; border-radius: 5px}
+.reg_find_table{margin-top: 20px}
+.reg_find_table tr td{word-break: keep-all; font-size: 15px; line-height: 18px}
+.btn_reg_table{width: 90px; background-color: #fff; border: 1px solid #2ea8aa; color: #008eb1; box-sizing: border-box; border-radius: 5px; padding: 4px 6px; cursor: pointer}
+.btn_reg{display: block; margin: 6px auto}
+.reg_contents{width: 100%; background-color: #fff; border: 1px solid #ececec; border-radius: 10px; box-sizing: border-box; padding: 36px; margin-bottom: 120px}
+.reg_contents h3{padding: 50px 0 0; font-size: 18px; font-weight: 500}
+.reg_contents h4{padding: 36px 0 12px}
+.reg_contents input[type="text"]{width: 400px; height: 45px; border-color: #929292; text-indent: 10px}
+.reg_contents input[type="password"]{width: 400px; height: 45px; border-color: #929292; text-indent: 10px}
+.reg_contents input[type="button"]{background-color: #fff; border: 1px solid #2ea8aa; color: #008eb1; box-sizing: border-box; border-radius: 5px; padding: 6px 10px; cursor: pointer}
+.reg_contents .team_socialCategory{padding-bottom: 40px}
+.reg_contents .team_memberCategory{width: 625px; padding-bottom: 40px; border-bottom: 0}
+.reg_contents .member_event{width: 600px}
+.reg_contents .member_eventDate input{height: 26px; border-color: #929292}
+.reg_contents .btn_memberInfoAdd{width: 600px}
+.reg_contents .btn_memberInfoAdd .btn_fff{border-color: #929292}
+.reg_contents .member_infoContent{width: 600px}
+.reg_contents .team_submitWrap{margin-top: 50px}
+
+.contestReg_txtAraWrap{width: 100%; height: 300px; position: relative}
+.contestReg_txtAra{width: 100%; height: 260px; position: absolute; left: 0; top: 0}
+.contestReg_txtAra textarea{width: 100%; height: 100%; resize: none}
+.contestReg_txtAra_p textarea{width: 600px}
+.contestReg_txtAra_m{left: -9999px}
+.contestReg_txtAra_m textarea{padding: 10px; box-sizing: border-box}
+
+/*################################################################################*/
+
+/* membership_join */
+.membership{width: 100%; background-color: #fafafa}
+.membership_join{width: 100%; overflow: hidden}
+.membership_join h2{width: 280px; text-align: center; margin: 0 auto; padding-top: 70px}
+.membership_join h2 img{width: 100%}
+.membership_join h3{text-align: center; font-size: 30px; font-weight: 500; padding: 30px 0 40px; color: #767676}
+.join_btn{width: 100%; text-align: center}
+.join_btn button{width: 340px; height: 50px}
+.join_border{font-size: 14px; color: #757575; text-align: center; padding: 50px 0}
+.join_kakao{padding-bottom: 50px}
+.join_kakao button{background-color: #fede00; border: none}
+.join_kakao button i{display: inline-block; vertical-align: middle; padding-right: 6px}
+.join_etc{width: 360px; margin: 0 auto; padding-top: 40px; border-top: 1px solid #ededed; text-align: center; line-height: 24px; padding-bottom: 200px}
+.join_etc a{display: block; color: #2ea8aa; font-weight: 500}
+/*.membership_join_form{display: none} */
+.membership_join_form_wrap{width: 100%; overflow: hidden; padding: 40px 0 70px}
+.join_form_content{width: 50%; overflow: hidden; float: left; padding: 60px; box-sizing: border-box; border-right: 1px solid #dfdfdf}
+.join_form_content h3{text-align: left; padding: 0 0 30px 0; font-size: 18px; font-weight: 500}
+.join_form_left{width: 50%}
+.join_form_left p{width: 100%; padding: 8px 0}
+.join_form_left p input{width: 100%; height: 45px; text-indent: 10px; border: 1px solid #929292; box-sizing: border-box}
+.join_form_left p button{width: 18%; margin-left: 2%; height: 45px; border-radius: 3px; background-color: #fff; border: 1px solid #848484; color: #848484; vertical-align: middle; font-size: 13px; cursor: pointer}
+.join_form_btni input{width: 80% !important}
+.join_form_right{float: right; border-right: 0}
+.join_form_right i{display: inline-block; width: 28px; height: 28px; vertical-align: middle; margin-right: 12px; cursor: pointer}
+.join_form_right i img{width: 100%}
+.join_form_chkbox_all{padding-bottom: 40px}
+.join_form_chkbox_all label{font-size: 18px; font-weight: 600}
+.join_form_chkbox{width: 100%}
+.join_form_chkbox li{line-height: 37px}
+.join_form_chkbox li button{display: inline-block; height: 30px; line-height: 30px; border-radius: 3px; background-color: #fff; border: 1px solid #848484; color: #848484; vertical-align: middle; font-size: 13px; cursor: pointer; float: right; margin-top: 3px}
+.join_form_radio_wrap{width: 100%}
+.join_form_radio_wrap p{padding: 40px 0 20px; font-size: 18px}
+.join_form_radio{width: 100%; display: -webkit-flex; display: flex; -webkit-justify-content: space-between; justify-content: space-between}
+.join_form_radio li{font-size: 15px}
+.form_control input[type="checkbox"]{display: none}
+.form_control input[type="checkbox"] + label{display: inline-block; cursor: pointer; line-height: 24px; padding-left: 32px; background: url("/resources/images/checkbox_blank.png") no-repeat; background-size: 24px}
+.form_control input[type="checkbox"]:checked + label{background-image: url("/resources/images/checkbox_chk.png")}
+.form_control input[type="radio"]{display: none}
+.form_control input[type="radio"] + label{display: inline-block; cursor: pointer; line-height: 24px; padding-left: 32px; background: url("/resources/images/radio_blank.png") no-repeat; background-size: 24px}
+.form_control input[type="radio"]:checked + label{background-image: url("/resources/images/radio_chk.png")}
+
+/* membership_login */
+.login_form{width: 340px; margin: 0 auto}
+.login_form p{width: 100%}
+.login_form p input{width: 100%; height: 45px; margin-bottom: 15px; text-indent: 10px; border: 1px solid #929292; box-sizing: border-box}
+.login_check{font-size: 15px; text-align: center; padding: 10px 0 30px}
+.login_findid{display: block; width: 340px; margin: 0 auto; text-align: right; font-size: 14px; padding-top: 20px}
+.join_black{width: 340px; margin: 0 auto; text-align: center; padding-top: 80px; margin-bottom: 120px}
+.join_black span{display: block; font-size: 14px; padding-bottom: 20px}
+.join_black button{width: 100%; background-color: #444; border: none; color: #fff}
+
+/* membership_find */
+.membership_find{width: 600px; margin: 0 auto; border: 1px solid #e6e6e6; box-sizing: border-box; background-color: #fff; border-radius: 10px; margin-bottom: 60px}
+.membership_find h4{width: 100%; height: 40px; line-height: 40px; background-color: #e6e6e6; text-align: center; font-weight: 500}
+.find_guide{padding: 20px 0 30px; word-break: keep-all; text-align: center}
+.membership_find .join_btn{padding: 20px 0 60px}
+.membership_find .join_btn button{font-size: 18px}
+.find_form_email input{display: inline-block; width: 50% !important}
+.find_form_email span{display: inline-block; width: 5%; padding: 0 2.5%; margin: -15px -4px 0; vertical-align: middle}
+.find_form_email select{display: inline-block; width: 40%; height: 45px; border: 1px solid #929292; box-sizing: border-box; vertical-align: top}
+
+/* membership_modify */
+.membership_modify{width: 100%; overflow: hidden}
+.membership_modify h2{font-size: 24px; font-weight: 600; text-align: center; padding: 70px 0}
+.modify_form{width: 100%; overflow: hidden; padding-bottom: 50px}
+.modify_form h3{width: 48%; float: left; padding-bottom: 16px; font-weight: 500}
+.flt_right{float: right !important}
+.modify_form h4{padding: 17.2px 0 5px; clear: both}
+.modify_form h4:first-child{padding: 0 0 5px}
+.modify_form .join_form_right{float: right}
+.modify_form_content{width: 48%; overflow: hidden; float: left; padding: 36px; box-sizing: border-box; background-color: #fff; border: 1px solid #ececec}
+.modify_form_content .join_form_radio{padding: 10px 0 20px}
+.modify_form_content .join_form_chkbox li{line-height: 30px; padding: 5px 0}
+.modify_form_content .myInfo_pic{margin: 20px 0; float: left}
+.modify_form_content .myInfo_pic a{background-color: #000; position: relative}
+.modify_kakao_left .join_form_radio{padding-bottom: 60px!important}
+.modify_kakao_right .modify_form_record{padding: 20px 0!important}
+.modify_picture{position: absolute; left: 50%; top: 50%; margin-left: -12px; margin-top: -12px; opacity: 1!important; width: 24px!important; height: 24px!important}
+.modify_form_content .myInfo_pic a img{opacity: 0.7}
+.modify_form_myActive{width: 100%; overflow: hidden; padding: 10px 0 30px}
+.modify_form_myActive li{width: 33.33%; float: left}
+.modify_form_myActive .myActive_img{height: 60px; line-height: 60px}
+.modify_form_myActive .myActive_txt{height: 60px; line-height: 60px}
+.modify_form_record{width: 89.5%; padding-top: 20px; padding-bottom: 171px; padding-right: 10.5%; text-align: right}
+.modify_form_record li{width: 90%; height: 35px; line-height: 35px; margin: 0 auto; padding: 10px 0}
+.modify_form_record li span{float: left}
+.modify_form_record li button{display: inline-block; height: 35px; line-height: 22px; vertical-align: middle; background-color: #fff; border: 1px solid #2ea8aa; color: #008eb1; border-radius: 3px; box-sizing: border-box; padding: 6px 10px; margin-left: 16px; cursor: pointer}
+
+/*################################################################################*/
+
+.policy{width: 90%; padding: 80px 0; line-height: 24px; font-size: 14px; margin: 0 auto}
+.policy h2{font-weight: 600; font-size: 16px; text-align: center; font-size: 24px; font-weight: 500}
+.policy h3{padding: 60px 0 20px; font-size: 20px; font-weight: 500}
+.policy h4{padding: 30px 0 8px; font-size: 16px}
+.policy p{width: 95%; padding: 12px 0; margin: 0 auto; font-size: 14px}
+
+/*################################################################################*/
+
+#footer{width: 100%; height: 130px; background-color: #444}
+.footerWrap{width: 1200px; height: 100%; margin: 0 auto; position: relative}
+.footerWrap ul{width: 300px}
+.footerMenu{float: left; padding-top: 30px}
+.footerMenu li{float: left}
+.footerMenu li a{color: #DBDBDB; font-size: 14px}
+.footerMenu li span{color: #DBDBDB; cursor: default; display: inline-block; padding: 0 8px}
+.footerWrap address{display: block; position: absolute; left: 0; bottom: 40px; font-size: 12px; color: #B8B8B8; line-height: 17px}
+.footerLogo{float: right; padding-top: 40px}
+.footerLogo li{float: left}
+.footerLogo li:first-child{width: 191px}
+.footerLogo li:last-child{width: 66px; margin-top: 6px; float: right}
+.footerLogo li a{display: block}
+.m_footer{display: none; width: 100%; height: 60px; line-height: 60px; position: fixed; left: 0; bottom: 0; background-color: #fff; z-index: 49}
+.m_footer ul{width: 100%; overflow: hidden}
+.m_footer ul li{width: 20%; float: left; text-align: center}
+.m_footer ul li a{display: block}
+.m_footer ul li a img{width: 40px; vertical-align: middle}
+.m_footer ul li a i{font-size: 30px; color: #2EA8AA; vertical-align: middle}
+.m_footerDummy{margin-bottom: 80px; display: none}
+
+/*################################################################################*/
+
+
+/* media query */
+@media screen and (max-width: 1400px){
+	.main_swiper .swiper-pagination{right: 5% !important}
+	.sub_swiperPrev{left: 10% !important}
+	.sub_swiperNext{right: 10% !important}
+	.hot_swiperNext{right: 40px!important; top: 0!important; background-image: url(/resources/images/btn_next.png)!important; width: 40px!important; height: 40px!important; background-size: 100%!important; margin-top: 0!important}
+	.hot_swiperPrev{right: 90px!important; top: 0!important; left: auto!important; background-image: url(/resources/images/btn_prev.png)!important; width: 40px!important; height: 40px!important; background-size: 100%!important; margin-top: 0!important}
+}
+@media screen and (max-width: 1024px){
+	.topMenu{display: none}
+	.topMenu_loggedMenu{display: none}
+	.m_topMenu{display: block}
+	#gnb{display: none}
+	.main_slide{width: 90%; margin: 0 auto}
+	.sectionWrap{width: 100%}
+	.sub_slide{width: 100%}
+	.recruit_hot .main_sectionTitle{width: 100%}
+	#footer{display: none}
+	.m_footer{display: block}
+	.m_footerDummy{display: block}
+	#modal_showPolicy{top: 10%; width: 90%; margin: 0 auto; margin-left: -45%}
+	#modal_showPrivacy{top: 10%; width: 90%; margin: 0 auto; margin-left: -45%}
+	#modal_contestPoster{top: 10%; width: 90%; margin: 0 auto; margin-left: -45%}
+	
+	.main_sectionTitle{width: 90%; margin: 0 auto; font-size: 24px}
+	.main_recruit_listWrap{width: 90%; margin: 0 auto; float: none}
+	.recruit_social{float: none}
+	.main_recruit_listWrap h3{margin-bottom: 0}
+	.main_recruit_listWrap h3 a span{text-indent: 20px; font-size: 16px}
+	.main_hot_cate{margin-right: 4px}
+	.main_recruit_txt{padding: 10px}
+	.main_recruit_txt span{line-height: 16px}
+	.main_recruit_txt strong{padding-bottom: 10px}
+	.main_recruit_txt_detail{width: calc(100% - 20px); position: absolute; left: 10px; bottom: 10px; line-height: 20px}
+	.main_recruit_txt_detail strong{display: inline-block; vertical-align: middle; padding-bottom: 0}
+	
+	/* .hot_swiper{height: 900px} */
+	
+	.recruit_hot .main_sectionTitle{width: 90%; margin: 0 auto; font-size: 24px}
+	.recruit_hot_listWrap{width: 90%; margin: 0 auto; display: block}
+	.recruit_hot_listWrap li{width: 49%; float: left; overflow: hidden; margin-right: 0; margin-bottom: 15px}
+	.recruit_hot_listWrap li:nth-child(2n){float: right}
+	.recruit_hot_listWrap li a .main_recruit_img{width: 100%; float: none}
+	.recruit_hot_listWrap li a .main_recruit_txt{width: 100%; float: none}
+	
+	.ongoing_title{width: 100%; height: 80px; margin: 40px 0 20px}
+	.recruit_on_listWrap{width: 90%; margin: 0 auto; float: none}
+	.recruit_on_listWrap li{width: 49%}
+	.recruit_on_listWrap li a .main_recruit_img{width: 100%; float: none}
+	.recruit_on_listWrap li a .main_recruit_txt{width: 100%; float: none}
+	.recruit_on_listWrap li a .main_recruit_txt span{left: 10px; top: 10px; width: calc(100% - 20px)}
+	.recruit_on_listWrap li a .main_recruit_txt .main_recruit_txt_detail{width: calc(100% - 20px); left: 10px; bottom: 10px; padding-top: 0}
+	.recruit_on_listWrap li a .main_recruit_txt .main_recruit_txt_detail em{vertical-align: middle}
+	.recruit_on_listWrap li a .main_recruit_txt .main_recruit_txt_detail i{vertical-align: middle}
+	.recruit_on_listWrap li a .main_recruit_txt .main_recruit_txt_detail b{vertical-align: middle}
+	.recruit_on_listWrap li a .main_recruit_txt .main_recruit_txt_detail strong{vertical-align: middle}
+	
+	/* contest_index */
+	.sub_common_left{width: 90%; float: none; margin: 40px auto}
+	.sub_common_right{width: 90%; float: none; margin: 40px auto}
+	.sub_common_title_m{display: block!important}
+	.sub_share_m{display: block!important}
+	.sub_common_title{display: none}
+	.sub_share{display: none}
+	.recruit_gong_sub ul li{width: 48%}
+	.recruit_gong_onList .main_sectionTitle{width: 90%; float: none; margin: 0 auto}
+	.recruit_gong_onList_sort{width: 90%; margin: 0 auto; float: none; padding: 0; padding-bottom: 20px}
+	.recruit_gong_onList table{width: 90%; margin: 0 auto}
+	.team_category{display: block !important; overflow: hidden !important}
+	.team_category li{width: 16.66%!important; float: left; margin-bottom: 10px !important}
+	.recruit_gong_onList table tr td a span{max-width: 50%}
+	.sub_common_qna ul li h4 a span{max-width: 50%}
+	.sub_common_qna_a span{max-width: 60%}
+	.main_recruit_areaListWrap{width: 100%; margin-right: 0}
+	.main_recruit_areaList li{width: 50% !important}
+	
+	/* social_index */
+	.social_categoryMenu ol{width: 100%; padding-right: 0}
+	
+	/* mypage */
+	.mypage_subGnb{display: none}
+	.mypage_layout{width: 90%; margin: 0 auto; float: none; margin-bottom: 20px}
+	.mypage_logout{width: 90%; margin: 0 auto; padding-top: 0}
+	.mypage_profileWrap .mypage_myActive{float: none}
+	.mypage_search{width: 90%; margin: 0 auto; text-align: center}
+	.mypage_chart{float: none}
+	.mypage_table{width: 90%; margin: 0 auto}
+	.mypage_bookmarkWrap h3{width: 90%; margin: 0 auto}
+	.mypage_bookmark_apply ul li{width: 90%; margin: 0 auto; float: none; margin-bottom: 20px; padding-left: 0}
+	.mypage_bookmark_apply ul li:nth-child(2n){float: none}
+	
+	.mypage_myteam h3{width: 90%; margin: 0 auto}
+	.mypage_myteam ul li{width: 90%; margin: 0 auto; float: none; margin-bottom: 20px}
+	.mypage_myteam ul li:nth-child(2n){float: none}
+	
+	.mypage_myActive ul{padding: 0}
+	.mypage_myActive ul li{width: 33.33%; margin-left: 0}
+	.myActive_img{width: 100%; float: none; font-size: 40px; padding-bottom: 10px}
+	.myActive_txt{width: 100%; float: none; padding-left: 0; text-align: center}
+	
+	.team_memberCategory{width: 100%}
+	
+	.mypage_bookmark_apply ul{width: 90%; margin: 0 auto; overflow: hidden}
+	.mypage_bookmark_apply ul li{width: 100%; float: none}
+	.bookmark_img{width: 100%; float: none}
+	.bookmark_txt{width: 100%; float: none}
+	.bookmark_chart div{width: 100%; float: none}
+	.bookmark_chart ul{float: none}
+	
+	.member_detail li{line-height: 40px}
+	.member_detail li strong{display: block; width: 100%}
+	.member_detail li input{width: 100% !important; margin: 0}
+	.member_detail{width: 100%}
+	.member_event{width: 100%}
+	.member_info{width: 100%}
+	.btn_memberInfoAdd{width: 100%}
+	.member_info li a{right: -24px}
+	.sub_common_title_m .myteam_detail_category li:last-child{margin-left: 20px}
+	.myteam_detail_option li{font-size: 12px}
+	.myteam_detail_option li a img{width: 14px}
+	
+	.member_event{width: 100%}
+	.member_event li{width: 100%; height: 80px; line-height: 24px}
+	.member_eventDate{width: 100%; margin-bottom: 6px}
+	.member_eventDate input{border-right: 1px solid #929292 !important}
+	.member_eventInput{width: 100%}
+	
+	.mypage_expireInfo ul{display: block; width: 90%; margin: 0 auto; overflow: hidden}
+	.mypage_expireInfo ul li{width: 50%; float: left}
+	.mypage_expireInfo ul li:last-child{width: 100%}
+	.mypage_expire li{margin-top: 40px !important}
+	.mypage_expireScorepanel{width: 90%; margin: 0 auto}
+	.myteam_expire_movePrev{left: 0!important;}
+	.expire_scoreProfile_txt{width: 55%; padding-left: 5%; line-height: 24px; text-indent: 0; margin-top: 20px}
+	.expire_scoreProfile_txt b{display: block}
+	.expire_scoreRating{width: 100%}
+	.expire_scoreRating_txt{width: 70%}
+	.expire_scoreRating_txt i{width: 100px}
+	
+	.mypage_award_table{width: 90%; margin: 0 auto}
+	.mypage_award_table_summary{width: 90%; margin: 0 auto}
+	.tdwidth30{width: 50%}
+	
+	.myteam_applicant_list li .mypage_myInfo{height: 240px}
+	.myteam_applicant_list .myInfo_pic{width: 70px; height: 70px; margin-top: 20px}
+	.myteam_applicant_list .myInfo_content{margin-top: 16px!important}
+	.myteam_applicant_actives{width: 100%; padding-left: 0; padding-top: 20px}
+	.myteam_applicant_actives li .myActive_img{width: 100%; margin: 0 auto}
+	.myteam_applicant_actives li .myActive_txt span{padding-top: 0}
+	.myteam_applicant_stat .mypage_chart{width: 100%; height: 400px; float: none}
+	.myteam_applicant_descWrap{width: 100%; float: none}
+	.myteam_detail_memberlist .sub_common_teams_txt{width: 90px; line-height: 24px}
+	
+	.mypage_notice{width: 90%; margin: 0 auto}
+	.mypage_notice_listWrap{padding: 20px}
+	.notice_view_titleWrap h3 strong{display: inline-block; max-width: 70%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 14px}
+	.notice_view_titleWrap h3 b{font-size: 14px}
+	.commentTitle strong{display: block; padding-bottom: 4px}
+	
+	/* info_guide */
+	.guide_intro{height: 600px}
+	.guide_intro_desc{width: 90%; height: 200px; margin: 0 auto}
+	.guide_intro_img{display: none}
+	.guide_intro_btn{text-align: center}
+	.tab_img03 img{width: 500px}
+	.guide_tab_content{width: 90%; margin: 0 auto; padding: 150px 0 120px; float: none}
+	.guide_package_list{width: 90%; margin: 0 auto}
+	.guide_package_list li{width: 48%; margin-bottom: 20px}
+	.guide_package_list_sublist ul li{width: 100%; margin-bottom: 0}
+	.warning{width: 90%; margin: 0 auto}
+	
+	/* info_reg */
+	.reg h2{width: 90%; margin: 0 auto}
+	.stat_inputArea{width: 90%}
+	.reg_contents .member_eventDate{margin-bottom: 5px}
+	
+	/* membership_join */
+	.membership_join h2{display: none}
+	.join_form_content{width: 90%; margin: 0 auto; float: none; padding: 10px; border-right: 0}
+	.join_form_left{width: 90%; margin: 0 auto; float: none}
+	.join_form_right{width: 90%; margin: 0 auto; float: none}
+	.join_form_radio{display: block}
+	.join_form_radio li{line-height: 36px}
+	
+	/* membership_find */
+	.membership_find{width: 90%}
+	
+	/* membership_modify */
+	.modify_form h3{display: none}
+	.modify_form .join_form_left{margin-bottom: 20px}
+	.modify_form .join_form_right{float: none}
+	.modify_form_content .myInfo_pic{margin: 20px auto 0; float: none}
+	.modify_form_content .myInfo_content{width: 100%; float: none; padding-left: 0}
+	.modify_form_myActive .myActive_img{padding-bottom: 0}
+	.modify_form_record{width: 100%; padding-bottom: 40px; padding-right: 0}
+	
+	/* contest_reg */
+	.reg_contents .team_memberCategory{width: 100%}
+	.reg_contents .member_event{width: 100%}
+	.reg_contents .btn_memberInfoAdd{width: 100%}
+	.reg_contents .member_infoContent{width: 100%}
+}
+@media screen and (max-width: 700px){
+	.collapseCol{display: none; width: 0; height: 0; opacity: 0; visibility: collapse}
+	
+	.mypage_teamWrap{width: 90%; margin: 0 auto}
+	.mypage_teamWrap h2 p span{width: 70%; display: inline-block; line-height: 24px; vertical-align: middle}
+	.team_sortGroup button{width: 50%}
+	.wd400{width: 100%}
+	.mypage_team input[type="text"]{width: 100%}
+	.team_contestName input{width: 80% !important}
+	.team_contestName button{width: 20%; margin-left: 0}
+	.team_socialLocation select{width: 100%; border-color: #929292}
+	.team_category li{width: 33.33%!important}
+	
+	.myTeam_pic{display: none}
+	.myTeam_txt{width: 100%; float: none}
+	.myTeam_name{max-width: 100%}
+	.myTeam_title{max-width: 100%}
+	.mypage_myteam_closed .myTeam_txt p{margin: 0 0 10px}
+	
+	.myteam_applicant_stat .mypage_chart{height: 300px}
+
+	.social_teams_leader{left: 5%}
+	.sub_box_list li{width: 33.33%}
+	
+	/* info_reg */
+	.contestReg_txtAra_p{left: -9999px}
+	.contestReg_txtAra_m{left: 0}
+}
+@media screen and (max-width: 480px){
+	/* modal_popup */
+	.modal_team_view{width: 90%; margin-left: -45%}
+	
+	.m_topMenu h1{width: 180px}
+	.m_topMenu_menu{left: 0}
+	.m_topMenu_search{right: 40px}
+	.m_topMenu_profile{right: 0}
+	
+	.main_slide p{font-size: 24px; line-height: 30px}
+	.sub_slide p{font-size: 20px}
+	.sub_slide span{width: 60%; margin: 0 auto; line-height: 24px}
+	
+	.main_recruit_listWrap ul li{width: 100%}
+	.hot_swiperNext{right: 20px!important}
+	.hot_swiperPrev{right: 70px!important}
+	.main_recruit_cate{width: 60px; height: 24px; line-height: 24px; font-size: 12px}
+	.main_hot_cate{width: 50px; height: 20px; line-height: 20px; font-size: 12px; padding: 0 4px}
+	.recruit_hot_listWrap li{width: 100%; float: none}
+	/* .hot_swiper{height: 1600px} */
+	
+	.ongoing_title a p:first-child{font-size: 14px}
+	.ongoing_title a p:first-child strong{width: 60px; font-size: 12px; margin-left: 4px}
+	.recruit_on_listWrap li{width: 100%; float: none}
+	.recruit_on_listWrap li a .main_recruit_txt{width: 100%}
+	
+	/* contest-index */
+	.sub_common_teams_img{width: 40px; height: 40px}
+	.sub_common_title h3{line-height: 24px; word-break: keep-all}
+	.recruit_gong_onList_sort li{width: 20%; height: 24px; line-height: 24px; display: block; font-size: 12px; text-align: center; float: left}
+	.recruit_gong_onList_sort li span{display: none}
+	.recruit_gong_onList table tr:first-child th:first-child{text-align: center; text-indent: 0}
+	.recruit_gong_onList table tr td a strong{display: none}
+	.recruit_gong_onList table tr td a span{max-width: 100%}
+	.sub_common_teams_swiper{height: 80px}
+	.sub_common_teams_leader{left: 0; top: 0}
+	.sub_common_qna ul li h4 a span{max-width: 40%}
+	.sub_common_qna_a span{max-width: 50%}
+	
+	/* mypage */
+	.myInfo_pic{width: 80px; height: 80px; margin-top: 30px}
+	.alarm_txt{width: 70%}
+	.mypage_etc ul li a i{width: 80px; height: 80px; line-height: 80px}
+	.mypage_table h3{padding: 60px 0 20px}
+	.mypage_search input{width: 100%}
+	.mypage_chart{height: 250px}
+	
+	.mypage_award{width: 100%}
+	
+	.myTeam_closed_btn{top: 12px; margin-top: 0}
+	.myTeam_closed_complete span{font-size: 14px}
+	
+	/* myteam_detail */
+	.myteam_addImg{height: 200px}
+	.myteam_detail_category li{width: 50%!important}
+	.myteam_detail_option li{width: 100%!important; margin-right: 0; margin-bottom: 4px}
+	.sub_common_title_m .myteam_detail_category li:last-child{margin-left: 0}
+	.myteam_applicant_stat .mypage_chart{height: 200px}
+	.myteam_applicant_list li .mypage_myInfo{height: 320px}
+	.myteam_applicant_list li .mypage_myInfo .myInfo_content{width: 100%; padding-left: 20px}
+	.myteam_applicant_actives li .myActive_img{width: 100%; padding-bottom: 0}
+	
+	/* myteam_expire */
+	.expire_teammates_img{width: 40px; height: 40px}
+	
+	/* contest_contest */
+	.sub_share_m a{display: inline-block; width: 25%; margin: 0 -4px}
+	.sub_share_m a i{padding: 0 4px 0 8px}
+	.sub_contest_teams ul li{width: 100%; float: none; margin-bottom: 20px}
+	.sub_contest_teams ul li:last-child{margin-bottom: 0}
+	
+	/* info_guide */
+	.guide_package_list li{width: 90%; margin: 0 auto 40px; float: none}
+	.guide_package_list_sublist li{margin: 0}
+	.guide_tab_content h3{line-height: 30px}
+	.guide_tab_img{height: 300px}
+	.tab_img02 img{width: 100% !important}
+	.tab_img03 img{width: 100% !important}
+
+	
+	/* membership_find */
+	.membership_find{width: 100%}
+}

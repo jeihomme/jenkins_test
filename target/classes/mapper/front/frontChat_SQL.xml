@@ -1,0 +1,88 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd"> 
+<mapper namespace="frontChat">
+
+	<!-- 채팅 > 내용 조회 -->
+	<select id="selectFrontChatList" parameterType="hashmap" resultType="hashmap">
+		<![CDATA[
+			SELECT
+				CHAT.IDX AS IDX,
+				CHAT.USER_TYPE AS USER_TYPE,
+				CHAT.USER_IDX AS USER_IDX,
+				(CASE 
+						WHEN CHAT.USER_TYPE = 'M' THEN MNG.MNG_NM 
+						WHEN CHAT.USER_TYPE = 'U' THEN USR.USER_NM END) AS USER_NAME,
+				CHAT.CHAT_TYPE AS CHAT_TYPE,
+				CHAT.CHAT_MSG AS CHAT_MSG,
+				CHAT.CHAT_READ_YN,
+				CHAT.CHAT_DT AS CHAT_DT
+			FROM
+				PPM_CHAT AS CHAT
+				LEFT OUTER JOIN PPM_MNG MNG
+					ON CHAT.USER_IDX = MNG.MNG_IDX
+				LEFT OUTER JOIN PPM_USER USR
+					ON CHAT.USER_IDX = USR.USER_IDX
+			WHERE
+				CHAT_ROOM = '${chatRoom}'
+			ORDER BY
+				CHAT_DT ASC
+		]]>
+	</select>
+	
+	<!-- 채팅 > 텍스트 입력 -->
+	<insert id="insertFrontChatText" parameterType="hashmap" >
+		<![CDATA[
+			INSERT INTO PPM_CHAT (
+				USER_TYPE,
+				USER_IDX,
+				CHAT_ROOM,
+				CHAT_TYPE,
+				CHAT_MSG,
+				CHAT_DT
+			) VALUES (
+				'${userType}',
+				'${userIdx}',
+				'${chatRoom}',
+				'T',
+				'${chatMsg}',
+				DATE_FORMAT(NOW(),'%Y%m%d%H%i%S')
+			)
+		]]>
+	</insert>
+	
+	<!-- 채팅 > 텍스트 입력 -->
+	<insert id="updateFrontChat" parameterType="hashmap" >
+		<![CDATA[
+			UPDATE
+				PPM_CHAT
+			SET
+				CHAT_READ_YN = 'Y',
+				CHAT_DT = DATE_FORMAT(NOW(),'%Y%m%d%H%i%S')
+			WHERE
+				USER_IDX = #{userIdx }
+				AND CHAT_ROOM = #{chatRoom }
+		]]>
+	</insert>
+	
+	<!-- 채팅 > 이미지 등록 -->
+	<insert id="insertFrontChatPicture" parameterType="hashmap" >
+		<![CDATA[
+			INSERT INTO PPM_CHAT (
+				USER_TYPE,
+				USER_IDX,
+				CHAT_ROOM,
+				CHAT_TYPE,			
+				CHAT_DT
+			) VALUES (
+				'${userType}',
+				'${userIdx}',
+				'${chatRoom}',
+				'P',	
+				DATE_FORMAT(NOW(),'%Y%m%d%H%i%S')
+			)
+		]]>
+	</insert>
+	
+	
+	
+</mapper>

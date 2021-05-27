@@ -1,0 +1,242 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd"> 
+<mapper namespace="mngFaq">
+
+	<!-- 로그인 체크 -->
+	<select id="selectMngFaqList" parameterType="hashmap" resultType="hashmap">
+		<![CDATA[
+				]]>
+			<if test="status not in {'LIST'}">
+				<![CDATA[
+SELECT C.*, REPLACE(CONVERT(C.NUM_DESC, CHAR),'.0','') AS NUM_DESC_ORDER FROM (
+  SELECT B.*, (@rownumB:=@rownumB+1) as NUM_ASC FROM(  
+    SELECT A.*, (@rownumA:=@rownumA+1) as NUM_DESC FROM (
+				]]>
+			</if>
+		<![CDATA[
+			
+			    SELECT
+					FAQ_IDX,
+					FAQ_TITL,
+					FAQ_CD,
+					(SELECT CODE_NM FROM PPM_CODE WHERE CODE_ID = FAQ_CD ) FAQ_CDNM,
+					FAQ_CNTN,
+				  	FAQ_USE_YN,
+				  	
+				  	SYS_REG_IDX,
+				  	(SELECT MNG_NM FROM PPM_MNG PM WHERE PM.MNG_IDX = PPM_SITE_FAQ.SYS_REG_IDX) SYS_REG_NM,
+				  	DATE_FORMAT( SYS_REG_DTM, '%Y-%m-%d' ) SYS_REG_DTM,
+				  	SYS_MOD_IDX,
+				  	SYS_MOD_DTM
+				FROM
+				    PPM_SITE_FAQ
+				WHERE
+					FAQ_DEL_YN = 'N'
+			]]>
+				<if test="faqCd not in {null, ''}">
+					<![CDATA[
+					AND FAQ_CD = #{faqCd}
+					]]>
+				</if>
+				<if test="faqTitle not in {null, ''}">
+					<![CDATA[
+					AND (	FAQ_TITL LIKE '%${faqTitle}%' OR FAQ_CNTN LIKE '%${faqTitle}%' )
+					]]>
+				</if>
+			<![CDATA[
+				
+				]]>
+			<if test="status not in {'LIST'}">
+				<![CDATA[
+						) A JOIN (SELECT @rownumA:=0) rownumA
+  ) B JOIN (SELECT @rownumB:=0) rownumB ORDER BY FAQ_IDX DESC
+) C WHERE NUM_ASC BETWEEN #{startRow } AND #{endRow }
+				]]>
+			</if>
+		<![CDATA[
+		]]>
+	</select>
+	
+	<!-- 로그인 체크 -->
+	<select id="selectMngFaqListCnt" parameterType="hashmap" resultType="java.lang.Integer">
+		<![CDATA[
+			    SELECT
+					COUNT(*) CNT
+				FROM
+				    PPM_SITE_FAQ
+				WHERE
+					FAQ_DEL_YN = 'N'
+			]]>
+				<if test="faqCd not in {null, ''}">
+					<![CDATA[
+					AND FAQ_CD = #{faqCd}
+					]]>
+				</if>
+				<if test="faqTitle not in {null, ''}">
+					<![CDATA[
+					AND (	FAQ_TITL LIKE '%${faqTitle}%' OR FAQ_CNTN LIKE '%${faqTitle}%' )
+					]]>
+				</if>
+			<![CDATA[
+				    
+		]]>
+	</select>
+	
+	<select id="selectMngFaqDetail" parameterType="hashmap" resultType="hashmap">
+		<![CDATA[
+			    
+		    SELECT
+					FAQ_IDX,
+					FAQ_TITL,
+					FAQ_CD,
+					(SELECT CODE_NM FROM PPM_CODE WHERE CODE_ID = FAQ_CD ) FAQ_CDNM,
+					FAQ_CNTN,
+				  	FAQ_USE_YN,
+				  	
+				  	SYS_REG_IDX,
+				  	(SELECT MNG_NM FROM PPM_MNG PM WHERE PM.MNG_IDX = PPM_SITE_FAQ.SYS_REG_IDX) SYS_REG_NM,
+				  	DATE_FORMAT( SYS_REG_DTM, '%Y-%m-%d' ) SYS_REG_DTM,
+				  	SYS_MOD_IDX,
+				  	SYS_MOD_DTM
+			FROM
+			    PPM_SITE_FAQ
+			WHERE
+			   FAQ_IDX = #{faqIdx}
+			   AND FAQ_DEL_YN = 'N'
+		]]>
+	</select>
+
+	<update id="deleteMngFaqData" parameterType="hashmap" >
+		<![CDATA[
+			    
+		    UPDATE
+		    	PPM_SITE_FAQ 
+		    		SET FAQ_DEL_YN = 'Y', 
+		    		SYS_MOD_IDX = #{mngLoginIdx}, 
+					SYS_MOD_DTM = DATE_FORMAT(NOW(), '%Y%m%d%H%i%S')
+		    	
+		    	WHERE 
+		    		FAQ_IDX = #{faqIdx}
+		]]>
+	</update>
+	
+	<insert id="insertMngFaqData" parameterType="hashmap">
+		<![CDATA[
+			INSERT INTO 
+				PPM_SITE_FAQ
+					(
+					FAQ_CD, 
+					FAQ_TITL, 
+					FAQ_CNTN, 
+					FAQ_USE_YN,
+					FAQ_DEL_YN,
+					
+					SYS_REG_IDX, 
+					SYS_REG_DTM, 
+					SYS_MOD_IDX, 
+					SYS_MOD_DTM
+					)
+					VALUES(
+						#{faqCd}, 
+						#{faqTitl}, 
+						#{faqCntn}, 
+						#{faqUseYn}, 
+						'N', 
+						
+						#{mngLoginIdx}, 
+						DATE_FORMAT(NOW(), '%Y%m%d%H%i%S'), 
+						#{mngLoginIdx}, 
+						DATE_FORMAT(NOW(), '%Y%m%d%H%i%S')
+						)
+
+		]]>
+	</insert>
+	
+	<update id="updateMngFaqData" parameterType="hashmap">
+		<![CDATA[
+			UPDATE PPM_SITE_FAQ
+				SET 
+		]]>
+		<![CDATA[
+					  FAQ_CD=#{faqCd},
+					  FAQ_TITL=#{faqTitl}, 
+					  FAQ_CNTN=#{faqCntn}, 
+					  FAQ_USE_YN=#{faqUseYn}, 
+					  SYS_MOD_IDX=#{mngLoginIdx}, 
+					  SYS_MOD_DTM=DATE_FORMAT(NOW(), '%Y%m%d%H%i%S')
+					  
+					WHERE 
+						FAQ_IDX=#{faqIdx}
+
+		]]>
+	</update>
+	<update id="updateMngUseYn" parameterType="hashmap">
+		<![CDATA[
+			UPDATE PPM_SITE_FAQ
+				SET 
+		]]>
+		<![CDATA[
+					  FAQ_USE_YN=#{useYn}, 
+					  SYS_MOD_IDX=#{mngLoginIdx}, 
+					  SYS_MOD_DTM=DATE_FORMAT(NOW(), '%Y%m%d%H%i%S')
+					  
+					WHERE 
+						FAQ_IDX=#{idx}
+
+		]]>
+	</update>
+	
+	<!-- 로그인 체크 -->
+	<select id="selectMngFaqList_Excel" parameterType="hashmap" resultType="hashmap">
+		<![CDATA[
+				]]>
+			<if test="status not in {'LIST'}">
+				<![CDATA[
+SELECT NUM_DESC ㄱ_번호 , ㄴ_제목, ㄷ_노출영역, ㄹ_내용, ㅁ_노출여부, ㅂ_등록자, ㅅ_등록일 FROM (
+  SELECT B.*, (@rownumB:=@rownumB+1) as NUM_ASC FROM(  
+    SELECT A.*, (@rownumA:=@rownumA+1) as NUM_DESC FROM (
+				]]>
+			</if>
+		<![CDATA[
+			
+			    SELECT
+					FAQ_IDX,
+					FAQ_TITL ㄴ_제목,
+					(SELECT CODE_NM FROM PPM_CODE WHERE CODE_ID = FAQ_CD ) ㄷ_노출영역,
+					FAQ_CNTN ㄹ_내용,
+				  	FAQ_USE_YN ㅁ_노출여부,
+				  	
+				  	(SELECT MNG_NM FROM PPM_MNG PM WHERE PM.MNG_IDX = PPM_SITE_FAQ.SYS_REG_IDX) ㅂ_등록자,
+				  	DATE_FORMAT( SYS_REG_DTM, '%Y-%m-%d' ) ㅅ_등록일
+				FROM
+				    PPM_SITE_FAQ
+				]]>
+				<where>
+								<![CDATA[
+								FAQ_DEL_YN = 'N'
+				]]>
+							<if test="faqTitle not in {null, ''}">
+								<![CDATA[
+								AND (	FAQ_TITL LIKE '%${faqTitle}%' OR FAQ_CNTN LIKE '%${faqTitle}%' )
+								]]>
+							</if>
+							
+				</where>
+						<![CDATA[
+				
+				
+				
+				
+				]]>
+			<if test="status not in {'LIST'}">
+				<![CDATA[
+						) A JOIN (SELECT @rownumA:=0) rownumA
+  ) B JOIN (SELECT @rownumB:=0) rownumB ORDER BY FAQ_IDX DESC
+) C WHERE NUM_ASC BETWEEN #{startRow } AND #{endRow }
+				]]>
+			</if>
+		<![CDATA[
+		]]>
+	</select>
+	
+</mapper>

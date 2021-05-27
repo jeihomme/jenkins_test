@@ -1,0 +1,204 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd"> 
+<mapper namespace="mngNoti">
+
+	<!-- 로그인 체크 -->
+	<select id="selectMngNotiList" parameterType="hashmap" resultType="hashmap">
+		<![CDATA[
+				]]>
+			<if test="status not in {'LIST'}">
+				<![CDATA[
+SELECT C.*, REPLACE(CONVERT(C.NUM_DESC, CHAR),'.0','') AS NUM_DESC_ORDER FROM (
+	SELECT B.*, (@rownumB:=@rownumB+1) as NUM_ASC FROM(  
+		SELECT A.*, (@rownumA:=@rownumA+1) as NUM_DESC FROM (
+				]]>
+			</if>
+		<![CDATA[
+			
+			   SELECT 
+					NOTI_IDX, 
+					NOTI_TITL,
+					NOTI_CNTN,
+					NOTI_UUID, 
+					NOTI_CD,
+					(SELECT CODE_NM FROM PPM_CODE WHERE CODE_ID = NOTI_CD ) NOTI_CDNM,
+					( SELECT COUNT(*) FROM UNIT_FILES UF WHERE UF.UNIT_UUID = NOTI_UUID ) FILE_YN,
+					NOTI_OPEN_YN,
+					NOTI_USE_YN,
+					
+					( SELECT MNG_NM FROM PPM_MNG WHERE MNG_IDX = SYS_REG_IDX ) AS SYS_REG_IDX,
+					DATE_FORMAT(SYS_REG_DTM, '%Y-%m-%d ') AS SYS_REG_DTM,
+					SYS_MOD_IDX, 
+					SYS_MOD_DTM
+				FROM 
+					PPM_SITE_NOTI
+				WHERE
+					NOTI_DEL_YN = 'N'
+
+				]]>
+					<if test="notiTitl not in {null, ''}">
+						<![CDATA[
+							AND NOTI_TITL LIKE '%${notiTitl}%'
+						]]>
+					</if>
+					<if test="notiCd not in {null, ''}">
+						<![CDATA[
+							AND NOTI_CD = #{notiCd}
+						]]>
+					</if>
+					<if test="notiOpenYn not in {null, ''}">
+						<![CDATA[
+							AND NOTI_OPEN_YN = #{notiOpenYn}
+						]]>
+					</if>
+					<if test="notiUseYn not in {null, ''}">
+						<![CDATA[
+							AND NOTI_USE_YN = #{notiUseYn}
+						]]>
+					</if>
+				<![CDATA[  
+
+				
+				]]>
+			<if test="status not in {'LIST'}">
+				<![CDATA[
+		) A JOIN (SELECT @rownumA:=0) rownumA ORDER BY  NOTI_OPEN_YN  ,  NOTI_IDX 
+	) B JOIN (SELECT @rownumB:=0) rownumB ORDER BY NUM_DESC DESC
+) C WHERE NUM_ASC BETWEEN '${startRow }' AND '${endRow }'
+				]]>
+			</if>
+		<![CDATA[
+		]]>
+	</select>
+	
+	<!-- 로그인 체크 -->
+	<select id="selectMngNotiListCnt" parameterType="hashmap" resultType="java.lang.Integer">
+		<![CDATA[
+			    SELECT
+					COUNT(*) CNT
+				FROM
+				    PPM_SITE_NOTI
+				WHERE
+					NOTI_DEL_YN = 'N'
+
+				]]>
+					<if test="notiTitl not in {null, ''}">
+						<![CDATA[
+							AND NOTI_TITL LIKE '%${notiTitl}%'
+						]]>
+					</if>
+					<if test="notiCd not in {null, ''}">
+						<![CDATA[
+							AND NOTI_CD = #{notiCd}
+						]]>
+					</if>
+					<if test="notiOpenYn not in {null, ''}">
+						<![CDATA[
+							AND NOTI_OPEN_YN = #{notiOpenYn}
+						]]>
+					</if>
+					<if test="notiUseYn not in {null, ''}">
+						<![CDATA[
+							AND NOTI_USE_YN = #{notiUseYn}
+						]]>
+					</if>
+				<![CDATA[  
+				    
+		]]>
+	</select>
+	
+	<select id="selectMngNotiDetail" parameterType="hashmap" resultType="hashmap">
+		<![CDATA[
+			    
+		    SELECT 
+					NOTI_IDX, 
+					NOTI_TITL,
+					NOTI_CNTN,
+					NOTI_UUID, 
+					NOTI_OPEN_YN,
+					NOTI_USE_YN,
+					NOTI_CD,
+					(SELECT CODE_NM FROM PPM_CODE WHERE CODE_ID = NOTI_CD ) NOTI_CDNM,
+					
+					( SELECT MNG_NM FROM PPM_MNG WHERE MNG_IDX = SYS_REG_IDX ) AS SYS_REG_NM,
+					DATE_FORMAT(SYS_REG_DTM, '%Y-%m-%d') AS SYS_REG_DTM,
+					SYS_MOD_IDX, 
+					SYS_MOD_DTM
+				FROM 
+					PPM_SITE_NOTI
+	 			WHERE
+	 				NOTI_IDX = #{notiIdx}
+		]]>
+	</select>
+	
+	<insert id="insertMngNotiData" parameterType="hashmap">
+		<![CDATA[
+			INSERT INTO 
+				PPM_SITE_NOTI (
+					NOTI_TITL, 
+					NOTI_CD,
+					NOTI_CNTN, 
+					NOTI_UUID, 
+					NOTI_OPEN_YN, 
+					NOTI_USE_YN, 
+					NOTI_DEL_YN,
+					
+					SYS_REG_IDX, 
+					SYS_REG_DTM, 
+					SYS_MOD_IDX, 
+					SYS_MOD_DTM
+				) VALUES (
+					'${notiTitl} ', 
+					'${notiCd}', 
+					'${notiCntn}',
+					'${notiUuid} ',
+					'${notiOpenYn}', 
+					'${notiUseYn}', 
+					
+					'N',
+					
+					#{mngLoginIdx}, 
+					DATE_FORMAT(NOW(), '%Y%m%d%H%i%S'), 
+					#{mngLoginIdx}, 
+					DATE_FORMAT(NOW(), '%Y%m%d%H%i%S')
+				)
+		]]>
+	</insert>
+	
+	<update id="updateMngNotiData" parameterType="hashmap">
+		<![CDATA[
+			UPDATE
+		    	PPM_SITE_NOTI 
+    		SET 
+    			NOTI_TITL = '${notiTitl}', 
+    			NOTI_CD = '${notiCd}', 
+    			NOTI_CNTN = #{notiCntn},
+    			NOTI_UUID = '${notiUuid}',
+    			NOTI_OPEN_YN = '${notiOpenYn}', 
+    			NOTI_USE_YN = '${notiUseYn}', 
+    			
+    			SYS_MOD_IDX =#{mngLoginIdx}, 
+				SYS_MOD_DTM = DATE_FORMAT(NOW(), '%Y%m%d%H%i%S')
+	    	WHERE 
+	    		NOTI_IDX = #{notiIdx}
+
+		]]>
+	</update>
+
+
+	<update id="deleteMngNotiData" parameterType="hashmap" >
+		<![CDATA[
+			    
+		    UPDATE
+		    	PPM_SITE_NOTI 
+    		SET 
+    			NOTI_DEL_YN = 'Y',
+    			SYS_MOD_IDX =#{mngLoginIdx}, 
+				SYS_MOD_DTM = DATE_FORMAT(NOW(), '%Y%m%d%H%i%S')
+	    	WHERE 
+	    		NOTI_IDX = #{notiIdx}
+		]]>
+	</update>
+	
+	
+</mapper>

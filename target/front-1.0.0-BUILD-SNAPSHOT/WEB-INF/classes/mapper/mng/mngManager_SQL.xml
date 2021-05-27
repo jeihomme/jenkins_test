@@ -1,0 +1,138 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd"> 
+<mapper namespace="mngManager">
+
+	<!-- 관리자 목록 조회 -->
+	<select id="selectManagerList" parameterType="hashmap" resultType="hashmap">
+		<![CDATA[
+			SELECT
+				*
+			FROM (
+				SELECT
+					CAST(@rownum:=@rownum+1 AS UNSIGNED) as NO,
+					MNG_IDX,
+					MNG_ID,
+					MNG_PW,
+					MNG_NM,
+					MNG_GRADE,
+					MNG_TEL,
+					MNG_USE_YN
+				FROM
+				    BLE_BO_MNG
+				WHERE
+					(@rownum:=0)=0
+		]]>
+		<if test="mngId not in {null, ''}">
+			<![CDATA[
+				AND MNG_ID LIKE '%${mngId}%'
+			]]>
+		</if>
+		<if test="mngNm not in {null, ''}">
+			<![CDATA[
+				AND MNG_NM LIKE '%${mngNm}%'
+			]]>
+		</if>
+		<if test="admYn not in {null, ''}">
+			<![CDATA[
+				AND MNG_USE_YN LIKE '%${admYn}%'
+			]]>
+		</if>
+		
+		<![CDATA[
+		) A
+			ORDER BY A.NO DESC
+		]]>
+	</select>
+	
+	<!-- 관리자 상세 조회 -->
+	<select id="selectManagerDetail" parameterType="hashmap" resultType="hashmap">
+		<![CDATA[
+				SELECT
+					MNG_IDX,
+					MNG_ID,
+					MNG_PW,
+					MNG_NM,
+					MNG_GRADE,
+					MNG_TEL,
+					MNG_USE_YN
+				FROM
+				    BLE_BO_MNG
+				WHERE
+					MNG_IDX = '${mngIdx}'
+		]]>
+	</select>
+
+	<!-- 관리자 ID 중복 조회 -->
+	<select id="selectManagerCheckYn" parameterType="hashmap" resultType="hashmap">
+		<![CDATA[
+			SELECT
+			   MNG_IDX
+			FROM
+			    BLE_BO_MNG
+			WHERE
+			    MNG_ID = '${admWrtId}'
+			ORDER BY 
+				MNG_IDX DESC
+			LIMIT 1
+		]]>
+	</select>
+
+	<!-- 관리자 등록 -->
+	<insert id="insertManagerData" parameterType="hashmap">
+		<selectKey keyProperty="SEQ" resultType="int" order="AFTER">
+			<![CDATA[
+			SELECT LAST_INSERT_ID() AS SEQ
+			]]>
+		</selectKey>
+		<![CDATA[
+			INSERT INTO BLE_BO_MNG (
+				MNG_ID,
+				MNG_PW,
+				MNG_NM,
+				MNG_GRADE,
+				MNG_TEL,
+				MNG_USE_YN,
+				SYS_REG_ID,
+				SYS_REG_DTM,
+				SYS_MOD_ID,
+				SYS_MOD_DTM
+			) VALUES (
+				'${admWrtId}',
+				'${admWrtPw}',
+				'${admWrtNm}',
+				'N',
+				'${admWrtTel}',
+				'Y',
+				'${userId}',
+				DATE_FORMAT(NOW(), '%Y%m%d%H%i%S'),
+				'${userId}',
+				DATE_FORMAT(NOW(), '%Y%m%d%H%i%S')
+			)
+		]]>
+	</insert>
+
+	<!-- 관리자 수정 -->
+	<update id="updateManagerData" parameterType="hashmap">
+		<![CDATA[
+			UPDATE BLE_BO_MNG SET
+				MNG_PW = '${admEditPw}',
+				MNG_NM = '${admEditNm}',
+				MNG_TEL = '${admEditTel}',
+				MNG_USE_YN = '${admEditYn}',
+				SYS_MOD_ID = '${userId}',
+				SYS_MOD_DTM = DATE_FORMAT(NOW(), '%Y%m%d%H%i%S')
+			WHERE
+				MNG_IDX = '${admEditIdx}'
+		]]>
+	</update>
+	
+	<!-- 관리자 삭제 -->
+	<update id="deleteManagerData" parameterType="hashmap">
+		<![CDATA[
+			DELETE FROM BLE_BO_MNG
+			WHERE
+				MNG_IDX = '${mngIdx}'
+		]]>
+	</update>
+
+</mapper>

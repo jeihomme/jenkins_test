@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; ">
+<meta content="requiresActiveX=true" http-equiv="X-UA-Compatible">
+<title>TEST</title>
+<link rel="stylesheet" href="./Html/Css/Style.css" type="text/css">
+<link rel="stylesheet" href="./Html/Css/button.css" type="text/css">
+
+<link rel="stylesheet" href="http://49.247.0.159/emeetplus6/empl6_one/empcmcurl.css" type="text/css">
+<link rel="stylesheet" type="text/css" href="http://49.247.0.159/pm/Html/CSS/flick/jquery-ui-1.8.13.custom.css" />	
+<script type="text/javascript" src="http://49.247.0.159/emeetplus6/empl6_one/jquery-1.4.2.min.js"></script>
+<script type="text/javascript" src="http://49.247.0.159/pm/Html/JS/jquery-ui-1.8.13.custom.min.js"></script>
+<script type="text/javascript" src="http://49.247.0.159/pm/Html/Js/Common.js"></script>
+
+<!--화상 연결시 필요-->
+<script type="text/javascript" src="http://49.247.0.159/emeetplus6/empl6_one/empcm6.js?v=20200916"></script>
+<script type="text/javascript" src="http://49.247.0.159/emeetplus6/empl6_one/empcmcurl.js?v=20200916"></script>
+
+<!--pc버전 필요 js-->
+<script type="text/javascript" src="http://49.247.0.159/emeetplus6/empl6_one/empcmcurldetector.js"></script> 
+<script type="text/javascript" src="http://49.247.0.159/emeetplus6/empl6_one/empcmcurlwidget.js"></script>
+<script type="text/javascript" src="http://49.247.0.159/configurations/PM.js?v=20201221" charset='euc-kr'></script>
+<!--연동-->
+</head>
+
+<body>
+	<button onclick="eMEETplus(1, 0, 'user2@bluelime.co.kr', '박재우', 'user2@bluelime.co.kr', 'LIVE CLASS', 'http://peoplemade.html.so/front/peoplemade/network.html');">test</button>
+</body>
+
+<script type="text/javascript">
+
+$(function(){
+	EMPCM.ASP.Init();
+// 	eMEETplus(classtype, usertype, userid, username, masterid, classname, historyurl);
+	$('button').trigger('click');
+});
+
+</script>
+
+</html>

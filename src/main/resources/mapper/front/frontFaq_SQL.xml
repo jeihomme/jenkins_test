@@ -1,0 +1,82 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd"> 
+<mapper namespace="frontFaq">
+	
+<!-- 공지사항 --><!-- 공지사항 --><!-- 공지사항 --><!-- 공지사항 --><!-- 공지사항 --><!-- 공지사항 --><!-- 공지사항 --><!-- 공지사항 --><!-- 공지사항 --><!-- 공지사항 -->
+	<select id="selectFrontFaqList" parameterType="hashmap" resultType="hashmap">
+		<![CDATA[
+				]]>
+			<if test="status not in {'LIST'}">
+				<![CDATA[
+SELECT C.* FROM (
+	SELECT B.*, (@rownumB:=@rownumB+1) as NUM_ASC FROM(  
+		SELECT A.*, (@rownumA:=@rownumA+1) as NUM_DESC FROM (
+				]]>
+			</if>
+		<![CDATA[
+		
+				SELECT
+					FAQ_IDX,
+					FAQ_CD,
+					CODE_NM AS FAQ_CD_NM,
+					FAQ_TITL,
+					FAQ_CNTN
+				FROM
+					PPM_SITE_FAQ PSF, 
+					PPM_CODE PC
+				WHERE
+					PSF.FAQ_CD = PC.CODE_ID
+					AND FAQ_USE_YN = 'Y'
+					AND FAQ_DEL_YN = 'N'
+					AND PC.CODE_USE_YN  = 'Y'
+					
+		]]>
+			<if test="faqTitl not in {null, ''}">
+				<![CDATA[
+					AND FAQ_TITL LIKE '%${faqTitl}%'
+				]]>
+			</if>
+			<if test="faqCd not in {null, ''}">
+				<![CDATA[
+					AND FAQ_CD = #{faqCd}
+				]]>
+			</if>
+			<if test="status not in {'LIST'}">
+				<![CDATA[
+		) A JOIN (SELECT @rownumA:=0) rownumA 
+	) B JOIN (SELECT @rownumB:=0) rownumB ORDER BY FAQ_IDX DESC
+) C WHERE NUM_ASC BETWEEN #{startRow } AND #{endRow }
+				]]>
+			</if>
+		<![CDATA[
+		]]>
+	</select>
+	
+	
+	<select id="selectFrontFaqListCnt" parameterType="hashmap" resultType="java.lang.Integer">
+		<![CDATA[
+
+				SELECT
+					COUNT(0) AS CNT
+				FROM
+					PPM_SITE_FAQ PSF, 
+					PPM_CODE PC
+				WHERE
+					PSF.FAQ_CD = PC.CODE_ID
+					AND FAQ_USE_YN = 'Y'
+					AND FAQ_DEL_YN = 'N'
+					AND PC.CODE_USE_YN  = 'Y'
+		]]>
+			<if test="faqTitl not in {null, ''}">
+				<![CDATA[
+					AND FAQ_TITL LIKE '%${faqTitl}%'
+				]]>
+			</if>
+			<if test="faqCd not in {null, ''}">
+				<![CDATA[
+					AND FAQ_CD = #{faqCd}
+				]]>
+			</if>
+	</select>
+	
+</mapper>

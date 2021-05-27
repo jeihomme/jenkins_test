@@ -1,0 +1,735 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd"> 
+<mapper namespace="mngCoup">
+
+	<!-- 로그인 체크 -->
+	<select id="selectMngCoupList" parameterType="hashmap" resultType="hashmap">
+		<![CDATA[
+				]]>
+			<if test="status not in {'LIST'}">
+				<![CDATA[
+SELECT C.*, REPLACE(CONVERT(C.NUM_DESC, CHAR),'.0','') AS NUM_DESC_ORDER FROM (
+  SELECT B.*, (@rownumB:=@rownumB+1) as NUM_ASC FROM(  
+    SELECT A.*, (@rownumA:=@rownumA+1) as NUM_DESC FROM (
+				]]>
+			</if>
+		<![CDATA[
+			
+			    SELECT 
+					COUP_IDX,
+					COUP_NM,
+					CODE_ID,
+					COUP_SERV_CD,
+					COUP_CATE_CD,
+					COUP_CD,
+					COUP_MINI,
+					DATE_FORMAT(COUP_STR_DTM, '%Y-%m-%d') AS COUP_STR_DTM,
+					DATE_FORMAT(COUP_END_DTM, '%Y-%m-%d') AS COUP_END_DTM,
+					COUP_ISSU,
+					
+					(SELECT CODE_NM FROM PPM_CODE WHERE CODE_ID = COUP_KIND) COUP_KIND,
+					COUP_KIND COUP_KIND_CD,
+					COUP_USE_DATE,
+					(SELECT CODE_NM FROM PPM_CODE WHERE CODE_ID = COUP_TYPE) COUP_TYPE,
+					COUP_TYPE COUP_TYPE_CD,
+					
+					(SELECT COUNT(0) FROM PPM_COUP_DATA PCD WHERE PCD.COUP_IDX = PC.COUP_IDX AND PCD.DATA_USE_YN = 'Y' AND PCD.USER_IDX IS NOT NULL ) COUP_CNT,
+					COUP_USE_YN,
+					SYS_REG_IDX,
+					DATE_FORMAT(SYS_REG_DTM, '%Y-%m-%d') AS SYS_REG_DTM
+						FROM 
+							PPM_COUP PC 
+				]]>
+				<where>
+								<![CDATA[
+								COUP_USE_YN = 'Y'
+				]]>
+							<if test="coupNm not in {null, ''}">
+								<![CDATA[
+									AND COUP_NM LIKE '%${coupNm}%'	
+								]]>
+							</if>
+
+							<if test="coupStrDtm not in {null, ''}">
+								<![CDATA[
+									AND DATE_FORMAT(SYS_REG_DTM, '%Y-%m-%d') BETWEEN #{coupStrDtm} AND #{coupEndDtm}
+								]]>
+							</if>
+
+							<if test="coupKind not in {null, ''}">
+								<![CDATA[
+									AND COUP_KIND = #{coupKind}
+								]]>
+							</if>
+							
+				</where>
+						<![CDATA[
+				
+				
+				
+				
+				]]>
+			<if test="status not in {'LIST'}">
+				<![CDATA[
+						) A JOIN (SELECT @rownumA:=0) rownumA
+  ) B JOIN (SELECT @rownumB:=0) rownumB ORDER BY COUP_IDX DESC
+) C WHERE NUM_ASC BETWEEN '${startRow }' AND '${endRow }'
+				]]>
+			</if>
+		<![CDATA[
+		]]>
+	</select>
+	
+	<!-- 로그인 체크 -->
+	<select id="selectMngCoupListCnt" parameterType="hashmap" resultType="java.lang.Integer">
+		<![CDATA[
+			    SELECT 
+					COUNT(*)
+						FROM 
+							PPM_COUP PC 
+				]]>
+				<where>
+								<![CDATA[
+								COUP_USE_YN = 'Y'
+				]]>
+							<if test="coupNm not in {null, ''}">
+								<![CDATA[
+									AND COUP_NM LIKE '%${coupNm}%'	
+								]]>
+							</if>
+							
+							<if test="coupStrDtm not in {null, ''}">
+								<![CDATA[
+									AND DATE_FORMAT(SYS_REG_DTM, '%Y-%m-%d') BETWEEN #{coupStrDtm} AND #{coupEndDtm}
+								]]>
+							</if>
+
+							<if test="coupKind not in {null, ''}">
+								<![CDATA[
+									AND COUP_KIND = #{coupKind}
+								]]>
+							</if>
+				</where>
+						<![CDATA[
+		]]>
+	</select>
+	
+	<select id="selectMngCoupDetail" parameterType="hashmap" resultType="hashmap">
+		<![CDATA[
+		     SELECT 
+					COUP_IDX,
+					COUP_NM,
+					CODE_ID,
+					COUP_SERV_CD,
+					( SELECT CODE_NM FROM PPM_CODE WHERE CODE_ID = PC.COUP_SERV_CD ) AS COUP_SERV_NM, 
+					COUP_CATE_CD,
+					COUP_CD,
+					CONCAT ( COUP_MINI , CASE COUP_MINI_TYPE WHEN 'U' THEN '원 이상' ELSE '원 이하' END ) COUP_MIN_PRICE,	
+					COUP_MINI,	
+					COUP_MINI_TYPE,
+					CONCAT( DATE_FORMAT(COUP_STR_DTM, '%Y-%m-%d') , ' ~ ' , DATE_FORMAT(COUP_END_DTM, '%Y-%m-%d') ) COUP_PERIOD,
+					DATE_FORMAT(COUP_STR_DTM, '%Y-%m-%d') AS COUP_STR_DTM,
+					DATE_FORMAT(COUP_END_DTM, '%Y-%m-%d') AS COUP_END_DTM,
+					CONCAT( COUP_ISSU, ' 건' ) COUP_ISSU_CNT, 
+					COUP_ISSU, 
+					(SELECT COUNT(0) FROM PPM_COUP_DATA PCD WHERE PCD.COUP_IDX = PC.COUP_IDX AND PCD.DATA_USE_YN = 'Y') COUP_CNT,  
+					COUP_DISC_CD,
+					COUP_DISC,
+					CONCAT (  COUP_DISC,( SELECT CODE_NM FROM PPM_CODE PC WHERE PC.CODE_ID = COUP_DISC_CD) ) COUP_DISC_NM,
+					COUP_USE_YN,
+					
+					COUP_UUID,
+					(SELECT CODE_NM FROM PPM_CODE WHERE CODE_ID = COUP_KIND ) COUP_KIND,
+					COUP_KIND COUP_KIND_CD,
+					COUP_USE_DATE,
+					COUP_TYPE AS COUP_TYPE_CD,
+					(SELECT CODE_NM FROM PPM_CODE WHERE CODE_ID = COUP_TYPE ) COUP_TYPE,
+					COUP_TYPE COUP_TYPE_CD,
+					
+					SYS_REG_IDX,
+					DATE_FORMAT(SYS_REG_DTM, '%Y-%m-%d') AS SYS_REG_DTM,
+					(
+						SELECT 
+							COUNT(0) USER_COUP_CNT
+						FROM
+							PPM_USER_COUP PUC
+								LEFT JOIN PPM_COUP_DATA PCD ON PUC.DATA_IDX = PCD.DATA_IDX
+						WHERE 
+							PCD.COUP_IDX  = PC.COUP_IDX
+							AND PCD.DATA_USE_YN = 'Y'
+							AND PCD.USER_IDX = PUC.USER_IDX
+					) AS USER_COUP_CNT
+				FROM 
+					PPM_COUP PC 
+				
+				WHERE 
+					COUP_USE_YN = 'Y'
+					AND 	COUP_IDX = #{coupIdx}
+		]]>
+	</select>
+	
+	<!-- 사용안한 쿠폰 리스트 -->
+	<select id="selectMngCoupUserData" parameterType="hashmap" resultType="hashmap">
+		<![CDATA[
+		
+		SELECT
+			USER_IDX,
+			USER_NM
+		FROM
+			PPM_USER
+		WHERE
+			USER_USE_YN = 'Y'
+			AND USER_TYPE = 'U'
+			AND USER_EMAIL = #{userEmail}
+		]]>
+	</select>
+	
+	<select id="selectMngCoupData" parameterType="hashmap" resultType="hashmap">
+		<![CDATA[
+		
+		SELECT
+			PCD.DATA_IDX,
+			PCD.USER_IDX,
+			REPLACE(#{idxList},'.0','') AS IDX_LIST,
+			REPLACE(#{nmList},'.0','') AS NM_LIST
+		FROM
+			PPM_COUP_DATA PCD
+		WHERE
+			PCD.DATA_USE_YN = 'Y'
+			AND PCD.COUP_IDX = #{coupIdx}
+		]]>
+	</select>
+	
+	<select id="selectMngCoupDetailList" parameterType="hashmap" resultType="hashmap">
+			<if test="status not in {'LIST'}">
+				<![CDATA[
+SELECT C.*, REPLACE(CONVERT(C.NUM_DESC, CHAR),'.0','') AS NUM_DESC_ORDER FROM (
+  SELECT B.*, (@rownumB:=@rownumB+1) as NUM_ASC FROM(  
+    SELECT A.*, (@rownumA:=@rownumA+1) as NUM_DESC FROM (
+				]]>
+			</if>
+		<![CDATA[
+			 
+			 		
+			SELECT 
+				PCD.DATA_IDX, 
+				PCD.COUP_IDX, 
+				PCD.USER_IDX,
+				(SELECT USER_NM FROM PPM_USER PU WHERE PU.USER_IDX = PCD.USER_IDX) USER_NM,
+				(SELECT USER_EMAIL FROM PPM_USER PU WHERE PU.USER_IDX = PCD.USER_IDX) USER_EMAIL,
+				IFNULL( (SELECT COUP_IDX FROM PPM_USER_COUP PUC WHERE PCD.DATA_IDX = PUC.DATA_IDX ), 'NODATA') USER_COUP_IDX,
+				IFNULL( (SELECT COUP_USE_YN FROM PPM_USER_COUP PUC WHERE PCD.DATA_IDX = PUC.DATA_IDX ), 'NODATA') COUP_USE_YN,
+				PCD.COUP_DATA_CD,
+				PCD.DATA_USE_YN,
+				PCD.SYS_REG_IDX,
+				PCD.SYS_REG_DTM, 
+				PCD.SYS_MOD_IDX,
+				PCD.SYS_MOD_DTM,
+				(
+					SELECT 
+						COUNT(0) USER_COUP_CNT
+					FROM
+						PPM_USER_COUP PUC
+							LEFT JOIN PPM_COUP_DATA PCD_SUB ON PUC.DATA_IDX = PCD_SUB.DATA_IDX
+					WHERE 
+						PCD_SUB.COUP_IDX = PCD.COUP_IDX
+						AND PCD_SUB.DATA_USE_YN = 'Y'
+						AND PCD_SUB.USER_IDX = PUC.USER_IDX
+				) AS USER_COUP_CNT
+					FROM 
+						PPM_COUP_DATA PCD 
+						WHERE 
+							COUP_IDX = #{coupIdx}
+							AND DATA_USE_YN = 'Y'
+		]]>
+		<if test="status not in {'LIST'}">
+				<![CDATA[
+						) A JOIN (SELECT @rownumA:=0) rownumA
+  ) B JOIN (SELECT @rownumB:=0) rownumB ORDER BY DATA_IDX DESC
+) C WHERE NUM_ASC BETWEEN '${startRow }' AND '${endRow }'
+				]]>
+			</if>
+	</select>
+	
+	<select id="selectMngCoupDetailListCnt" parameterType="hashmap" resultType="java.lang.Integer">
+		<![CDATA[
+			 		
+			SELECT 
+				COUNT(0)
+					FROM 
+						PPM_COUP_DATA PCD 
+						WHERE 
+							COUP_IDX = #{coupIdx}
+							AND DATA_USE_YN = 'Y'
+		]]>
+	</select>
+
+	<select id="selectMngInsertCoupIdx" parameterType="hashmap" resultType="hashmap">
+		<![CDATA[
+			 		
+			SELECT 
+				MAX(COUP_IDX) COUP_IDX
+					FROM 
+						PPM_COUP
+							WHERE 
+								SYS_MOD_IDX=#{mngLoginIdx}
+								AND COUP_USE_YN = 'Y'
+		]]>
+	</select>
+	
+	
+	<select id="selectMngCoupUserList" parameterType="hashmap" resultType="hashmap">
+		<![CDATA[
+			 
+							
+	 SELECT * FROM (
+				SELECT 
+					PCD.DATA_IDX, 
+					PCD.COUP_IDX, 
+					PCD.USER_IDX,
+					(SELECT USER_NM FROM PPM_USER PU WHERE PU.USER_IDX = PCD.USER_IDX) USER_NM,
+
+					PCD.COUP_DATA_CD,
+					PCD.DATA_USE_YN,
+					PCD.SYS_REG_IDX,
+					PCD.SYS_REG_DTM, 
+					PCD.SYS_MOD_IDX,
+					PCD.SYS_MOD_DTM
+						FROM 
+							PPM_COUP_DATA PCD  
+							WHERE 
+								COUP_IDX = #{coupIdx}
+						
+								AND DATA_USE_YN = 'Y'
+					) A WHERE ( USER_IDX IS NOT NULL AND USER_IDX != 0 )
+								
+							
+		]]>
+	</select>
+
+	<select id="selectMngCoupNoUserList" parameterType="hashmap" resultType="hashmap">
+		<![CDATA[
+			 
+			 		
+			SELECT 
+				PCD.DATA_IDX, 
+				PCD.COUP_IDX, 
+				PCD.USER_IDX,
+				(SELECT USER_NM FROM PPM_USER PU WHERE PU.USER_IDX = PCD.USER_IDX) USER_NM,
+				
+				PCD.COUP_DATA_CD,
+				PCD.DATA_USE_YN,
+				PCD.SYS_REG_IDX,
+				PCD.SYS_REG_DTM, 
+				PCD.SYS_MOD_IDX,
+				PCD.SYS_MOD_DTM
+					FROM 
+						PPM_COUP_DATA PCD 
+						WHERE 
+							COUP_IDX = #{coupIdx}
+							AND ( PCD.USER_IDX IS NULL OR PCD.USER_IDX = 0 )
+							AND DATA_USE_YN = 'Y'
+		]]>
+	</select>
+
+	<select id="selectNoCoupUserList" parameterType="hashmap" resultType="hashmap">
+		<![CDATA[
+			SELECT
+				USER_IDX 
+					FROM PPM_USER PU
+						WHERE 
+							USER_USE_YN = 'Y'
+							AND USER_TYPE = 'U'
+							AND PU.USER_IDX NOT IN  (	SELECT IFNULL(USER_IDX, 0) 
+															FROM PPM_COUP_DATA PCD 
+																WHERE 
+																	PCD.DATA_USE_YN = 'Y' 
+																	AND PCD.COUP_IDX = #{coupIdx}
+													)
+		]]>
+	</select>
+
+	<select id="selectMngUserCnt" parameterType="hashmap" resultType="hashmap">
+		<![CDATA[
+			SELECT 
+				COUNT(0) USER_CNT
+					FROM 
+						PPM_USER PU 
+							WHERE 
+							USER_USE_YN = 'Y'
+							AND USER_TYPE = 'U'
+		]]>
+	</select>
+
+	<select id="selectMngUseCoupDataCnt" parameterType="hashmap" resultType="hashmap">
+		<![CDATA[
+			SELECT ( SELECT COUNT(0) 
+							FROM PPM_COUP_DATA PCD 
+								WHERE 
+									PCD.COUP_IDX  = #{coupIdx}
+									AND PCD.DATA_USE_YN = 'Y' ) USE_COUP_CNT,
+									
+						 ( SELECT COUNT(0) 
+							FROM PPM_COUP_DATA PCD 
+								WHERE 
+									PCD.COUP_IDX  = #{coupIdx}
+									AND PCD.DATA_USE_YN = 'Y' 
+									AND PCD.USER_IDX IS NOT NULL ) USER_COUP_CNT
+		]]>
+	</select>
+
+	<select id="selectMngUseCoupData" parameterType="hashmap" resultType="hashmap">
+		<![CDATA[
+			SELECT ( SELECT COUNT(0) 
+							FROM PPM_COUP_DATA PCD 
+								WHERE 
+									PCD.COUP_IDX  = #{coupIdx}
+									AND PCD.DATA_USE_YN = 'Y' ) USE_COUP_CNT,
+									
+						 ( SELECT COUNT(0) 
+							FROM PPM_COUP_DATA PCD 
+								WHERE 
+									PCD.COUP_IDX  = #{coupIdx}
+									AND PCD.DATA_USE_YN = 'Y' 
+									AND PCD.USER_IDX IS NOT NULL ) USER_COUP_CNT
+		]]>
+	</select>
+	
+	<select id="selectMngHaveUser" parameterType="hashmap" resultType="hashmap">
+		<![CDATA[
+			    
+		    SELECT 
+		    	COUNT(0) CNT 
+		    	
+				FROM PPM_COUP_DATA PCD
+					WHERE 
+						PCD.DATA_USE_YN = 'Y' 
+						AND PCD.COUP_IDX = #{coupIdx}
+						AND PCD.USER_IDX = (SELECT USER_IDX FROM PPM_USER PU WHERE PU.USER_EMAIL = #{userEmail} AND PU.USER_USE_YN = 'Y'  )
+
+		]]>
+	</select>
+	
+	
+	<update id="deleteMngIndexCoupData" parameterType="hashmap" >
+		<![CDATA[
+			    
+		   UPDATE
+			  PPM_COUP
+			SET
+			  COUP_USE_YN = 'N',
+			  SYS_MOD_IDX=#{mngLoginIdx}, 
+			  SYS_MOD_DTM=DATE_FORMAT(NOW(), '%Y%m%d%H%i%S')
+			WHERE
+			  COUP_IDX = #{coupIdx}
+		]]>
+	</update>
+
+	<update id="deleteMngAllCoupData" parameterType="hashmap" >
+		<![CDATA[
+			    
+		   UPDATE 
+				PPM_COUP_DATA 
+				
+				SET 
+					DATA_USE_YN = 'N',
+					SYS_MOD_IDX=#{mngLoginIdx}, 
+					SYS_MOD_DTM=DATE_FORMAT(NOW(), '%Y%m%d%H%i%S')
+				
+					WHERE 
+						COUP_IDX = #{coupIdx}
+		]]>
+	</update>
+
+	<update id="deleteMngCoupData" parameterType="hashmap" >
+		<![CDATA[
+			    
+		    UPDATE 
+				PPM_COUP_DATA
+				SET 
+					USER_IDX=NULL, 
+					SYS_MOD_IDX=#{mngLoginIdx}, 
+					SYS_MOD_DTM=DATE_FORMAT(NOW(), '%Y%m%d%H%i%S')
+						WHERE 
+							DATA_IDX=#{dataIdx};
+		]]>
+	</update>
+
+	<update id="deleteMngCoupDataData" parameterType="hashmap" >
+		<![CDATA[
+			    
+		    UPDATE
+				  PPM_COUP_DATA
+				SET
+				  DATA_USE_YN = 'N',
+				  SYS_MOD_IDX=#{mngLoginIdx}, 
+			  	  SYS_MOD_DTM=DATE_FORMAT(NOW(), '%Y%m%d%H%i%S')
+				WHERE
+				  COUP_IDX = #{coupIdx}
+				  AND DATA_USE_YN = 'Y'
+				
+		]]>
+		<choose>
+			<when test="dataIdx not in {'', null}">
+		<![CDATA[
+				  AND DATA_IDX = #{dataIdx}
+		]]>
+			</when>
+			<otherwise>
+		<![CDATA[
+				  AND USER_IDX IS NULL
+		]]>
+			</otherwise>
+		</choose>
+	</update>
+	
+	<update id="updateMngCoupDataData" parameterType="hashmap">
+		<![CDATA[
+			UPDATE 
+				PPM_COUP_DATA
+				SET 
+					USER_IDX= (	SELECT USER_IDX FROM PPM_USER PU WHERE PU.USER_EMAIL = #{userEmail} AND USER_TYPE = 'U' AND PU.USER_USE_YN = 'Y' ), 
+					COUP_DATA_CD=#{coupDataCd}, 
+					SYS_MOD_IDX=#{mngLoginIdx}, 
+					SYS_MOD_DTM=DATE_FORMAT(NOW(), '%Y%m%d%H%i%S')
+						WHERE 
+							DATA_IDX=#{dataIdx}
+		]]>
+	</update>
+
+
+	<update id="addMngUserCoupData" parameterType="hashmap" >
+		<![CDATA[
+			    
+		    UPDATE 
+				PPM_COUP_DATA
+				SET 
+					USER_IDX = #{userIdx}, 
+					SYS_MOD_IDX=#{mngLoginIdx}, 
+					SYS_MOD_DTM=DATE_FORMAT(NOW(), '%Y%m%d%H%i%S')
+						WHERE 
+							DATA_IDX=#{dataIdx};
+		]]>
+	</update>
+
+	<update id="insertUserCoup" parameterType="hashmap" >
+		<![CDATA[
+			    
+		   INSERT INTO 
+					PPM_USER_COUP
+						(
+						DATA_IDX, 
+						USER_IDX, 
+						COUP_USE_YN,
+						
+						SYS_REG_IDX, 
+						SYS_REG_DTM, 
+						SYS_MOD_IDX,
+						SYS_MOD_DTM
+						)
+						
+					VALUES
+						(
+						#{dataIdx}, 
+						#{userIdx}, 
+						'N',
+						
+						#{mngLoginIdx}, 
+						DATE_FORMAT(NOW(), '%Y%m%d%H%i%S'), 
+						#{mngLoginIdx}, 
+						DATE_FORMAT(NOW(), '%Y%m%d%H%i%S')
+						)
+
+		]]>
+	</update>
+	
+	<insert id="insertMngCoupData" parameterType="hashmap">
+		<![CDATA[
+			INSERT INTO 
+				PPM_DEV.PPM_COUP
+					(
+					COUP_NM,
+					CODE_ID,
+					COUP_SERV_CD,
+					COUP_CATE_CD,
+					COUP_CD,
+					
+					COUP_MINI,
+					COUP_MINI_TYPE,
+					COUP_DISC_CD,
+					COUP_DISC,
+					
+					COUP_STR_DTM,
+					COUP_END_DTM,
+					COUP_ISSU,
+					COUP_USE_YN,
+					
+					COUP_UUID,
+					COUP_KIND,
+					COUP_USE_DATE,
+					COUP_TYPE,
+					
+					SYS_REG_IDX,
+					SYS_REG_DTM, 
+					SYS_MOD_IDX,
+					SYS_MOD_DTM
+					)
+					
+					VALUES(
+						#{coupNm},
+						#{codeId},
+						#{coupServCd},
+						#{coupCateCd},
+						(
+							SELECT
+									CONCAT(
+										CONCAT(
+											'${coupCd}',
+											(
+												CASE
+													WHEN COUNT(PPF.COUP_IDX) BETWEEN 0 AND 9999 THEN 'A'
+													WHEN COUNT(PPF.COUP_IDX) > 9999 THEN CHAR(ASCII('A') + FLOOR(COUNT(PPF.COUP_IDX)/10000))
+													WHEN COUNT(PPF.COUP_IDX) = 0 THEN 'A'
+												END
+											)
+										),
+										(
+											CASE 
+												WHEN COUNT(PPF.COUP_IDX) BETWEEN 0 AND 9999 THEN LPAD( COUNT(PPF.COUP_IDX)+1 , 4 , 0)
+												WHEN COUNT(PPF.COUP_IDX) > 9999 THEN LPAD( COUNT(PPF.COUP_IDX)+1 - 9999 , 4 , 0)
+												WHEN COUNT(PPF.COUP_IDX) = 0 THEN '0001'
+											END
+										)
+									)
+							FROM
+								PPM_COUP PPF
+							WHERE
+								COUP_CD LIKE '%${coupCd}%'
+						),
+						
+						#{coupMini},
+						#{coupMiniType},
+						#{coupDiscCd},
+						#{coupDisc},
+						
+						#{coupStrDtm},
+						#{coupEndDtm},
+						#{coupIssu},
+						'Y',
+						
+						#{coupUuid},
+						#{coupKind},
+						#{coupUseDate},
+						#{coupType},
+						
+						#{mngLoginIdx}, 
+						DATE_FORMAT(NOW(), '%Y%m%d%H%i%S'), 
+						#{mngLoginIdx}, 
+						DATE_FORMAT(NOW(), '%Y%m%d%H%i%S')
+						)
+
+		]]>
+	</insert>
+	
+	<update id="updateMngCoupData" parameterType="hashmap">
+		<![CDATA[
+			UPDATE 
+				PPM_COUP
+						SET
+			
+							COUP_NM = #{coupNm},
+							CODE_ID = #{codeId},
+							COUP_SERV_CD = #{coupServCd},
+							COUP_CATE_CD = #{coupCateCd},
+							COUP_MINI = #{coupMini},
+							COUP_MINI_TYPE = #{coupMiniType},
+							COUP_DISC_CD = #{coupDiscCd},
+							COUP_DISC = #{coupDisc},
+							COUP_STR_DTM = #{coupStrDtm},
+							COUP_END_DTM = #{coupEndDtm},
+							COUP_ISSU = #{coupIssu},
+							
+							COUP_UUID = #{coupUuid},
+							COUP_USE_DATE = #{coupUseDate},
+							COUP_KIND = #{coupKind},
+							
+							SYS_MOD_IDX = #{mngLoginIdx}, 
+							SYS_MOD_DTM = DATE_FORMAT(NOW(), '%Y%m%d%H%i%S')
+							
+							WHERE 
+								COUP_IDX = #{coupIdx}
+
+		]]>
+	</update>
+	
+	
+	<select id="selectMngHaveUserCoupCnt" parameterType="hashmap" resultType="hashmap">
+		<![CDATA[
+		SELECT 
+			COUNT(0) HAVE_USER_COUP_CNT,
+			(SELECT PC.COUP_TYPE FROM PPM_COUP PC WHERE PC.COUP_IDX = #{coupIdx} ) COUP_TYPE 
+				FROM 
+					PPM_COUP_DATA PCD 
+						WHERE 
+							COUP_IDX  = #{coupIdx}
+							AND USER_IDX IS NOT NULL
+							AND PCD.DATA_USE_YN = 'Y'
+		]]>
+	</select>
+
+	<select id="selectMngHaveNoUserCoupList" parameterType="hashmap" resultType="hashmap">
+		<![CDATA[
+		SELECT 
+			 DATA_IDX, COUP_IDX , COUP_DATA_CD 
+				FROM 
+					PPM_COUP_DATA PCD 
+						WHERE 
+							COUP_IDX  = #{coupIdx}
+							AND USER_IDX IS NULL
+							AND PCD.DATA_USE_YN = 'Y'
+		]]>
+	</select>
+
+	<select id="selectMngCoupIdx" parameterType="hashmap" resultType="hashmap">
+		<![CDATA[
+		SELECT COUP_IDX, 
+					CASE COUP_ISSU 
+						WHEN 0 THEN (SELECT COUNT(*) FROM PPM_USER PU WHERE PU.USER_TYPE = 'U' AND PU.USER_USE_YN = 'Y')
+						ELSE COUP_ISSU
+						END COUP_ISSU
+			FROM PPM_COUP 
+		
+			WHERE COUP_IDX = (SELECT MAX(COUP_IDX)  FROM PPM_COUP WHERE SYS_REG_IDX = #{mngLoginIdx})
+		]]>
+	</select>
+	
+	<insert id="insertMngCoupDataData" parameterType="hashmap">
+		<![CDATA[
+			INSERT INTO 
+				PPM_DEV.PPM_COUP_DATA
+					(
+					COUP_IDX,
+					COUP_DATA_CD,
+					DATA_USE_YN,
+					SYS_REG_IDX,
+					SYS_REG_DTM,
+					SYS_MOD_IDX,
+					SYS_MOD_DTM
+					)
+					VALUES
+					(
+					#{coupIdx},
+					#{coupDataCd},
+					'Y',
+					#{mngLoginIdx}, 
+					DATE_FORMAT(NOW(), '%Y%m%d%H%i%S'), 
+					#{mngLoginIdx}, 
+					DATE_FORMAT(NOW(), '%Y%m%d%H%i%S')
+					)
+
+
+		]]>
+	</insert>
+	
+	
+</mapper>

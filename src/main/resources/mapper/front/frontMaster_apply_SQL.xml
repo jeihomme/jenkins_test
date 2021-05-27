@@ -1,0 +1,349 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd"> 
+<mapper namespace="frontMaster_apply">
+
+
+<insert id="insertFrontMastData" parameterType="hashmap" >
+<![CDATA[
+		INSERT INTO PPM_USER_MAST_APPL (
+			USER_IDX, 
+			APPL_CD,
+			APPL_USE_YN, 
+			APPL_HOPE_PARENT_CD, 
+			APPL_HOPE_CD_1,
+			 
+			APPL_HOPE_CD_2, 
+			APPL_HOPE_CD_3, 
+			APPL_SVCE_CD, 
+			APPL_SHORT_PR, 
+			APPL_MAST_QUAL, 
+			
+			APPL_MAST_QUAL_CORP,
+			APPL_MAST_TYPE_CD, 
+			APPL_MAST_SNS_YOUT,
+			APPL_MAST_SNS_INST, 
+			APPL_MAST_SNS_FACE,
+			
+			APPL_MAST_SNS_BLOG, 
+			APPL_MAST_SNS_CAFE,
+			APPL_MAST_SNS_ETC,
+			APPL_BOOK_NM,
+			APPL_BOOK_PUBL,
+			
+			APPL_BOOK_PUBL_DATE,
+			APPL_LICE_NM1,
+			APPL_LICE_NM2,
+			APPL_LICE_ACQU_DATE1,
+			APPL_LICE_ACQU_DATE2,
+			
+			APPL_LICE_AGEN1,
+			APPL_LICE_AGEN2,
+			APPL_UUID,
+			APPL_REAS,
+			APPL_OPEN_CLAS,
+			
+			APPL_LECT_CARE,
+			APPL_BANK_OWN,
+			APPL_BANK_NM,
+			APPL_BANK_ACNT,
+			
+			SYS_REG_IDX,
+			SYS_REG_DTM, 
+			SYS_MOD_IDX, 
+			SYS_MOD_DTM
+		) VALUES (
+			#{frontLoginIdx},
+			'MAC01',
+			'Y',
+			#{applHopeParentCd },
+			#{applHopeCd1 },
+			
+			#{applHopeCd2 },
+			#{applHopeCd3 },
+			#{applSvceCd },
+			#{applShortPr },
+			#{applMastQual }, 
+			
+			#{applMastQualCorp }, 
+			#{applMastTypeCd }, 
+			#{applMastSnsYout }, 
+			#{applMastSnsInst }, 
+			#{applMastSnsFace }, 
+			
+			#{applMastSnsBlog }, 
+			#{applMastSnsCafe }, 
+			#{applMastSnsEtc }, 
+			#{applBookNm }, 
+			#{applBookPubl }, 
+			
+			#{applBookPublDate }, 
+			#{applLiceNm1 }, 
+			#{applLiceNm2 }, 
+			#{applLiceAcquDate1 }, 
+			#{applLiceAcquDate2 }, 
+			 
+			#{applLiceAgen1 }, 
+			#{applLiceAgen2 }, 
+			#{applUuid }, 
+			#{applReas }, 
+			#{applOpenClas },
+			
+			#{applLectCare },
+			#{applBankOwn },
+			#{applBankNm },
+			#{applBankAcnt },
+			
+			#{frontLoginIdx}, 
+			DATE_FORMAT(NOW(), '%Y%m%d%H%i%S'), 
+			#{frontLoginIdx}, 
+			DATE_FORMAT(NOW(), '%Y%m%d%H%i%S')
+		) ON DUPLICATE KEY UPDATE
+			APPL_HOPE_PARENT_CD    = #{applHopeParentCd },
+			APPL_HOPE_CD_1         = #{applHopeCd1 },
+								   
+			APPL_HOPE_CD_2         = #{applHopeCd2 },
+			APPL_HOPE_CD_3         = #{applHopeCd3 },
+			APPL_SVCE_CD           = #{applSvceCd },
+			APPL_SHORT_PR          = #{applShortPr },
+			APPL_MAST_QUAL         = #{applMastQual }, 
+								   
+			APPL_MAST_QUAL_CORP    = #{applMastQualCorp }, 
+			APPL_MAST_TYPE_CD      = #{applMastTypeCd }, 
+			APPL_MAST_SNS_YOUT     = #{applMastSnsYout }, 
+			APPL_MAST_SNS_INST     = #{applMastSnsInst }, 
+			APPL_MAST_SNS_FACE     = #{applMastSnsFace }, 
+								   
+			APPL_MAST_SNS_BLOG     = #{applMastSnsBlog }, 
+			APPL_MAST_SNS_CAFE     = #{applMastSnsCafe }, 
+			APPL_MAST_SNS_ETC      = #{applMastSnsEtc }, 
+			APPL_BOOK_NM           = #{applBookNm }, 
+			APPL_BOOK_PUBL         = #{applBookPubl }, 
+								   
+			APPL_BOOK_PUBL_DATE    = #{applBookPublDate }, 
+			APPL_LICE_NM1          = #{applLiceNm1 }, 
+			APPL_LICE_NM2          = #{applLiceNm2 }, 
+			APPL_LICE_ACQU_DATE1   = #{applLiceAcquDate1 }, 
+			APPL_LICE_ACQU_DATE2   = #{applLiceAcquDate2 }, 
+								   
+			APPL_LICE_AGEN1        = #{applLiceAgen1 }, 
+			APPL_LICE_AGEN2        = #{applLiceAgen2 }, 
+			APPL_UUID              = #{applUuid }, 
+			APPL_REAS              = #{applReas }, 
+			APPL_OPEN_CLAS         = #{applOpenClas },
+								   
+			APPL_LECT_CARE         = #{applLectCare },
+			APPL_BANK_OWN			= #{applBankOwn }, 
+			APPL_BANK_NM			= #{applBankNm },
+			APPL_BANK_ACNT			= #{applBankAcnt },
+								   
+			SYS_MOD_IDX            = #{frontLoginIdx}, 
+			SYS_MOD_DTM            = DATE_FORMAT(NOW(), '%Y%m%d%H%i%S')
+
+]]>
+</insert>	
+
+
+
+<!-- 로그인 체크 -->
+<select id="selectFrontLoginCheck" parameterType="hashmap" resultType="hashmap">
+	<choose>
+		<when test='snsType in {"", null}'>
+	<![CDATA[
+		
+		SELECT
+			USER_IDX,
+			USER_EMAIL,
+			USER_NICK,
+			USER_PHONE,
+		  	USER_NM,
+		  	USER_INFO,
+		  	USER_SNS_TYPE,
+		  	USER_TYPE,
+		  	USER_LONG_NON_CONN_YN,
+		  	USER_REST_YN,
+		  	USER_UUID
+		FROM
+		    PPM_USER PU
+		WHERE
+		    USER_EMAIL = #{userEmail}
+		    AND USER_PW = #{userPw}
+		    AND USER_USE_YN = 'Y'
+	]]>
+		</when>
+		<otherwise>
+	<![CDATA[
+		
+		SELECT
+			USER_IDX,
+			USER_EMAIL,
+			USER_NICK,
+			USER_PHONE,
+		  	USER_NM,
+		  	USER_INFO,
+		  	USER_SNS_TYPE,
+		  	USER_TYPE,
+		  	USER_LONG_NON_CONN_YN,
+		  	USER_REST_YN,
+		  	USER_UUID
+		FROM
+		    PPM_USER PU
+		WHERE
+	]]>
+	<if test='snsType in {"K"}'>
+	<![CDATA[
+		    KAKAO_ID = #{userSnsId}
+	]]>
+	</if>
+	<if test='snsType in {"G"}'>
+	<![CDATA[
+		    GOOGLE_ID = #{userSnsId}
+	]]>
+	</if>
+	<if test='snsType in {"N"}'>
+	<![CDATA[
+		    NAVER_ID = #{userSnsId}
+	]]>
+	</if>
+	<![CDATA[
+		    AND USER_SNS_TYPE = #{snsType}
+		    AND USER_USE_YN = 'Y'
+	]]>
+		</otherwise>	
+	</choose>
+</select>
+	
+	
+<select id="selectFrontMasterapplDetail" parameterType="hashmap" resultType="hashmap">
+	<![CDATA[
+		    
+	    SELECT 
+			APPL_IDX,
+			PUMA.USER_IDX,
+			PU.USER_NM ,
+			PU.USER_NICK ,
+			PU.USER_EMAIL ,
+			PU.USER_PHONE ,
+			
+			( SELECT CODE_NM FROM PPM_CODE WHERE CODE_ID = APPL_CD ) AS APPL_CD,
+			APPL_CD_CNTN,
+			APPL_USE_YN, 
+			APPL_UUID, 
+			APPL_HOPE_PARENT_CD, 
+			(SELECT CODE_NM FROM PPM_CODE PC WHERE CODE_ID = APPL_HOPE_PARENT_CD)  APPL_HOPE_PARENT, 
+			APPL_HOPE_CD_1,
+			(SELECT CODE_NM FROM PPM_CODE PC WHERE CODE_ID = APPL_HOPE_CD_1)  APPL_HOPE_1, 
+			APPL_HOPE_CD_2,
+			(SELECT CODE_NM FROM PPM_CODE PC WHERE CODE_ID = APPL_HOPE_CD_2)  APPL_HOPE_2, 
+			APPL_HOPE_CD_3, 
+			(SELECT CODE_NM FROM PPM_CODE PC WHERE CODE_ID = APPL_HOPE_CD_3)  APPL_HOPE_3, 
+			APPL_SVCE_CD, 
+			
+			APPL_SHORT_PR, 
+			APPL_MAST_QUAL, 
+			APPL_MAST_QUAL_CORP,
+			APPL_MAST_TYPE_CD, 
+			(SELECT CODE_NM FROM PPM_CODE PC WHERE CODE_ID = APPL_MAST_TYPE_CD)  APPL_MAST_TYPE, 
+			APPL_MAST_SNS_YOUT, 
+			APPL_MAST_SNS_INST, 
+			APPL_MAST_SNS_FACE, 
+			APPL_MAST_SNS_BLOG,
+			APPL_MAST_SNS_CAFE, 
+			APPL_MAST_SNS_ETC, 
+			APPL_BOOK_NM, 
+			APPL_BOOK_PUBL, 
+			DATE_FORMAT(APPL_BOOK_PUBL_DATE, '%Y-%m-%d') APPL_BOOK_PUBL_DATE, 
+			APPL_LICE_NM1,
+			APPL_LICE_NM2,
+			DATE_FORMAT(APPL_LICE_ACQU_DATE1, '%Y-%m-%d') APPL_LICE_ACQU_DATE1, 
+			DATE_FORMAT(APPL_LICE_ACQU_DATE2, '%Y-%m-%d') APPL_LICE_ACQU_DATE2,
+			APPL_LICE_AGEN1, 
+			APPL_LICE_AGEN2, 
+			APPL_REAS,
+			APPL_OPEN_CLAS,
+			APPL_LECT_CARE, 
+			APPL_BANK_OWN,
+			APPL_BANK_NM,
+			APPL_BANK_ACNT,
+			PUMA.SYS_REG_IDX,
+			DATE_FORMAT(PUMA.SYS_REG_DTM, '%Y-%m-%d') AS SYS_REG_DTM,
+			PUMA.SYS_MOD_IDX, 
+			PUMA.SYS_MOD_DTM
+		FROM 
+			PPM_USER_MAST_APPL PUMA
+				LEFT JOIN PPM_USER PU ON PUMA.USER_IDX = PU.USER_IDX
+		WHERE 
+			APPL_USE_YN = 'Y'
+			AND PU.USER_IDX = #{frontLoginIdx }
+	]]>
+</select>
+	
+	<!-- 로그인 체크 -->
+<select id="selectFrontUserData" parameterType="hashmap" resultType="hashmap">
+	<choose>
+		<when test='snsType in {"", null}'>
+	<![CDATA[
+		
+		SELECT
+			USER_IDX,
+			USER_EMAIL,
+			USER_NICK,
+			USER_PHONE,
+		  	USER_NM,
+		  	USER_INFO,
+		  	USER_SNS_TYPE,
+		  	USER_TYPE,
+		  	USER_LONG_NON_CONN_YN,
+		  	USER_REST_YN,
+		  	USER_USE_YN,
+		  	USER_UUID
+		FROM
+		    PPM_USER PU
+		WHERE
+		    USER_EMAIL = #{userEmail}
+		    AND USER_PW = #{userPw}
+		    AND DATEDIFF( SYS_MOD_DTM, NOW() ) > -30
+	]]>
+		</when>
+		<otherwise>
+	<![CDATA[
+		
+		SELECT
+			USER_IDX,
+			USER_EMAIL,
+			USER_NICK,
+			USER_PHONE,
+		  	USER_NM,
+		  	USER_INFO,
+		  	USER_SNS_TYPE,
+		  	USER_TYPE,
+		  	USER_LONG_NON_CONN_YN,
+		  	USER_REST_YN,
+		  	USER_USE_YN,
+		  	USER_UUID
+		FROM
+		    PPM_USER PU
+		WHERE
+	]]>
+	<if test='snsType in {"K"}'>
+	<![CDATA[
+		    KAKAO_ID = #{userSnsId}
+	]]>
+	</if>
+	<if test='snsType in {"G"}'>
+	<![CDATA[
+		    GOOGLE_ID = #{userSnsId}
+	]]>
+	</if>
+	<if test='snsType in {"N"}'>
+	<![CDATA[
+		    NAVER_ID = #{userSnsId}
+	]]>
+	</if>
+	<![CDATA[
+		    AND USER_SNS_TYPE = #{snsType}
+	]]>
+		</otherwise>	
+	</choose>
+</select>	
+	
+</mapper>

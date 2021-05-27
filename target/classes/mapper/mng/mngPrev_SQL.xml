@@ -1,0 +1,175 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd"> 
+<mapper namespace="mngPrev">
+
+	<!-- 로그인 체크 -->
+	<select id="selectMngPrevList" parameterType="hashmap" resultType="hashmap">
+		<![CDATA[
+				]]>
+			<if test="status not in {'LIST'}">
+				<![CDATA[
+SELECT C.*, REPLACE(CONVERT(C.NUM_DESC, CHAR),'.0','') AS NUM_DESC_ORDER FROM (
+  SELECT B.*, (@rownumB:=@rownumB+1) as NUM_ASC FROM(  
+    SELECT A.*, (@rownumA:=@rownumA+1) as NUM_DESC FROM (
+				]]>
+			</if>
+		<![CDATA[
+			
+			    SELECT
+					PREV_IDX,
+				  	PREV_NM,
+					PREV_CD,
+					(SELECT COUNT(0) FROM PPM_USER WHERE PREV_IDX = PP.PREV_IDX) + (SELECT COUNT(0) FROM PPM_MNG WHERE PREV_IDX = PP.PREV_IDX) AS USER_CNT,
+					(
+					SELECT
+						CAST(
+						SUM(
+							(
+								CHAR_LENGTH(PREV_CD) - CHAR_LENGTH( REPLACE(PREV_CD,'/','') )
+							)
+						)/2
+						AS SIGNED INTEGER)
+					FROM
+						PPM_PREV
+					WHERE
+						PREV_USE_YN = 'Y'
+						AND PREV_IDX = PP.PREV_IDX
+					) AS PREV_CNT,
+				  	PREV_USE_YN,
+				  	
+				  	SYS_REG_IDX,
+				  	DATE_FORMAT(SYS_REG_DTM , '%Y-%m-%d') SYS_REG_DTM,
+				  	SYS_MOD_IDX,
+				  	SYS_MOD_DTM
+				FROM
+				    PPM_PREV PP 
+				]]>
+				<where>
+						<![CDATA[
+									PREV_USE_YN = 'Y'
+				]]>
+							<if test='prevNm not in {null,""}'>
+						<![CDATA[
+								AND	PREV_NM LIKE '%${prevNm}%'
+				]]>
+							</if>
+				</where>
+						<![CDATA[
+				
+				
+				
+				
+				]]>
+			<if test="status not in {'LIST'}">
+				<![CDATA[
+						) A JOIN (SELECT @rownumA:=0) rownumA
+  ) B JOIN (SELECT @rownumB:=0) rownumB ORDER BY PREV_IDX DESC
+) C WHERE NUM_ASC BETWEEN '${startRow }' AND '${endRow }'
+				]]>
+			</if>
+		<![CDATA[
+		]]>
+	</select>
+	
+	<!-- 로그인 체크 -->
+	<select id="selectMngPrevListCnt" parameterType="hashmap" resultType="java.lang.Integer">
+		<![CDATA[
+			    SELECT
+					COUNT(*) CNT
+				FROM
+				    PPM_PREV
+				]]>
+				<where>
+							<![CDATA[
+									PREV_USE_YN = 'Y'
+				]]>
+				<if test='prevNm not in {null,""}'>
+						<![CDATA[
+								AND	PREV_NM LIKE '%${prevNm}%'
+				]]>
+							</if>
+				</where>
+						<![CDATA[
+		]]>
+	</select>
+	
+	<select id="selectMngPrevDetail" parameterType="hashmap" resultType="hashmap">
+		<![CDATA[
+			    
+		    SELECT
+				PREV_IDX,
+			  	PREV_NM,
+				PREV_CD,
+			  	PREV_USE_YN,
+			  	
+			  	SYS_REG_IDX,
+				SYS_REG_DTM,
+				SYS_MOD_IDX,
+				SYS_MOD_DTM
+			FROM
+			    PPM_PREV
+			WHERE
+			   PREV_IDX = #{prevIdx}
+		]]>
+	</select>
+
+
+	<update id="deleteMngPrevData" parameterType="hashmap" >
+		<![CDATA[
+			    
+		   UPDATE 
+				PPM_PREV
+					SET
+						PREV_USE_YN='N',
+						SYS_MOD_IDX=#{mngLoginIdx}, 
+						SYS_MOD_DTM=DATE_FORMAT(NOW(), '%Y%m%d%H%i%S')
+				WHERE 
+					PREV_IDX=#{prevIdx};
+		]]>
+	</update>
+	
+	<insert id="insertMngPrevData" parameterType="hashmap">
+		<![CDATA[
+			INSERT INTO 
+				PPM_PREV
+					(
+					PREV_NM,
+					PREV_CD,
+					PREV_USE_YN,
+					SYS_REG_IDX,
+					SYS_REG_DTM, 
+					SYS_MOD_IDX,
+					SYS_MOD_DTM
+					)
+					VALUES
+						(
+						#{prevNm}, 
+						#{prevCd}, 
+						'Y',
+						#{mngLoginIdx}, 
+						DATE_FORMAT(NOW(), '%Y%m%d%H%i%S'), 
+						#{mngLoginIdx}, 
+						DATE_FORMAT(NOW(), '%Y%m%d%H%i%S')
+						)
+		]]>
+	</insert>
+	
+	<update id="updateMngPrevData" parameterType="hashmap">
+		<![CDATA[
+			UPDATE 
+				PPM_PREV
+					SET
+						PREV_NM=#{prevNm},
+						PREV_CD=#{prevCd},
+						SYS_MOD_IDX=#{mngLoginIdx}, 
+						SYS_MOD_DTM=DATE_FORMAT(NOW(), '%Y%m%d%H%i%S')
+				WHERE 
+					PREV_IDX=#{prevIdx};
+
+
+		]]>
+	</update>
+	
+	
+	
+</mapper>

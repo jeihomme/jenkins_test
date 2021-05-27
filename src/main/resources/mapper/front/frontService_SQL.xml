@@ -1,0 +1,155 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd"> 
+<mapper namespace="frontService">
+
+	<insert id="insertFrontQnaData" parameterType="hashmap">
+		<![CDATA[
+			INSERT INTO 
+				PPM_SITE_QNA
+			(
+				QNA_NAME,
+				QNA_EMAIL,
+				QNA_CD,
+				QNA_TITL,
+				QNA_CNTN, 
+				QNA_USER_UUID, 
+				QNA_USE_YN, 
+				
+				SYS_REG_IDX, 
+				SYS_REG_DTM, 
+				SYS_MOD_IDX, 
+				SYS_MOD_DTM
+			) VALUES (
+				#{qnaName},
+				#{qnaEmail},
+				#{qnaCd},
+				#{qnaTitl},
+				#{qnaCntn},
+				#{qnaUserUuid},
+				'Y',
+				
+				#{frontLoginIdx}, 
+				DATE_FORMAT(NOW(), '%Y%m%d%H%i%S'), 
+				#{frontLoginIdx}, 
+				DATE_FORMAT(NOW(), '%Y%m%d%H%i%S')
+			)
+		]]>
+	</insert>
+	
+	
+	
+
+<!-- 공지사항 --><!-- 공지사항 --><!-- 공지사항 --><!-- 공지사항 --><!-- 공지사항 --><!-- 공지사항 --><!-- 공지사항 --><!-- 공지사항 --><!-- 공지사항 --><!-- 공지사항 -->
+	<select id="selectFrontNotiList" parameterType="hashmap" resultType="hashmap">
+		<![CDATA[
+				]]>
+			<if test="status not in {'LIST'}">
+				<![CDATA[
+SELECT C.* FROM (
+	SELECT B.*, (@rownumB:=@rownumB+1) as NUM_ASC FROM(  
+		SELECT A.*, (@rownumA:=@rownumA+1) as NUM_DESC FROM (
+				]]>
+			</if>
+		<![CDATA[
+			
+			SELECT 
+				NOTI_IDX, 
+				NOTI_TITL,
+				LENGTH(NOTI_CNTN) AS NOTI_CNTN,
+				NOTI_CD,
+				(SELECT CODE_NM FROM PPM_CODE WHERE CODE_ID = NOTI_CD ) AS CODE_NM,
+				( SELECT COUNT(*) FROM UNIT_FILES UF WHERE UF.UNIT_UUID = NOTI_UUID ) FILE_YN,
+				NOTI_OPEN_YN,
+				
+				DATE_FORMAT(SYS_REG_DTM, '%Y-%m-%d ') AS SYS_REG_DTM
+			FROM 
+				PPM_SITE_NOTI
+			WHERE
+				NOTI_DEL_YN = 'N'
+				AND NOTI_USE_YN = 'Y'
+	]]>
+		<if test="notiTitl not in {null, ''}">
+			<![CDATA[
+				AND NOTI_TITL LIKE '%${notiTitl}%'
+			]]>
+		</if>
+		<if test="notiCd not in {null, ''}">
+			<![CDATA[
+				AND NOTI_CD = #{notiCd}
+			]]>
+		</if>
+	<![CDATA[ 
+
+				
+				]]>
+			<if test="status not in {'LIST'}">
+				<![CDATA[
+		) A JOIN (SELECT @rownumA:=0) rownumA ORDER BY  NOTI_OPEN_YN  ,  NOTI_IDX 
+	) B JOIN (SELECT @rownumB:=0) rownumB ORDER BY NUM_DESC DESC
+) C WHERE NUM_ASC BETWEEN #{startRow } AND #{endRow }
+				]]>
+			</if>
+		<![CDATA[
+		]]>
+	</select>
+	
+	<select id="selectFrontNotiListIdx" parameterType="hashmap" resultType="hashmap">
+		<![CDATA[
+			SELECT 
+				NOTI_IDX,
+				NOTI_TITL
+			FROM 
+				PPM_SITE_NOTI
+			WHERE
+				NOTI_DEL_YN = 'N'
+				AND NOTI_USE_YN = 'Y'
+	 		ORDER BY  NOTI_OPEN_YN DESC, NOTI_IDX DESC
+		]]>
+	</select>
+	
+	
+	<select id="selectFrontNotiListCnt" parameterType="hashmap" resultType="java.lang.Integer">
+		<![CDATA[
+			SELECT
+				COUNT(0) AS CNT
+			FROM 
+				PPM_SITE_NOTI
+			WHERE
+				NOTI_DEL_YN = 'N'
+				AND NOTI_USE_YN = 'Y'
+	]]>
+		<if test="notiTitl not in {null, ''}">
+			<![CDATA[
+				AND NOTI_TITL LIKE '%${notiTitl}%'
+			]]>
+		</if>
+		<if test="notiCd not in {null, ''}">
+			<![CDATA[
+				AND NOTI_CD = #{notiCd}
+			]]>
+		</if>
+	</select>
+	
+	<select id="selectFrontNotiDetail" parameterType="hashmap" resultType="hashmap">
+		<![CDATA[
+			
+			
+			SELECT 
+				NOTI_IDX, 
+				NOTI_TITL,
+				NOTI_CNTN,
+				NOTI_CD,
+				(SELECT CODE_NM FROM PPM_CODE WHERE CODE_ID = NOTI_CD ) AS CODE_NM,
+				NOTI_UUID,
+				NOTI_OPEN_YN,
+				
+				DATE_FORMAT(SYS_REG_DTM, '%Y-%m-%d ') AS SYS_REG_DTM
+			FROM 
+				PPM_SITE_NOTI
+			WHERE
+				NOTI_DEL_YN = 'N'
+				AND NOTI_USE_YN = 'Y'
+				AND NOTI_IDX = #{notiIdx }
+		]]>
+	</select>
+</mapper>

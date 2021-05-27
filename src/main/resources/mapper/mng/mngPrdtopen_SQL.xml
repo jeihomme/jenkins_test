@@ -1,0 +1,1028 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd"> 
+<mapper namespace="mngPrdtopen">
+
+	<!-- 로그인 체크 -->
+	<select id="selectMngPrdtopenList" parameterType="hashmap" resultType="hashmap">
+		<![CDATA[
+				]]>
+			<if test="status not in {'LIST'}">
+				<![CDATA[
+SELECT C.*, REPLACE(CONVERT(C.NUM_DESC, CHAR),'.0','') AS NUM_DESC_ORDER FROM (
+  SELECT B.*, (@rownumB:=@rownumB+1) as NUM_ASC FROM(  
+    SELECT A.*, (@rownumA:=@rownumA+1) as NUM_DESC FROM (
+				]]>
+			</if>
+		<![CDATA[
+
+			SELECT
+				*
+			FROM (
+				SELECT 
+					PC.CATE_IDX,
+					PRDT.PRDT_TYPE,
+					PU.USER_NM,
+					P_CODE.CODE_ID AS P_CODE_ID,
+					M_CODE.CODE_ID AS M_CODE_ID,
+					P_CODE.CODE_NM AS P_CODE_NM,
+					M_CODE.CODE_NM AS M_CODE_NM,
+					
+					CASE 
+						WHEN SUBSTRING( PRDT.PRDT_CD,7,2 )  = 'VL' THEN PRDT.PRDT_CD
+						WHEN SUBSTRING( PRDT.PRDT_CD,7,2 )  = 'LN' THEN PRDT.PRDT_CD
+						ELSE CONCAT( 'COACHING', PRDT.CATE_IDX )
+					END AS PRDT_CATE_CD,
+					
+					GROUP_CONCAT( PRDT.PRDT_CD) PRDT_CD,
+					
+					PRDT.PRDT_NM1,
+					PRDT.PRDT_NM2,	
+					
+					'접수시작일' AS STR_DTM,
+					'접수종료일' AS END_DTM,
+					DATE_FORMAT( PRDT_REG_DTM, '%Y-%m-%d') AS PRDT_REG_DTM,
+					( SELECT COUNT(0) FROM PPM_PRDT_BASK WHERE BASK_PRDT_CD = PRDT.PRDT_CD AND BASK_USE_YN = 'Y' AND BASK_TYPE = 'K' ) AS LIKE_CNT,
+					( SELECT COUNT(0) FROM PPM_USER_REVI WHERE CATE_IDX = PC.CATE_IDX ) AS REVI_CNT,
+					IFNULL(ROUND( ( ( SELECT SUM( REVI_SCOR ) FROM PPM_USER_REVI WHERE CATE_IDX = PC.CATE_IDX ) / ( SELECT COUNT(0) FROM PPM_USER_REVI WHERE CATE_IDX = PC.CATE_IDX ) ), 1 ), 0.0) AS REVI_AVG,
+					PRDT_STAT_CD,
+					( SELECT CODE_NM FROM PPM_CODE WHERE CODE_ID = PRDT_STAT_CD ) AS  PRDT_STAT_NM
+					
+				FROM
+					PPM_CATE PC,
+					PPM_USER PU,
+					PPM_CODE P_CODE,
+					PPM_CODE M_CODE,
+					(
+						SELECT CONCAT('1:1코칭,', PPF.CATE_IDX ) AS PRDT_TYPE, PPF.CATE_IDX, PPF.FACE_IDX AS PRDT_IDX, PPF.FACE_CD AS PRDT_CD, FACE_IMG_UUID AS PRDT_UUID, 'FACE_IMG_UUID' AS PRDT_UUID_NM, FACE_STAT_CD AS PRDT_STAT_CD, PPF.SYS_REG_DTM AS PRDT_REG_DTM,(SELECT PIP.INFO_PRDT_TITL1 FROM PPM_INFO_PRDT PIP  WHERE  PIP.PRDT_CD = CONCAT( 'COACHING', PPF.CATE_IDX ) AND PIP.INFO_ORDE = 0 AND PIP.INFO_USE_YN = 'Y') AS PRDT_NM1, (SELECT PIP.INFO_PRDT_TITL2 FROM PPM_INFO_PRDT PIP  WHERE  PIP.PRDT_CD = CONCAT( 'COACHING', PPF.CATE_IDX ) AND PIP.INFO_ORDE = 0 AND PIP.INFO_USE_YN = 'Y') AS PRDT_NM2 
+						FROM PPM_PRDT_FACE PPF, PPM_SALE_FACE PSF
+						WHERE SALE_USE_YN = 'Y' AND PSF.FACE_IDX = PPF.FACE_IDX AND PPF.FACE_USE_YN = 'Y'
+					UNION ALL
+						SELECT CONCAT('VOD,', PPLE.CATE_IDX ) AS PRDT_TYPE, PPLE.CATE_IDX, PPLE.LECT_IDX AS PRDT_IDX, PPLE.LECT_CD AS PRDT_CD, LECT_UUID AS PRDT_UUID, 'LECT_UUID' AS PRDT_UUID_NM, LECT_STAT_CD AS PRDT_STAT_CD, PPLE.SYS_REG_DTM AS PRDT_REG_DTM, (SELECT PIP.INFO_PRDT_TITL1 FROM PPM_INFO_PRDT PIP  WHERE  PIP.PRDT_CD = PPLE.LECT_CD AND PIP.INFO_ORDE = 0 AND PIP.INFO_USE_YN = 'Y') AS PRDT_NM1, (SELECT PIP.INFO_PRDT_TITL2 FROM PPM_INFO_PRDT PIP  WHERE  PIP.PRDT_CD = PPLE.LECT_CD AND PIP.INFO_ORDE = 0 AND PIP.INFO_USE_YN = 'Y') AS PRDT_NM2
+						FROM PPM_PRDT_LECT PPLE, PPM_SALE_LECT PSLE
+						WHERE SALE_USE_YN = 'Y' AND PPLE.LECT_USE_YN = 'Y' AND PSLE.LECT_IDX = PPLE.LECT_IDX 
+					UNION ALL
+						SELECT CONCAT('1:1코칭,', PPC.CATE_IDX ) AS PRDT_TYPE, PPC.CATE_IDX, PPC.CHAT_IDX AS PRDT_IDX, PPC.CHAT_CD AS PRDT_CD, CHAT_IMG_UUID AS PRDT_UUID, 'CHAT_IMG_UUID' AS PRDT_UUID_NM, CHAT_STAT_CD AS PRDT_STAT_CD, PPC.SYS_REG_DTM AS PRDT_REG_DTM, (SELECT PIP.INFO_PRDT_TITL1 FROM PPM_INFO_PRDT PIP  WHERE  PIP.PRDT_CD = CONCAT( 'COACHING', PPC.CATE_IDX ) AND PIP.INFO_ORDE = 0 AND PIP.INFO_USE_YN = 'Y') AS PRDT_NM1, (SELECT PIP.INFO_PRDT_TITL2 FROM PPM_INFO_PRDT PIP  WHERE  PIP.PRDT_CD = CONCAT( 'COACHING', PPC.CATE_IDX ) AND PIP.INFO_ORDE = 0 AND PIP.INFO_USE_YN = 'Y') AS PRDT_NM2
+						FROM PPM_PRDT_CHAT PPC, PPM_SALE_CHAT PSC
+						WHERE SALE_USE_YN = 'Y' AND PSC.CHAT_IDX = PPC.CHAT_IDX AND PPC.CHAT_USE_YN = 'Y'
+					UNION ALL
+						SELECT CONCAT('1:1코칭,', PPM.CATE_IDX ) AS PRDT_TYPE, PPM.CATE_IDX, PPM.MAIL_IDX AS PRDT_IDX, PPM.MAIL_CD AS PRDT_CD, MAIL_IMG_UUID AS PRDT_UUID, 'MAIL_IMG_UUID' AS PRDT_UUID_NM, MAIL_STAT_CD AS PRDT_STAT_CD, PPM.SYS_REG_DTM AS PRDT_REG_DTM, (SELECT PIP.INFO_PRDT_TITL1 FROM PPM_INFO_PRDT PIP  WHERE  PIP.PRDT_CD = CONCAT( 'COACHING', PPM.CATE_IDX ) AND PIP.INFO_ORDE = 0 AND PIP.INFO_USE_YN = 'Y') AS PRDT_NM1, (SELECT PIP.INFO_PRDT_TITL2 FROM PPM_INFO_PRDT PIP  WHERE  PIP.PRDT_CD = CONCAT( 'COACHING', PPM.CATE_IDX ) AND PIP.INFO_ORDE = 0 AND PIP.INFO_USE_YN = 'Y') AS PRDT_NM2
+						FROM PPM_PRDT_MAIL PPM, PPM_SALE_MAIL PSM
+						WHERE SALE_USE_YN = 'Y' AND PSM.MAIL_IDX = PPM.MAIL_IDX AND PPM.MAIL_USE_YN = 'Y'
+					UNION ALL
+						SELECT CONCAT('LIVE CLASS,', PPLI.CATE_IDX ) AS PRDT_TYPE, PPLI.CATE_IDX, PPLI.LIVE_IDX AS PRDT_IDX, PPLI.LIVE_CD AS PRDT_CD, LIVE_IMG_UUID AS PRDT_UUID, 'LIVE_IMG_UUID' AS PRDT_UUID_NM, LIVE_STAT_CD AS PRDT_STAT_CD, PPLI.SYS_REG_DTM AS PRDT_REG_DTM, (SELECT PIP.INFO_PRDT_TITL1 FROM PPM_INFO_PRDT PIP  WHERE  PIP.PRDT_CD = PPLI.LIVE_CD AND PIP.INFO_ORDE = 0 AND PIP.INFO_USE_YN = 'Y') AS PRDT_NM1, (SELECT PIP.INFO_PRDT_TITL2 FROM PPM_INFO_PRDT PIP  WHERE  PIP.PRDT_CD = PPLI.LIVE_CD AND PIP.INFO_ORDE = 0 AND PIP.INFO_USE_YN = 'Y') AS PRDT_NM2
+						FROM PPM_PRDT_LIVE PPLI, PPM_SALE_LIVE PSLI
+						WHERE SALE_USE_YN = 'Y' AND PSLI.LIVE_IDX = PPLI.LIVE_IDX AND PPLI.LIVE_USE_YN = 'Y'
+					) PRDT
+				WHERE
+					PC.CATE_IDX = PRDT.CATE_IDX
+					AND PU.USER_IDX = PC.USER_IDX
+				--	AND PC.CATE_USE_YN = 'Y'
+					AND M_CODE.CODE_ID = PC.CODE_ID
+					AND P_CODE.CODE_ID = SUBSTR(PC.CODE_ID,1,5)
+				 
+			]]>
+			<if test='mngLoginType not in {"A"}'>
+				<![CDATA[
+					AND PC.USER_IDX = #{mngLoginType }
+				]]>
+			</if>
+			<![CDATA[
+					GROUP BY PRDT.PRDT_TYPE
+				) MAIN
+			WHERE
+				PRDT_TYPE IS NOT NULL
+				 
+		]]>
+		<if test="prdtType not in {null, ''}">
+			<![CDATA[
+				AND PRDT_TYPE LIKE '%${prdtType }%'
+			]]>
+		</if>
+		<if test="pCodeNm not in {null, ''}">
+			<![CDATA[
+				AND P_CODE_ID = #{pCodeNm }
+			]]>
+		</if>
+		<if test="mCodeNm not in {null, ''}">
+			<![CDATA[
+				AND M_CODE_ID = #{mCodeNm }
+			]]>
+		</if>
+		<if test="searchText not in {null, ''}">
+			<![CDATA[
+				AND ( USER_NM LIKE '%${searchText}%' OR PRDT_NM1 LIKE '%${searchText}%' OR PRDT_NM2 LIKE '%${searchText}%' OR PRDT_CD LIKE '%${searchText}%' )
+			]]>
+		</if>
+		<if test="prdtStatCd not in {null, ''}">
+			<![CDATA[
+				AND PRDT_STAT_CD = #{prdtStatCd }
+			]]>
+		</if>
+		<if test="sysRegDtmStr not in {null, ''} and sysRegDtmEnd not in {null, ''}">
+			<![CDATA[
+				AND DATE_FORMAT( PRDT_REG_DTM, '%Y-%m-%d' ) BETWEEN '${sysRegDtmStr}' AND '${sysRegDtmEnd}' 
+			]]>
+		</if>
+			<if test="status not in {'LIST'}">
+				<![CDATA[
+						) A JOIN (SELECT @rownumA:=0) rownumA ORDER BY PRDT_TYPE DESC, PRDT_REG_DTM
+  ) B JOIN (SELECT @rownumB:=0) rownumB ORDER BY NUM_DESC DESC 
+) C WHERE NUM_ASC BETWEEN '${startRow }' AND '${endRow }'
+				]]>
+			</if>
+	</select>
+	
+	<!-- 로그인 체크 -->
+	<select id="selectMngPrdtopenListCnt" parameterType="hashmap" resultType="java.lang.Integer">
+		<![CDATA[
+			    SELECT
+					COUNT(*) AS CNT
+				FROM (
+					SELECT 
+						PRDT.PRDT_TYPE,
+						PU.USER_NM,
+						P_CODE.CODE_ID AS P_CODE_ID,
+						M_CODE.CODE_ID AS M_CODE_ID,
+						P_CODE.CODE_NM AS P_CODE_NM,
+						M_CODE.CODE_NM AS M_CODE_NM,
+						PRDT.PRDT_CD,
+	
+						PRDT.PRDT_NM1,
+						PRDT.PRDT_NM2,
+	
+						'접수시작일' AS STR_DTM,
+						'접수종료일' AS END_DTM,
+						DATE_FORMAT( PRDT_REG_DTM, '%Y-%m-%d') AS PRDT_REG_DTM,
+						( SELECT COUNT(0) FROM PPM_PRDT_BASK WHERE BASK_PRDT_CD = PRDT.PRDT_CD ) AS LIKE_CNT,
+						( SELECT COUNT(0) FROM PPM_USER_REVI WHERE CATE_IDX = PC.CATE_IDX ) AS REVI_CNT,
+						IFNULL(ROUND( ( ( SELECT SUM( REVI_SCOR ) FROM PPM_USER_REVI WHERE CATE_IDX = PC.CATE_IDX ) / ( SELECT COUNT(0) FROM PPM_USER_REVI WHERE CATE_IDX = PC.CATE_IDX ) ), 1 ), 0.0) AS REVI_AVG,
+						PRDT_STAT_CD,
+						( SELECT CODE_NM FROM PPM_CODE WHERE CODE_ID = PRDT_STAT_CD ) AS  PRDT_STAT_NM
+						
+					FROM
+						PPM_CATE PC,
+						PPM_USER PU,
+						PPM_CODE P_CODE,
+						PPM_CODE M_CODE,
+						(
+							SELECT CONCAT('1:1코칭,', PPF.CATE_IDX ) AS PRDT_TYPE, PPF.CATE_IDX, PPF.FACE_IDX AS PRDT_IDX, PPF.FACE_CD AS PRDT_CD, FACE_IMG_UUID AS PRDT_UUID, 'FACE_IMG_UUID' AS PRDT_UUID_NM, FACE_STAT_CD AS PRDT_STAT_CD, PPF.SYS_REG_DTM AS PRDT_REG_DTM,(SELECT PIP.INFO_PRDT_TITL1 FROM PPM_INFO_PRDT PIP  WHERE  PIP.PRDT_CD = CONCAT( 'COACHING', PPF.CATE_IDX ) AND PIP.INFO_ORDE = 0 AND PIP.INFO_USE_YN = 'Y') AS PRDT_NM1, (SELECT PIP.INFO_PRDT_TITL2 FROM PPM_INFO_PRDT PIP  WHERE  PIP.PRDT_CD = CONCAT( 'COACHING', PPF.CATE_IDX ) AND PIP.INFO_ORDE = 0 AND PIP.INFO_USE_YN = 'Y') AS PRDT_NM2 
+						FROM PPM_PRDT_FACE PPF, PPM_SALE_FACE PSF
+						WHERE SALE_USE_YN = 'Y' AND PSF.FACE_IDX = PPF.FACE_IDX AND PPF.FACE_USE_YN = 'Y'
+					UNION ALL
+						SELECT CONCAT('VOD,', PPLE.CATE_IDX ) AS PRDT_TYPE, PPLE.CATE_IDX, PPLE.LECT_IDX AS PRDT_IDX, PPLE.LECT_CD AS PRDT_CD, LECT_UUID AS PRDT_UUID, 'LECT_UUID' AS PRDT_UUID_NM, LECT_STAT_CD AS PRDT_STAT_CD, PPLE.SYS_REG_DTM AS PRDT_REG_DTM, (SELECT PIP.INFO_PRDT_TITL1 FROM PPM_INFO_PRDT PIP  WHERE  PIP.PRDT_CD = PPLE.LECT_CD AND PIP.INFO_ORDE = 0 AND PIP.INFO_USE_YN = 'Y') AS PRDT_NM1, (SELECT PIP.INFO_PRDT_TITL2 FROM PPM_INFO_PRDT PIP  WHERE  PIP.PRDT_CD = PPLE.LECT_CD AND PIP.INFO_ORDE = 0 AND PIP.INFO_USE_YN = 'Y') AS PRDT_NM2
+						FROM PPM_PRDT_LECT PPLE, PPM_SALE_LECT PSLE
+						WHERE SALE_USE_YN = 'Y' AND PPLE.LECT_USE_YN = 'Y' AND PSLE.LECT_IDX = PPLE.LECT_IDX 
+					UNION ALL
+						SELECT CONCAT('1:1코칭,', PPC.CATE_IDX ) AS PRDT_TYPE, PPC.CATE_IDX, PPC.CHAT_IDX AS PRDT_IDX, PPC.CHAT_CD AS PRDT_CD, CHAT_IMG_UUID AS PRDT_UUID, 'CHAT_IMG_UUID' AS PRDT_UUID_NM, CHAT_STAT_CD AS PRDT_STAT_CD, PPC.SYS_REG_DTM AS PRDT_REG_DTM, (SELECT PIP.INFO_PRDT_TITL1 FROM PPM_INFO_PRDT PIP  WHERE  PIP.PRDT_CD = CONCAT( 'COACHING', PPC.CATE_IDX ) AND PIP.INFO_ORDE = 0 AND PIP.INFO_USE_YN = 'Y') AS PRDT_NM1, (SELECT PIP.INFO_PRDT_TITL2 FROM PPM_INFO_PRDT PIP  WHERE  PIP.PRDT_CD = CONCAT( 'COACHING', PPC.CATE_IDX ) AND PIP.INFO_ORDE = 0 AND PIP.INFO_USE_YN = 'Y') AS PRDT_NM2
+						FROM PPM_PRDT_CHAT PPC, PPM_SALE_CHAT PSC
+						WHERE SALE_USE_YN = 'Y' AND PSC.CHAT_IDX = PPC.CHAT_IDX AND PPC.CHAT_USE_YN = 'Y'
+					UNION ALL
+						SELECT CONCAT('1:1코칭,', PPM.CATE_IDX ) AS PRDT_TYPE, PPM.CATE_IDX, PPM.MAIL_IDX AS PRDT_IDX, PPM.MAIL_CD AS PRDT_CD, MAIL_IMG_UUID AS PRDT_UUID, 'MAIL_IMG_UUID' AS PRDT_UUID_NM, MAIL_STAT_CD AS PRDT_STAT_CD, PPM.SYS_REG_DTM AS PRDT_REG_DTM, (SELECT PIP.INFO_PRDT_TITL1 FROM PPM_INFO_PRDT PIP  WHERE  PIP.PRDT_CD = CONCAT( 'COACHING', PPM.CATE_IDX ) AND PIP.INFO_ORDE = 0 AND PIP.INFO_USE_YN = 'Y') AS PRDT_NM1, (SELECT PIP.INFO_PRDT_TITL2 FROM PPM_INFO_PRDT PIP  WHERE  PIP.PRDT_CD = CONCAT( 'COACHING', PPM.CATE_IDX ) AND PIP.INFO_ORDE = 0 AND PIP.INFO_USE_YN = 'Y') AS PRDT_NM2
+						FROM PPM_PRDT_MAIL PPM, PPM_SALE_MAIL PSM
+						WHERE SALE_USE_YN = 'Y' AND PSM.MAIL_IDX = PPM.MAIL_IDX AND PPM.MAIL_USE_YN = 'Y'
+					UNION ALL
+						SELECT CONCAT('LIVE CLASS,', PPLI.CATE_IDX ) AS PRDT_TYPE, PPLI.CATE_IDX, PPLI.LIVE_IDX AS PRDT_IDX, PPLI.LIVE_CD AS PRDT_CD, LIVE_IMG_UUID AS PRDT_UUID, 'LIVE_IMG_UUID' AS PRDT_UUID_NM, LIVE_STAT_CD AS PRDT_STAT_CD, PPLI.SYS_REG_DTM AS PRDT_REG_DTM, (SELECT PIP.INFO_PRDT_TITL1 FROM PPM_INFO_PRDT PIP  WHERE  PIP.PRDT_CD = PPLI.LIVE_CD AND PIP.INFO_ORDE = 0 AND PIP.INFO_USE_YN = 'Y') AS PRDT_NM1, (SELECT PIP.INFO_PRDT_TITL2 FROM PPM_INFO_PRDT PIP  WHERE  PIP.PRDT_CD = PPLI.LIVE_CD AND PIP.INFO_ORDE = 0 AND PIP.INFO_USE_YN = 'Y') AS PRDT_NM2
+						FROM PPM_PRDT_LIVE PPLI, PPM_SALE_LIVE PSLI
+						WHERE SALE_USE_YN = 'Y' AND PSLI.LIVE_IDX = PPLI.LIVE_IDX AND PPLI.LIVE_USE_YN = 'Y'
+						) PRDT
+					WHERE
+						PC.CATE_IDX = PRDT.CATE_IDX
+						AND PU.USER_IDX = PC.USER_IDX
+					--	AND PC.CATE_USE_YN = 'Y'
+						AND M_CODE.CODE_ID = PC.CODE_ID
+						AND P_CODE.CODE_ID = SUBSTR(PC.CODE_ID,1,5)
+				]]>
+				<if test='mngLoginType not in {"A"}'>
+					<![CDATA[
+						AND PC.USER_IDX = #{mngLoginType }
+					]]>
+				</if>
+				<![CDATA[
+						GROUP BY PRDT.PRDT_TYPE
+				) MAIN
+			WHERE
+				PRDT_TYPE IS NOT NULL
+		]]>
+		<if test="prdtType not in {null, ''}">
+			<![CDATA[
+				AND PRDT_TYPE LIKE '%${prdtType }%'
+			]]>
+		</if>
+		<if test="pCodeNm not in {null, ''}">
+			<![CDATA[
+				AND P_CODE_ID = #{pCodeNm }
+			]]>
+		</if>
+		<if test="mCodeNm not in {null, ''}">
+			<![CDATA[
+				AND M_CODE_ID = #{mCodeNm }
+			]]>
+		</if>
+		<if test="searchText not in {null, ''}">
+			<![CDATA[
+				AND ( USER_NM LIKE '%${searchText}%' OR PRDT_NM1 LIKE '%${searchText}%' OR PRDT_NM2 LIKE '%${searchText}%' OR PRDT_CD LIKE '%${searchText}%' )
+			]]>
+		</if>
+		<if test="prdtStatCd not in {null, ''}">
+			<![CDATA[
+				AND PRDT_STAT_CD = #{prdtStatCd }
+			]]>
+		</if>
+		<if test="sysRegDtmStr not in {null, ''} and sysRegDtmEnd not in {null, ''}">
+			<![CDATA[
+				AND DATE_FORMAT( PRDT_REG_DTM, '%Y-%m-%d' ) BETWEEN '${sysRegDtmStr}' AND '${sysRegDtmEnd}' 
+			]]>
+		</if>
+	</select>
+	
+	
+	
+		<!-- 로그인 체크 -->
+	<select id="selectMngPrdtopenList_Excel" parameterType="hashmap" resultType="hashmap">
+		<![CDATA[
+SELECT 
+	NUM_DESC AS 'ㄱ_No ',
+	 PRDT_TYPE AS 'ㄲ_서비스 종류',
+	  USER_NM AS 'ㄷ_마스터명',
+	   P_CODE_NM AS 'ㄸ_분야',
+		 M_CODE_NM AS 'ㄹ_분야상세',
+		   PRDT_CD AS 'ㅁ_상품코드',
+			  PRDT_NM AS 'ㅂ_상품명',
+			   STR_DTM AS 'ㅃ_접수시작일',
+				 END_DTM AS 'ㅅ_접수종료일',
+				  PRDT_REG_DTM AS 'ㅆ_등록일',
+				    LIKE_CNT AS 'ㅇ_찜수',
+					  REVI_CNT AS 'ㅈ_리뷰수',
+					   REVI_AVG AS 'ㅉ_평균평점',
+						 PRDT_STAT_NM AS 'ㅊ_판매상태'
+FROM (
+  SELECT B.*, (@rownumB:=@rownumB+1) as NUM_ASC FROM(  
+    SELECT A.*, (@rownumA:=@rownumA+1) as NUM_DESC FROM (
+				SELECT
+				 	*
+				FROM (
+					SELECT DISTINCT
+						PRDT.PRDT_TYPE,
+						PU.USER_NM,
+						P_CODE.CODE_NM AS P_CODE_NM,
+						M_CODE.CODE_NM AS M_CODE_NM,
+						PRDT.PRDT_CD,	
+						PRDT.PRDT_NM,	
+						'접수시작일' AS STR_DTM,
+						'접수종료일' AS END_DTM,
+						DATE_FORMAT( PRDT_REG_DTM, '%Y-%m-%d') AS PRDT_REG_DTM,
+						( SELECT COUNT(0) FROM PPM_PRDT_BASK WHERE BASK_PRDT_CD = PRDT.PRDT_CD ) AS LIKE_CNT,
+						( SELECT COUNT(0) FROM PPM_USER_REVI WHERE CATE_IDX = PC.CATE_IDX ) AS REVI_CNT,
+						IFNULL(ROUND( ( ( SELECT SUM( REVI_SCOR ) FROM PPM_USER_REVI WHERE CATE_IDX = PC.CATE_IDX ) / ( SELECT COUNT(0) FROM PPM_USER_REVI WHERE CATE_IDX = PC.CATE_IDX ) ), 1 ), 0.0) AS REVI_AVG,
+						( SELECT CODE_NM FROM PPM_CODE WHERE CODE_ID = PRDT_STAT_CD ) AS PRDT_STAT_NM
+						
+					FROM
+						PPM_CATE PC,
+						PPM_USER PU,
+						PPM_CODE P_CODE,
+						PPM_CODE M_CODE,
+						(
+							SELECT '1:1코칭' AS PRDT_TYPE, PPF.CATE_IDX, PPF.FACE_IDX AS PRDT_IDX, PPF.FACE_CD AS PRDT_CD, PPF.FACE_NM AS PRDT_NM, FACE_IMG_UUID AS PRDT_UUID, 'FACE_IMG_UUID' AS PRDT_UUID_NM, FACE_STAT_CD AS PRDT_STAT_CD, PPF.SYS_REG_DTM AS PRDT_REG_DTM
+							FROM PPM_PRDT_FACE PPF
+							WHERE FACE_USE_YN = 'Y'
+						UNION ALL
+							SELECT 'VOD' AS PRDT_TYPE, PPLE.CATE_IDX, PPLE.LECT_IDX AS PRDT_IDX, PPLE.LECT_CD AS PRDT_CD, PPLE.LECT_NM AS PRDT_NM, LECT_UUID AS PRDT_UUID, 'LECT_UUID' AS PRDT_UUID_NM, LECT_STAT_CD AS PRDT_STAT_CD, PPLE.SYS_REG_DTM AS PRDT_REG_DTM
+							FROM PPM_PRDT_LECT PPLE 
+							WHERE LECT_USE_YN = 'Y'
+						UNION ALL
+							SELECT '1:1코칭' AS PRDT_TYPE, PPC.CATE_IDX, PPC.CHAT_IDX AS PRDT_IDX, PPC.CHAT_CD AS PRDT_CD, PPC.CHAT_NM AS PRDT_NM, CHAT_IMG_UUID AS PRDT_UUID, 'CHAT_IMG_UUID' AS PRDT_UUID_NM, CHAT_STAT_CD AS PRDT_STAT_CD, PPC.SYS_REG_DTM AS PRDT_REG_DTM
+							FROM PPM_PRDT_CHAT PPC
+							WHERE CHAT_USE_YN = 'Y'
+						UNION ALL
+							SELECT '1:1코칭' AS PRDT_TYPE, PPM.CATE_IDX, PPM.MAIL_IDX AS PRDT_IDX, PPM.MAIL_CD AS PRDT_CD, PPM.MAIL_NM AS PRDT_NM, MAIL_IMG_UUID AS PRDT_UUID, 'MAIL_IMG_UUID' AS PRDT_UUID_NM, MAIL_STAT_CD AS PRDT_STAT_CD, PPM.SYS_REG_DTM AS PRDT_REG_DTM
+							FROM PPM_PRDT_MAIL PPM
+							WHERE MAIL_USE_YN = 'Y'
+						UNION ALL
+							SELECT 'LIVE CLASS' AS PRDT_TYPE, PPLI.CATE_IDX, PPLI.LIVE_IDX AS PRDT_IDX, PPLI.LIVE_CD AS PRDT_CD, PPLI.LIVE_NM AS PRDT_NM, LIVE_IMG_UUID AS PRDT_UUID, 'LIVE_IMG_UUID' AS PRDT_UUID_NM, LIVE_STAT_CD AS PRDT_STAT_CD, PPLI.SYS_REG_DTM AS PRDT_REG_DTM
+							FROM PPM_PRDT_LIVE PPLI
+							WHERE LIVE_USE_YN = 'Y'    
+						) PRDT
+					WHERE
+						PC.CATE_IDX = PRDT.CATE_IDX
+						AND PU.USER_IDX = PC.USER_IDX
+						AND PC.CATE_USE_YN = 'Y'
+						AND M_CODE.CODE_ID = PC.CODE_ID
+						AND P_CODE.CODE_ID = SUBSTR(PC.CODE_ID,1,5)
+				]]>
+				<if test='mngLoginType not in {"A"}'>
+					<![CDATA[
+						AND PC.USER_IDX = #{mngLoginType }
+					]]>
+				</if>
+				<if test="pCodeNm not in {null, ''}">
+					<![CDATA[
+						AND P_CODE.CODE_ID = #{pCodeNm }
+					]]>
+				</if>
+				<if test="mCodeNm not in {null, ''}">
+					<![CDATA[
+						AND M_CODE.CODE_ID = #{mCodeNm }
+					]]>
+				</if>
+				<if test="prdtStatCd not in {null, ''}">
+					<![CDATA[
+						AND PRDT_STAT_CD = #{prdtStatCd }
+					]]>
+				</if>
+				<![CDATA[
+				) MAIN
+			WHERE
+				PRDT_TYPE IS NOT NULL
+		]]>
+		<if test="prdtType not in {null, ''}">
+			<![CDATA[
+				AND PRDT_TYPE = #{prdtType }
+			]]>
+		</if>
+		<if test="searchText not in {null, ''}">
+			<![CDATA[
+				AND ( USER_NM LIKE '%${searchText}%' or PRDT_NM LIKE '%${searchText}%' or PRDT_CD LIKE '%${searchText}%' )
+			]]>
+		</if>
+		<if test="sysRegDtmStr not in {null, ''} and sysRegDtmEnd not in {null, ''}">
+			<![CDATA[
+				AND DATE_FORMAT( PRDT_REG_DTM, '%Y-%m-%d' ) BETWEEN '${sysRegDtmStr}' AND '${sysRegDtmEnd}' 
+			]]>
+		</if>
+				<if test="status not in {'LIST'}">
+				<![CDATA[
+						) A JOIN (SELECT @rownumA:=0) rownumA ORDER BY PRDT_TYPE DESC, PRDT_REG_DTM
+  ) B JOIN (SELECT @rownumB:=0) rownumB ORDER BY NUM_DESC DESC 
+) C WHERE NUM_ASC BETWEEN '${startRow }' AND '${endRow }'
+				]]>
+			</if>
+	</select>
+	
+	<select id="selectMngPrdtopenDetail" parameterType="hashmap" resultType="hashmap">
+		<choose>
+			<when test="cateIdx in { null, '' }">
+		<![CDATA[
+			    
+		SELECT 
+			INFO_IDX, 
+			CATE_IDX, 
+			PRDT_CD,
+			INFO_TITL, 
+			INFO_TITL_COLR,
+			 
+			INFO_TITL_SUB,
+			INFO_CNTN,
+			INFO_LINK,
+			INFO_ORDE, 
+			INFO_USE_YN,
+			INFO_PLAYER,
+			 
+			INFO_CD, 
+			INFO_UUID, 
+			INFO_UUID_INFO,
+			IFNULL(INFO_UUID_NUM, 0) INFO_UUID_NUM,
+			
+			INFO_TUMB_UUID,
+			INFO_PRDT_UUID,
+			INFO_PRDT_TITL1,
+			INFO_PRDT_TITL2,
+			INFO_PRDT_SUBT,
+			
+			SYS_REG_IDX,
+			SYS_REG_DTM,
+			SYS_MOD_IDX,
+			SYS_MOD_DTM
+		FROM 
+			PPM_INFO_PRDT
+		WHERE PRDT_CD = #{prdtIdx}
+			AND INFO_USE_YN = 'Y'
+		ORDER BY INFO_ORDE ASC
+		
+		
+		]]>
+		</when>
+			<otherwise>
+				<![CDATA[
+					SELECT 
+						INFO_IDX, 
+						CATE_IDX, 
+						PRDT_CD,
+						INFO_TITL, 
+						INFO_TITL_COLR,
+						 
+						INFO_TITL_SUB,
+						INFO_CNTN,
+						INFO_LINK,
+						INFO_ORDE, 
+						INFO_USE_YN,
+						INFO_PLAYER,
+						 
+						INFO_CD, 
+						INFO_UUID, 
+						INFO_UUID_INFO,
+						IFNULL(INFO_UUID_NUM, 0) INFO_UUID_NUM,
+						
+						INFO_TUMB_UUID,
+						INFO_PRDT_UUID,
+						INFO_PRDT_TITL1,
+						INFO_PRDT_TITL2,
+						INFO_PRDT_SUBT,
+						
+						SYS_REG_IDX,
+						SYS_REG_DTM,
+						SYS_MOD_IDX,
+						SYS_MOD_DTM
+					FROM 
+						PPM_INFO_PRDT
+					WHERE PRDT_CD IN ( SELECT PRDT_CD FROM PPM_INFO_PRDT WHERE CATE_IDX = #{cateIdx} AND INSTR( PRDT_CD, 'VL'  ) = 0 AND INSTR( PRDT_CD, 'LN'  ) = 0 )
+						AND INFO_USE_YN = 'Y'
+					ORDER BY INFO_ORDE ASC 
+				
+				]]>
+			</otherwise>
+		</choose>
+	</select>
+	
+	
+	<select id="selectMngMasterDetail" parameterType="hashmap" resultType="hashmap">
+		<choose>
+			<when test="prdtIdx in { null, '' }">
+		<![CDATA[
+		    SELECT
+					PU.USER_IDX,
+					USER_NM,
+					USER_EMAIL,
+				  	DATE_FORMAT(PU.SYS_REG_DTM, '%Y-%m-%d') AS SYS_REG_DTM,
+				  	DATE_FORMAT(USER_MAST_JOIN_DTM, '%Y-%m-%d') AS USER_MAST_JOIN_DTM,
+				  	
+				  	DATE_FORMAT(USER_LOGIN_DTM, '%Y-%m-%d %H:%i:%S') AS USER_LOGIN_DTM,
+				  	DATE_FORMAT(USER_CONS_DTM, '%Y-%m-%d') AS USER_CONS_DTM,
+				  	CATE_MASTEROPEN_UUID,
+				  	
+				  	PC.CODE_ID,
+				  	CATE_CD,
+				  	(SELECT CODE_NM FROM PPM_CODE PCD WHERE PCD.CODE_ID = PC.CODE_ID) CODE_NM,
+				  	(SELECT CODE_NM FROM PPM_CODE PCD WHERE PCD.CODE_ID = SUBSTRING( PC.CODE_ID,1,5 )) CODE_PARENT_NM,
+				  	
+				  	CONCAT( (SELECT CODE_NM FROM PPM_CODE PCD WHERE PCD.CODE_ID = PC.CODE_ID) ,'/' ,(SELECT CODE_NM FROM PPM_CODE PCD WHERE PCD.CODE_ID = SUBSTRING( PC.CODE_ID,1,5 )) ) PRDT_DETAIL,
+				  	
+				  	CATE_SLOG,
+				  	CATE_INFO,
+				  	(SELECT COUNT(*) FROM PPM_USER_FOLL PUF WHERE CATE_IDX = PC.CATE_IDX AND PUF.FOLL_USE_YN = 'Y' ) FOLLOW,
+				  	(SELECT COUNT(*) FROM PPM_USER_BUY WHERE CATE_IDX = PC.CATE_IDX AND BUY_REFU_YN = 'N' AND BUY_PRDT_CD LIKE '%VN%') LECT_CNT,
+				  	(SELECT COUNT(*) FROM PPM_USER_BUY WHERE CATE_IDX = PC.CATE_IDX AND BUY_REFU_YN = 'N' AND BUY_PRDT_CD LIKE '%FN%') FACE_CNT,
+				  	(SELECT COUNT(*) FROM PPM_USER_BUY WHERE CATE_IDX = PC.CATE_IDX AND BUY_REFU_YN = 'N' AND BUY_PRDT_CD LIKE '%CN%') CHAT_CNT,
+				  	
+				  	(
+								CASE 
+									WHEN SUBSTRING( #{prdtCd},7,2 )  = 'VL' THEN  'VOD'
+									WHEN SUBSTRING( #{prdtCd},7,2 )  = 'FN' THEN  '1:1코칭'
+									WHEN SUBSTRING( #{prdtCd},7,2 )  = 'CN' THEN  '1:1코칭'
+									WHEN SUBSTRING( #{prdtCd},7,2 )  = 'EN' THEN  '1:1코칭'
+									WHEN SUBSTRING( #{prdtCd},7,2 )  = 'LN' THEN  '라이브클래스'
+								END
+					) AS PRDT_SERV_KIND,
+					
+					(SELECT CONCAT(INFO_PRDT_TITL1,' ',INFO_PRDT_TITL2) FROM PPM_INFO_PRDT WHERE PRDT_CD = #{prdtCd} AND INFO_USE_YN = 'Y' AND INFO_ORDE = '0' ORDER BY INFO_IDX DESC LIMIT 1) PRDT_NM,
+					
+					(SELECT PPL.LECT_DTM   FROM PPM_PRDT_LECT PPL WHERE PPL.LECT_CD = #{prdtCd} ) LECT_DTM,
+
+					(SELECT (SELECT CODE_NM FROM PPM_CODE PC WHERE PC.CODE_ID = LECT_STAT_CD)  FROM PPM_PRDT_LECT PPL WHERE PPL.LECT_CD = #{prdtCd} ) LECT_STAT,
+					
+					(SELECT (SELECT CODE_NM FROM PPM_CODE PC WHERE PC.CODE_ID = LIVE_STAT_CD)  FROM PPM_PRDT_LIVE PPL WHERE PPL.LIVE_CD = #{prdtCd} ) LIVE_STAT,
+					
+				  	(
+					SELECT 
+						CONCAT( RUN, '분/',CNT,'개' )
+						FROM (
+							SELECT SUM(DATA_RUNN) AS RUN, COUNT(0) CNT
+									FROM 
+										PPM_PRDT_LECT PPL, 
+										PPM_PRDT_LECT_DATA PPLD, 
+										PPM_PRDT_VOD PPV, 
+										PPM_PRDT_VOD_DATA PPVD 
+										
+											WHERE 
+												PPL.LECT_CD = #{prdtCd}
+												AND PPL.LECT_IDX = PPLD.LECT_IDX
+												AND PPLD.VOD_IDX = PPV.VOD_IDX
+												AND PPVD.VOD_IDX = PPV.VOD_IDX
+										) AS B
+					) LECT_TOTAL_DATA,
+					
+						(SELECT DISTINCT PPT.TIME_RUN FROM PPM_PRDT_TIME PPT WHERE PPT.LIVE_IDX = (SELECT PPL.LIVE_IDX FROM PPM_PRDT_LIVE PPL WHERE PPL.LIVE_CD = #{prdtCd} )  ORDER BY PPT.LIVE_IDX DESC  LIMIT 1 ) LIVE_DATA,
+					
+					(SELECT IFNULL(AVG(PUR.REVI_SCOR),0) FROM PPM_USER_REVI PUR WHERE PUR.REVI_USE_YN = 'Y' AND PUR.BUY_IDX IN (SELECT BUY_IDX FROM PPM_USER_BUY PUB WHERE PUB.BUY_PRDT_CD = #{prdtCd} AND PUB.BUY_COMP_YN = 'Y' AND PUB.BUY_REFU_YN = 'N') ) REVI_AVG2,
+					IFNULL(ROUND( ( ( SELECT SUM( REVI_SCOR ) FROM PPM_USER_REVI WHERE CATE_IDX = PC.CATE_IDX ) / ( SELECT COUNT(0) FROM PPM_USER_REVI WHERE CATE_IDX = PC.CATE_IDX ) ), 1 ), 0.0) AS REVI_AVG
+					
+				  	
+				FROM
+				   PPM_USER PU, PPM_CATE PC
+				WHERE
+					PC.CATE_IDX = (
+						SELECT
+							(
+								CASE 
+									WHEN #{prdtType } = 'VL' THEN ( SELECT CATE_IDX FROM PPM_PRDT_LECT WHERE LECT_CD = #{prdtCd} )
+									WHEN #{prdtType } = 'FN' THEN ( SELECT CATE_IDX FROM PPM_PRDT_FACE WHERE FACE_CD = #{prdtCd} )
+									WHEN #{prdtType } = 'CN' THEN ( SELECT CATE_IDX FROM PPM_PRDT_CHAT WHERE CHAT_CD = #{prdtCd} )
+									WHEN #{prdtType } = 'EN' THEN ( SELECT CATE_IDX FROM PPM_PRDT_MAIL WHERE MAIL_CD = #{prdtCd} )
+									WHEN #{prdtType } = 'LN' THEN ( SELECT CATE_IDX FROM PPM_PRDT_LIVE WHERE LIVE_CD = #{prdtCd} )
+								END
+							) AS CATE_IDX
+					) 
+					AND PU.USER_IDX = PC.USER_IDX 
+					AND USER_USE_YN = 'Y'
+				--	AND PC.CATE_USE_YN ='Y'
+		]]>
+			</when>
+			<otherwise>
+				<![CDATA[
+					SELECT
+					PU.USER_IDX,
+					USER_NM,
+					USER_EMAIL,
+				  	DATE_FORMAT(PU.SYS_REG_DTM, '%Y-%m-%d') AS SYS_REG_DTM,
+				  	DATE_FORMAT(USER_MAST_JOIN_DTM, '%Y-%m-%d') AS USER_MAST_JOIN_DTM,
+				  	
+				  	DATE_FORMAT(USER_LOGIN_DTM, '%Y-%m-%d %H:%i:%S') AS USER_LOGIN_DTM,
+				  	DATE_FORMAT(USER_CONS_DTM, '%Y-%m-%d') AS USER_CONS_DTM,
+				  	CATE_MASTEROPEN_UUID,
+				  	
+				  	PC.CODE_ID,
+				  	CATE_CD,
+				  	(SELECT CODE_NM FROM PPM_CODE PCD WHERE PCD.CODE_ID = PC.CODE_ID) CODE_NM,
+				  	(SELECT CODE_NM FROM PPM_CODE PCD WHERE PCD.CODE_ID = SUBSTRING( PC.CODE_ID,1,5 )) CODE_PARENT_NM,
+				  	
+				  	CONCAT( (SELECT CODE_NM FROM PPM_CODE PCD WHERE PCD.CODE_ID = PC.CODE_ID) ,'/' ,(SELECT CODE_NM FROM PPM_CODE PCD WHERE PCD.CODE_ID = SUBSTRING( PC.CODE_ID,1,5 )) ) PRDT_DETAIL,
+				  	
+				  	CATE_SLOG,
+				  	CATE_INFO,
+				  	(SELECT COUNT(*) FROM PPM_USER_FOLL PUF WHERE CATE_IDX = PC.CATE_IDX AND PUF.FOLL_USE_YN = 'Y' ) FOLLOW,
+				  	(SELECT COUNT(*) FROM PPM_USER_BUY WHERE CATE_IDX = PC.CATE_IDX AND BUY_REFU_YN = 'N' AND BUY_PRDT_CD LIKE '%VN%') LECT_CNT,
+				  	(SELECT COUNT(*) FROM PPM_USER_BUY WHERE CATE_IDX = PC.CATE_IDX AND BUY_REFU_YN = 'N' AND BUY_PRDT_CD LIKE '%FN%') FACE_CNT,
+				  	(SELECT COUNT(*) FROM PPM_USER_BUY WHERE CATE_IDX = PC.CATE_IDX AND BUY_REFU_YN = 'N' AND BUY_PRDT_CD LIKE '%CN%') CHAT_CNT,
+				  	
+				  	
+					
+					'1:1코칭' AS PRDT_SERV_KIND,
+					
+					(SELECT CONCAT(INFO_PRDT_TITL1,' ',INFO_PRDT_TITL2) FROM PPM_INFO_PRDT WHERE CATE_IDX = #{prdtIdx} AND INFO_USE_YN = 'Y' AND INFO_ORDE = '0' ORDER BY INFO_IDX DESC LIMIT 1) PRDT_NM,
+						
+					IFNULL(ROUND( ( ( SELECT SUM( REVI_SCOR ) FROM PPM_USER_REVI WHERE CATE_IDX = PC.CATE_IDX ) / ( SELECT COUNT(0) FROM PPM_USER_REVI WHERE CATE_IDX = PC.CATE_IDX ) ), 1 ), 0.0) AS REVI_AVG
+					
+				  	
+				FROM
+				   PPM_USER PU, PPM_CATE PC
+				WHERE
+					PC.CATE_IDX = (
+						SELECT
+							(
+								#{prdtIdx}
+							) AS CATE_IDX
+					) 
+					AND PU.USER_IDX = PC.USER_IDX 
+					AND USER_USE_YN = 'Y'
+				--	AND PC.CATE_USE_YN ='Y' 
+					]]>
+			</otherwise>
+		</choose>
+	</select>
+	
+	
+	<!-- 로그인 체크 -->
+	<select id="selectMngPrdtLikeList" parameterType="hashmap" resultType="hashmap">
+		<![CDATA[
+SELECT C.*, REPLACE(CONVERT(C.NUM_DESC, CHAR),'.0','') AS NUM_DESC_ORDER FROM (
+  SELECT B.*, (@rownumB:=@rownumB+1) as NUM_ASC FROM(  
+    SELECT A.*, (@rownumA:=@rownumA+1) as NUM_DESC FROM (
+    
+				SELECT
+					PPB.BASK_IDX,
+					PU.USER_IDX,
+					PU.USER_NM,
+					P_CODE.CODE_NM AS P_CODE_NM,
+					M_CODE.CODE_NM AS M_CODE_NM,
+					PU.USER_EMAIL,
+					DATE_FORMAT( PPB.SYS_REG_DTM, '%Y-%m-%d %H:%i:%S') AS SYS_REG_DTM
+				FROM
+					PPM_PRDT_BASK PPB
+						LEFT JOIN PPM_CATE PC ON PPB.CATE_IDX = PC.CATE_IDX
+						LEFT JOIN PPM_CODE P_CODE ON SUBSTR(PC.CODE_ID,1,5) = P_CODE.CODE_ID
+						LEFT JOIN PPM_CODE M_CODE ON PC.CODE_ID = M_CODE.CODE_ID
+						LEFT JOIN PPM_USER PU ON PPB.USER_IDX = PU.USER_IDX
+				WHERE
+					USER_NM IS NOT NULL
+					AND PPB.BASK_USE_YN = 'Y'
+					AND PC.CATE_USE_YN = 'Y'
+					AND PU.USER_USE_YN = 'Y'
+					AND PPB.BASK_TYPE = 'K'
+					AND PPB.BASK_PRDT_CD = #{baskPrdtCd }
+				 	
+	) A JOIN (SELECT @rownumA:=0) rownumA
+  ) B JOIN (SELECT @rownumB:=0) rownumB ORDER BY NUM_DESC DESC
+) C WHERE NUM_DESC BETWEEN '${startRow }' AND '${endRow }'
+				]]>
+	</select>
+	
+	<!-- 로그인 체크 -->
+	<select id="selectMngPrdtLikeListCnt" parameterType="hashmap" resultType="java.lang.Integer">
+		<![CDATA[
+	
+				SELECT
+					COUNT(DISTINCT BASK_IDX)
+				FROM
+					PPM_PRDT_BASK PPB
+						LEFT JOIN PPM_CATE PC ON PPB.CATE_IDX = PC.CATE_IDX
+						LEFT JOIN PPM_CODE P_CODE ON SUBSTR(PC.CODE_ID,1,5) = P_CODE.CODE_ID
+						LEFT JOIN PPM_CODE M_CODE ON PC.CODE_ID = M_CODE.CODE_ID
+						LEFT JOIN PPM_USER PU ON PPB.USER_IDX = PU.USER_IDX
+				WHERE
+					USER_NM IS NOT NULL
+					AND PPB.BASK_USE_YN = 'Y'
+					AND PC.CATE_USE_YN = 'Y'
+					AND PU.USER_USE_YN = 'Y'
+					AND PPB.BASK_TYPE = 'K'
+					AND PPB.BASK_PRDT_CD = #{baskPrdtCd }
+					
+		]]>
+	</select>
+	
+
+	<update id="updateMngPrdtopenImg" parameterType="hashmap" >
+		<![CDATA[
+			    
+			UPDATE 
+				PPM_CATE
+			SET 
+				CATE_MASTEROPEN_UUID  = #{catePrdtopenUuid},
+				SYS_MOD_IDX = #{mngLoginIdx}, 
+				SYS_MOD_DTM = DATE_FORMAT(NOW(), '%Y%m%d%H%i%S')
+			WHERE
+				PRDT_CD = #{prdtCd}
+		]]>
+	</update>
+
+	<insert id="insertMngPrdtopen" parameterType="hashmap">
+	
+		<selectKey keyProperty="cateIdx,textVal" resultType="hashmap" order="BEFORE"> 
+		<![CDATA[
+	        SELECT
+				(
+					CASE 
+						WHEN #{prdtType } = 'VL' THEN ( SELECT CATE_IDX FROM PPM_PRDT_LECT WHERE LECT_CD = #{prdtCd} )
+						WHEN #{prdtCd} LIKE 'COACHING%' THEN  #{prdtType }
+						WHEN #{prdtType } = 'LN' THEN ( SELECT CATE_IDX FROM PPM_PRDT_LIVE WHERE LIVE_CD = #{prdtCd} )
+					END
+				) AS cateIdx,
+	        	#{prdtCd} AS codeId
+	        FROM
+	       		DUAL
+		]]>
+	    </selectKey>
+	    
+		<![CDATA[
+			INSERT INTO 
+				PPM_INFO_PRDT (
+					INFO_IDX,
+					CATE_IDX, 
+					PRDT_CD, 
+					INFO_TITL,
+					INFO_TITL_COLR,
+					
+					INFO_TITL_SUB, 
+					INFO_CNTN,
+					INFO_LINK,
+					INFO_ORDE,
+					INFO_USE_YN, 
+					INFO_PLAYER,
+					
+					INFO_CD,
+					INFO_UUID,
+					INFO_UUID_INFO, 
+					INFO_UUID_NUM,
+					
+					INFO_TUMB_UUID,
+					INFO_PRDT_UUID,
+					INFO_PRDT_TITL1,
+					INFO_PRDT_TITL2,
+					INFO_PRDT_SUBT,
+		
+					SYS_REG_IDX, 
+					SYS_REG_DTM,
+					SYS_MOD_IDX,
+					SYS_MOD_DTM
+				) VALUES (
+					#{infoIdx},
+					#{cateIdx}, 
+					#{prdtCd}, 
+					#{infoTitl}, 
+					#{infoTitlColr},
+					
+					#{infoTitlSub},  
+					#{infoCntn},
+					#{infoLink},
+					#{infoOrde},
+					'Y',  
+					#{infoPlayer},
+					
+					#{infoCd}, 
+					#{infoUuid}, 
+					#{infoUuidInfo},  
+					#{infoUuidNum},  
+					
+					#{infoTumbUuid},
+					#{infoPrdtUuid},
+					#{infoPrdtTitl1},
+					#{infoPrdtTitl2},
+					#{infoPrdtSubt},
+					
+					#{mngLoginIdx}, 
+					DATE_FORMAT(NOW(), '%Y%m%d%H%i%S'),
+					#{mngLoginIdx}, 
+					DATE_FORMAT(NOW(), '%Y%m%d%H%i%S')
+				) ON DUPLICATE KEY UPDATE 
+					INFO_TITL = #{infoTitl}, 
+					INFO_TITL_COLR = #{infoTitlColr},
+					INFO_TITL_SUB = #{infoTitlSub},  
+					INFO_CNTN = #{infoCntn},
+					
+					INFO_LINK = #{infoLink},
+					INFO_ORDE =	#{infoOrde},
+					INFO_PLAYER = #{infoPlayer},
+					INFO_CD = #{infoCd}, 
+					INFO_UUID =	#{infoUuid}, 
+					
+					INFO_UUID_INFO = #{infoUuidInfo},  
+					
+					INFO_TUMB_UUID = #{infoTumbUuid},
+					INFO_PRDT_UUID = #{infoPrdtUuid},  
+					INFO_PRDT_TITL1 = #{infoPrdtTitl1},  
+					INFO_PRDT_TITL2 = #{infoPrdtTitl2},  
+					INFO_PRDT_SUBT = #{infoPrdtSubt},  
+					
+					SYS_MOD_IDX = #{mngLoginIdx},
+			        SYS_MOD_DTM = DATE_FORMAT(NOW(), '%Y%m%d%H%i%S')
+
+		]]>
+	</insert>
+	
+	<update id="deleteMngPrdtopenData" parameterType="hashmap">
+		<![CDATA[
+			UPDATE 
+				PPM_INFO_PRDT
+			SET 
+				INFO_USE_YN='N', 
+				SYS_MOD_IDX=#{mngLoginIdx}, 
+				SYS_MOD_DTM=DATE_FORMAT(NOW(), '%Y%m%d%H%i%S')
+			WHERE 
+				INFO_IDX=#{infoIdx}
+		]]>
+	</update>
+	
+	
+	
+<!-- 판매상품 영역 쿼리 --><!--  --><!--  --><!--  --><!--  --><!--  --><!--  --><!--  --><!--  --><!--  --><!--  --><!--  --><!--  --><!--  --><!--  --><!--  --><!--  --><!--  --><!--  --><!--  --><!--  --><!--  --><!--  -->	
+<!-- 판매상품 영역 쿼리 --><!--  --><!--  --><!--  --><!--  --><!--  --><!--  --><!--  --><!--  --><!--  --><!--  --><!--  --><!--  --><!--  --><!--  --><!--  --><!--  --><!--  --><!--  --><!--  --><!--  --><!--  --><!--  -->	
+<!-- 판매상품 영역 쿼리 --><!--  --><!--  --><!--  --><!--  --><!--  --><!--  --><!--  --><!--  --><!--  --><!--  --><!--  --><!--  --><!--  --><!--  --><!--  --><!--  --><!--  --><!--  --><!--  --><!--  --><!--  --><!--  -->	
+<!-- 판매상품 영역 쿼리 --><!--  --><!--  --><!--  --><!--  --><!--  --><!--  --><!--  --><!--  --><!--  --><!--  --><!--  --><!--  --><!--  --><!--  --><!--  --><!--  --><!--  --><!--  --><!--  --><!--  --><!--  --><!--  -->	
+<!-- 판매상품 영역 쿼리 --><!--  --><!--  --><!--  --><!--  --><!--  --><!--  --><!--  --><!--  --><!--  --><!--  --><!--  --><!--  --><!--  --><!--  --><!--  --><!--  --><!--  --><!--  --><!--  --><!--  --><!--  --><!--  -->	
+<!-- 판매상품 영역 쿼리 --><!--  --><!--  --><!--  --><!--  --><!--  --><!--  --><!--  --><!--  --><!--  --><!--  --><!--  --><!--  --><!--  --><!--  --><!--  --><!--  --><!--  --><!--  --><!--  --><!--  --><!--  --><!--  -->	
+<!-- 판매상품 영역 쿼리 --><!--  --><!--  --><!--  --><!--  --><!--  --><!--  --><!--  --><!--  --><!--  --><!--  --><!--  --><!--  --><!--  --><!--  --><!--  --><!--  --><!--  --><!--  --><!--  --><!--  --><!--  --><!--  -->	
+<!-- 판매상품 영역 쿼리 --><!--  --><!--  --><!--  --><!--  --><!--  --><!--  --><!--  --><!--  --><!--  --><!--  --><!--  --><!--  --><!--  --><!--  --><!--  --><!--  --><!--  --><!--  --><!--  --><!--  --><!--  --><!--  -->	
+<!-- 판매상품 영역 쿼리 --><!--  --><!--  --><!--  --><!--  --><!--  --><!--  --><!--  --><!--  --><!--  --><!--  --><!--  --><!--  --><!--  --><!--  --><!--  --><!--  --><!--  --><!--  --><!--  --><!--  --><!--  --><!--  -->	
+<!-- 판매상품 영역 쿼리 --><!--  --><!--  --><!--  --><!--  --><!--  --><!--  --><!--  --><!--  --><!--  --><!--  --><!--  --><!--  --><!--  --><!--  --><!--  --><!--  --><!--  --><!--  --><!--  --><!--  --><!--  --><!--  -->	
+<!-- 판매상품 영역 쿼리 --><!--  --><!--  --><!--  --><!--  --><!--  --><!--  --><!--  --><!--  --><!--  --><!--  --><!--  --><!--  --><!--  --><!--  --><!--  --><!--  --><!--  --><!--  --><!--  --><!--  --><!--  --><!--  -->	
+<!-- 판매상품 영역 쿼리 --><!--  --><!--  --><!--  --><!--  --><!--  --><!--  --><!--  --><!--  --><!--  --><!--  --><!--  --><!--  --><!--  --><!--  --><!--  --><!--  --><!--  --><!--  --><!--  --><!--  --><!--  --><!--  -->	
+	
+	<select id="selectMngMasterPopList" parameterType="hashmap" resultType="hashmap">
+	<if test="status not in {'LIST'}">
+				<![CDATA[
+SELECT C.*, REPLACE(CONVERT(C.NUM_DESC, CHAR),'.0','') AS NUM_DESC_ORDER FROM (
+  SELECT B.*, (@rownumB:=@rownumB+1) as NUM_ASC FROM(  
+    SELECT A.*, (@rownumA:=@rownumA+1) as NUM_DESC FROM (
+				]]>
+			</if>
+					<![CDATA[
+						SELECT 
+							${masterTab}_IDX AS TAB_IDX,
+							CATE_IDX, 
+							(SELECT PU.USER_NM FROM PPM_USER PU WHERE PU.USER_IDX IN (SELECT PC.USER_IDX FROM PPM_CATE PC WHERE PC.CATE_IDX = PR.CATE_IDX) ) MASTER_NM,
+							${masterTab}_CD AS TAB_CD,
+							(SELECT PC.CODE_NM FROM PPM_CODE PC WHERE PC.CODE_ID = ${masterTab}_STAT_CD)  AS TAB_STAT_CD, 
+							${masterTab}_NM AS TAB_NM, 
+							${masterTab}_USE_YN AS TAB_USE_YN,
+							CASE #{masterTab} 
+									WHEN 'CHAT' THEN '채팅 상담'
+									WHEN 'FACE' THEN '화상 상담'
+									WHEN 'LECT' THEN 'VOD 강좌'
+									WHEN 'LIVE' THEN '라이브 클래스'
+									WHEN 'MAIL' THEN '이메일 상담'
+									ELSE '미확인강좌'
+								END  AS "DIV",
+							
+							SYS_REG_IDX,
+							DATE_FORMAT(SYS_REG_DTM, '%Y-%m-%d') SYS_REG_DTM
+							
+								FROM 
+									PPM_PRDT_${masterTab} PR
+										WHERE 
+											CATE_IDX = #{cateIdx}
+											AND ${masterTab}_USE_YN = 'Y'
+											AND ${masterTab}_STAT_CD = 'SAL02'
+											
+					]]>
+					<if test="selectVodSearch not in {'',null}">
+							<![CDATA[
+							
+							
+						AND (${masterTab}_NM LIKE '%${selectVodSearch}%' || ${masterTab}_CD LIKE '%${selectVodSearch}%' || CATE_IDX IN (SELECT CATE_IDX
+																												FROM PPM_CATE PC 
+																													WHERE PC.USER_IDX 
+																														IN 
+																														
+																														(SELECT PU.USER_IDX 
+																															FROM PPM_USER PU 
+																																WHERE USER_NM LIKE '%${selectVodSearch}%'
+																																	AND USER_TYPE = 'M' 
+																																	AND USER_USE_YN = 'Y') ) )
+													
+							]]>
+							</if>
+			<if test="status not in {'LIST'}">
+				<![CDATA[
+										
+
+						) A JOIN (SELECT @rownumA:=0) rownumA
+  ) B JOIN (SELECT @rownumB:=0) rownumB ORDER BY TAB_IDX DESC
+) C WHERE NUM_ASC BETWEEN '${startRow }' AND '${endRow }'
+				]]>
+			</if>				
+							
+	</select>
+
+	<select id="selectMngMasterPopListCnt" parameterType="hashmap" resultType="java.lang.Integer">
+		<![CDATA[
+			SELECT 
+				COUNT(*) CNT
+				
+					FROM 
+						PPM_PRDT_${masterTab}
+							WHERE 
+								CATE_IDX = #{cateIdx}
+								AND ${masterTab}_USE_YN = 'Y'
+								AND ${masterTab}_STAT_CD = 'SAL02'
+								
+		]]>
+		<if test="selectVodSearch not in {'',null}">
+				<![CDATA[
+				
+				
+			AND (${masterTab}_NM LIKE '%${selectVodSearch}%' || ${masterTab}_CD LIKE '%${selectVodSearch}%' || CATE_IDX IN (SELECT CATE_IDX
+																									FROM PPM_CATE PC 
+																										WHERE PC.USER_IDX 
+																											IN 
+																											
+																											(SELECT PU.USER_IDX 
+																												FROM PPM_USER PU 
+																													WHERE USER_NM LIKE '%${selectVodSearch}%'
+																														AND USER_TYPE = 'M' 
+																														AND USER_USE_YN = 'Y') ) )
+										
+				]]>
+				</if>
+	</select>
+
+	<select id="selectMngMasterSaleDataList" parameterType="hashmap" resultType="hashmap">
+		<choose>
+			<when test="prdtIdx in { null, '' }">
+		<![CDATA[
+			SELECT
+				SALE_IDX,
+				T1.CATE_IDX,
+				T1.${masterTab}_IDX,
+				T1.${masterTab}_IDX PRDT_IDX,
+				'${masterTab}' PRDT_CATE,
+				SALE_ORDE,
+				${masterTab}_CD,
+
+				(SELECT PU.USER_NM FROM PPM_USER PU WHERE PU.USER_IDX IN (SELECT PC.USER_IDX FROM PPM_CATE PC WHERE PC.CATE_IDX = T1.CATE_IDX) ) MASTER_NM,
+				(SELECT PC.CODE_NM FROM PPM_CODE PC WHERE PC.CODE_ID = ${masterTab}_STAT_CD) ${masterTab}_STAT_CD,
+				
+				T1.SYS_REG_IDX ,
+				DATE_FORMAT(T1.SYS_REG_DTM, '%Y-%m-%d') SYS_REG_DTM
+				
+				FROM
+					PPM_SALE_${masterTab} T1, PPM_PRDT_${masterTab} T2
+					
+						WHERE 
+							T1.CATE_IDX = (
+								SELECT
+									(
+										CASE 
+											WHEN #{prdtType } = 'VL' THEN ( SELECT CATE_IDX FROM PPM_PRDT_LECT WHERE LECT_CD = #{prdtCd} )
+											WHEN #{prdtType } = 'FN' THEN ( SELECT CATE_IDX FROM PPM_PRDT_FACE WHERE FACE_CD = #{prdtCd} )
+											WHEN #{prdtType } = 'CN' THEN ( SELECT CATE_IDX FROM PPM_PRDT_CHAT WHERE CHAT_CD = #{prdtCd} )
+											WHEN #{prdtType } = 'EN' THEN ( SELECT CATE_IDX FROM PPM_PRDT_MAIL WHERE MAIL_CD = #{prdtCd} )
+											WHEN #{prdtType } = 'LN' THEN ( SELECT CATE_IDX FROM PPM_PRDT_LIVE WHERE LIVE_CD = #{prdtCd} )
+										END
+									) AS CATE_IDX
+							) 
+							AND SALE_USE_YN = 'Y' 
+							AND T1.${masterTab}_IDX = T2.${masterTab}_IDX
+										
+				]]>
+			</when>
+			<otherwise>
+			<![CDATA[
+				SELECT
+					SALE_IDX,
+					T1.CATE_IDX,
+					T1.${masterTab}_IDX,
+					T1.${masterTab}_IDX PRDT_IDX,
+					'${masterTab}' PRDT_CATE,
+					SALE_ORDE,
+					${masterTab}_CD,
+					(SELECT PU.USER_NM FROM PPM_USER PU WHERE PU.USER_IDX IN (SELECT PC.USER_IDX FROM PPM_CATE PC WHERE PC.CATE_IDX = T1.CATE_IDX) ) MASTER_NM,
+					(SELECT PC.CODE_NM FROM PPM_CODE PC WHERE PC.CODE_ID = ${masterTab}_STAT_CD) ${masterTab}_STAT_CD,
+					
+					T1.SYS_REG_IDX ,
+					DATE_FORMAT(T1.SYS_REG_DTM, '%Y-%m-%d') SYS_REG_DTM
+					
+					FROM
+						PPM_SALE_${masterTab} T1, PPM_PRDT_${masterTab} T2
+						
+							WHERE 
+								T1.CATE_IDX = (
+									SELECT
+										(
+											#{prdtIdx}
+										) AS CATE_IDX
+								) 
+								AND SALE_USE_YN = 'Y' 
+								AND T1.${masterTab}_IDX = T2.${masterTab}_IDX
+											
+					]]>
+			</otherwise>
+		</choose>
+	</select>
+	
+	<update id="deleteMngMasterSaleData" parameterType="hashmap">
+		<![CDATA[
+			UPDATE 
+				PPM_SALE_${masterTab}
+				SET 
+		]]>
+		<![CDATA[
+					  SALE_USE_YN='N', 
+					  SYS_MOD_IDX=#{mngLoginIdx}, 
+					  SYS_MOD_DTM=DATE_FORMAT(NOW(), '%Y%m%d%H%i%S')
+					  
+					WHERE 
+						SALE_IDX=#{saleIdx}
+
+		]]>
+	</update>
+
+	<insert id="insertMngMasterSaleData" parameterType="hashmap">
+		<![CDATA[
+			INSERT INTO 
+				PPM_SALE_${masterTab}
+					(
+					SALE_IDX,
+					CATE_IDX,
+					${masterTab}_IDX,
+					SALE_ORDE,
+					SALE_USE_YN,
+					
+					SYS_REG_IDX,
+					SYS_REG_DTM, 
+					SYS_MOD_IDX,
+					SYS_MOD_DTM
+					)
+					
+						VALUES
+							(
+							#{saleIdx},
+							#{cateIdx},
+							#{masterTabIdx}, 
+							#{saleOrde}, 
+							'Y', 
+							
+							#{mngLoginIdx},
+							DATE_FORMAT(NOW(), '%Y%m%d%H%i%S'),
+							#{mngLoginIdx},
+							DATE_FORMAT(NOW(), '%Y%m%d%H%i%S')
+							)
+							ON DUPLICATE KEY UPDATE 
+					
+						SALE_ORDE = #{saleOrde},
+						SYS_MOD_IDX = #{mngLoginIdx},
+						SYS_MOD_DTM = DATE_FORMAT(NOW(), '%Y%m%d%H%i%S')
+							
+
+		]]>
+	</insert>
+	
+</mapper>
+

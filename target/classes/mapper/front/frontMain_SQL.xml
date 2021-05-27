@@ -1,0 +1,1206 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd"> 
+<mapper namespace="frontMain">
+
+	<!-- 접수내역 목록 조회 -->
+	<select id="selectFrontMainList" parameterType="hashmap" resultType="hashmap">
+		<![CDATA[
+		SELECT * FROM ( 
+				SELECT
+				
+					DISTINCT 
+					
+					PMI.*,
+					(
+						CASE
+							WHEN PC.CATE_ORDR IS NULL THEN '9999'
+							WHEN PC.CATE_ORDR = '' THEN '9999'
+							ELSE PC.CATE_ORDR
+						END
+					) AS CATE_ORDR,
+					(
+						CASE
+							WHEN ( SELECT COUNT(FOLL_IDX) FROM PPM_USER_FOLL WHERE CATE_IDX = PMI.CATE_IDX AND USER_IDX = #{frontLoginIdx} AND FOLL_USE_YN = 'Y' ) > 0 THEN 'Y'
+							ELSE 'N'
+						END
+					) AS FOLL_VAL,
+					(
+						CASE
+							WHEN PMI.PRDT_CD LIKE '%VL%' THEN (
+									SELECT DISTINCT INFO_TUMB_UUID FROM PPM_INFO_PRDT
+									WHERE INFO_USE_YN = 'Y' AND INFO_ORDE = 0 AND CATE_IDX = PMI.CATE_IDX AND PRDT_CD LIKE '%VL%' )
+							WHEN PMI.PRDT_CD LIKE '%LN%' THEN (
+									SELECT DISTINCT INFO_TUMB_UUID FROM PPM_INFO_PRDT
+									WHERE INFO_USE_YN = 'Y' AND INFO_ORDE = 0 AND CATE_IDX = PMI.CATE_IDX AND PRDT_CD LIKE '%LN%' )
+							ELSE (
+									SELECT DISTINCT INFO_TUMB_UUID FROM PPM_INFO_PRDT
+									WHERE INFO_USE_YN = 'Y' AND INFO_ORDE = 0 AND CATE_IDX = PMI.CATE_IDX AND PRDT_CD = CONCAT('COACHING',CATE_IDX) )
+						END
+					) AS INFO_TUMB_UUID,
+					'INFO_TUMB_UUID' AS INFO_TUMB_UUID_NM,
+					PU.USER_UUID,
+					'USER_UUID' AS USER_UUID_NM,
+					
+					GROUP_CONCAT(DISTINCT PPV.PRDT_TYPE) AS HAVE_PRDT_TYPE,
+					
+					PPV.CATE_IDX AS READY_CHK,
+					CONVERT ( GROUP_CONCAT(
+				    	(SELECT COUNT(0) FROM PPM_PRDT_TIME
+				    		WHERE
+									(
+										CHAT_IDX = PSCV.PRDT_IDX
+										OR LIVE_IDX = PSCV.PRDT_IDX
+										OR FACE_IDX = PSCV.PRDT_IDX
+									)
+									AND DATEDIFF(TIME_DTM, NOW()) >= 0
+									AND TIME_USE_YN = 'Y'
+									AND ( DATE_FORMAT(CONCAT( TIME_DTM, ' ' ,TIME_STR ), '%Y-%m-%d %H:%i') < DATE_FORMAT(NOW(), '%Y-%m-%d %H:%i') ) = 0 
+								ORDER BY TIME_DTM, TIME_STR
+				    	)
+				    	ORDER BY
+					PSCV.PRDT_CD ASC SEPARATOR ',' ), CHAR ) AS TIME_CNT,
+					GROUP_CONCAT( SUBSTR(SUBSTR(PSCV.PRDT_CD, 1, 8 ), 7, 2 ) ORDER BY PSCV.PRDT_CD ) AS TIME_PRDT,
+					(
+						SELECT GROUP_CONCAT( SUBSTR(PRDT_CD,7,2) )
+						FROM PPM_INFO_PRDT PIP WHERE PIP.CATE_IDX = PMI.CATE_IDX AND PIP.PRDT_CD LIKE '%VL%' AND PIP.INFO_CD = 'PIN01'
+					) AS PRDT_VL_CHK
+		
+					
+				FROM
+					PPM_MAIN_INDEX PMI
+						LEFT JOIN PPM_CATE PC ON PMI.CATE_IDX = PC.CATE_IDX
+						LEFT JOIN PPM_USER PU ON PC.USER_IDX = PU.USER_IDX
+						
+						LEFT OUTER JOIN PPM_PRDT_VIEW PPV ON PPV.CATE_IDX = PMI.CATE_IDX
+						
+						LEFT JOIN PPM_SALE_CD_VIEW PSCV
+							ON PSCV.CATE_IDX = PPV.CATE_IDX
+							AND PPV.PRDT_CD = ( CASE WHEN PSCV.PRDT_CD LIKE '%VL%' THEN PSCV.PRDT_CD WHEN PSCV.PRDT_CD LIKE '%LN%' THEN PSCV.PRDT_CD ELSE CONCAT('COACHING',PSCV.CATE_IDX) END )
+				WHERE
+					PC.CATE_USE_YN = 'Y'
+					AND PMI.PRDT_TYPE IS NOT NULL	
+				
+			]]>
+				<if test="searchVal not in {null, ''}">
+					<![CDATA[
+					AND PPV.P_CODE_NM LIKE '%${searchVal}%'  
+					]]>
+				</if>
+				
+				<if test="keyword not in {null, ''}">
+							<![CDATA[
+							AND (
+								INFO_MAST_TITL1 LIKE '%${keyword}%' 
+								OR INFO_MAST_TITL2 LIKE '%${keyword}%'
+								OR PU.USER_NM LIKE '%${keyword}%'
+								OR PMI.P_CODE_NM LIKE '%${keyword}%'
+								OR PMI.M_CODE_NM LIKE '%${keyword}%'
+								OR PMI.PRDT_TYPE LIKE '%${keyword}%'
+								)
+							]]>
+				</if>
+			<![CDATA[
+				GROUP BY 
+					PSCV.CATE_IDX 
+				
+				) A
+				
+			WHERE
+				TIME_PRDT IS NOT NULL	
+			ORDER BY 
+				CAST( CATE_ORDR AS SIGNED ), P_CODE_NM	
+					
+			]]>
+	</select>
+
+
+	
+	
+	<!-- 공지사항 목록 조회 -->
+	<select id="selectFrontMainListCnt" parameterType="hashmap" resultType="int">
+		
+		<![CDATA[
+		
+			SELECT
+				1
+			
+	]]>
+	</select>
+	
+
+	<!-- 접수내역 목록 조회 -->
+	<select id="selectFrontBannList" parameterType="hashmap" resultType="hashmap">
+		<![CDATA[
+			SELECT
+				*
+			FROM
+				${query}
+		]]>
+	</select>
+	
+	
+		<insert id="insertFrontFollowDataDuple" parameterType="hashmap">
+		<selectKey resultType="hashmap" keyProperty="haveDataYn, FOLL_IDX" order="BEFORE">
+		<![CDATA[
+			SELECT 
+				CASE WHEN  COUNT(0) > 0 THEN 'Y' ELSE 'N' END AS haveDataYn, 
+				FOLL_IDX 
+				FROM PPM_USER_FOLL 
+					WHERE
+						CATE_IDX = #{cateIdx}
+						AND USER_IDX = #{frontLoginIdx}
+		]]>	
+		<choose >
+			<when test="prdtCd not in {null, ''}">
+		<![CDATA[
+						AND PRDT_CD = #{prdtCd}
+		]]>	
+			</when>
+			<otherwise>
+		<![CDATA[
+						AND PRDT_CD IS NULL
+		]]>
+			</otherwise>
+		</choose>
+		<![CDATA[
+						AND FOLL_USE_YN = 'Y'
+		]]>	
+		</selectKey>
+		<choose>
+			<when test='haveDataYn == "N"'>
+					<![CDATA[
+						
+						INSERT 
+							INTO PPM_DEV.PPM_USER_FOLL
+							(
+							CATE_IDX, 
+							USER_IDX,
+							PRDT_CD, 
+							FOLL_USE_YN,
+							SYS_REG_IDX,
+							SYS_REG_DTM,
+							SYS_MOD_IDX,
+							SYS_MOD_DTM
+							)
+						
+							VALUES
+							(
+							#{cateIdx}, 
+							#{frontLoginIdx}, 
+							#{prdtCd}, 
+							'Y',
+							#{frontLoginIdx},
+							DATE_FORMAT(NOW(), '%Y-%m-%d %H:%i:%S'),
+							#{frontLoginIdx},
+							DATE_FORMAT(NOW(), '%Y-%m-%d %H:%i:%S')
+							)
+						
+					]]>
+			
+			</when>
+			<otherwise>
+					<![CDATA[
+						
+						UPDATE  PPM_DEV.PPM_USER_FOLL
+							SET
+							PRDT_CD = #{prdtCd},
+							FOLL_USE_YN = #{follUseYn},
+							SYS_MOD_IDX = #{frontLoginIdx},
+							SYS_MOD_DTM = DATE_FORMAT(NOW(), '%Y-%m-%d %H:%i:%S')
+							
+							WHERE
+							 	CATE_IDX = #{cateIdx}
+								AND USER_IDX = #{frontLoginIdx}
+					]]>
+			
+			</otherwise>
+		</choose>
+	</insert>
+	
+	
+	<select id="selectRightNowCoachTime" resultType="hashmap" parameterType="hashmap">
+		<![CDATA[
+				SELECT
+						*
+				FROM (			
+					SELECT DISTINCT
+						PRDT.PRDT_IDX,
+						  PC.CATE_IDX,
+						  CATE_MASTEROPEN_UUID, 
+						  PU.USER_NM,
+						  PU.USER_NICK,
+						  PU.USER_UUID,
+						  'USER_UUID' AS USER_UUID_NM,
+						  PI.INFO_MAST_TITL1,
+						  PI.INFO_MAST_TITL2,
+						  P_CODE.CODE_NM AS P_CODE_NM,
+						  M_CODE.CODE_NM AS M_CODE_NM,
+						  PRTV.PRDT_CD AS PRDT_CD_LIST,
+						  PRTV.PRDT_TYPE,
+						  PC.CATE_READ_YN,
+						  PRDT.PRDT_CD,
+						  (
+							    CASE
+							      WHEN PRDT.PRDT_CD LIKE '%FN%' THEN ( SELECT CONCAT(TIME_DTM, ' ', TIME_STR ) FROM PPM_PRDT_TIME WHERE FACE_IDX = PRDT.PRDT_IDX AND TIME_USE_YN = 'Y' 
+									AND DATEDIFF(DATE_FORMAT( NOW(), '%Y-%m-%d'  ) , DATE_FORMAT( TIME_DTM, '%Y-%m-%d' )) < 1
+									AND ( DATE_FORMAT(CONCAT( TIME_DTM, ' ' ,TIME_STR ), '%Y-%m-%d %H:%i') < DATE_FORMAT(NOW(), '%Y-%m-%d %H:%i') ) = 0
+							      ORDER BY TIME_DTM, TIME_STR  LIMIT 1) 
+							      
+							      WHEN PRDT.PRDT_CD LIKE '%CN%' THEN ( SELECT CONCAT(TIME_DTM, ' ', TIME_STR ) FROM PPM_PRDT_TIME WHERE CHAT_IDX = PRDT.PRDT_IDX AND TIME_USE_YN = 'Y'
+							      AND DATEDIFF(DATE_FORMAT( NOW(), '%Y-%m-%d' ) , DATE_FORMAT( TIME_DTM, '%Y-%m-%d' )) < 1
+									AND ( DATE_FORMAT(CONCAT( TIME_DTM, ' ' ,TIME_STR ), '%Y-%m-%d %H:%i') < DATE_FORMAT(NOW(), '%Y-%m-%d %H:%i') ) = 0
+							      ORDER BY TIME_DTM, TIME_STR  LIMIT 1) 
+							      
+							      WHEN PRDT.PRDT_CD LIKE '%LN%' THEN ( SELECT CONCAT(TIME_DTM, ' ', TIME_STR ) FROM PPM_PRDT_TIME WHERE LIVE_IDX = PRDT.PRDT_IDX AND TIME_USE_YN = 'Y'
+							      AND DATEDIFF(DATE_FORMAT( NOW(), '%Y-%m-%d' ) , DATE_FORMAT( TIME_DTM, '%Y-%m-%d' )) < 1
+									AND ( DATE_FORMAT(CONCAT( TIME_DTM, ' ' ,TIME_STR ), '%Y-%m-%d %H:%i') < DATE_FORMAT(NOW(), '%Y-%m-%d %H:%i') ) = 0
+							      ORDER BY TIME_DTM, TIME_STR  LIMIT 1) 
+							    END
+							  ) AS TIME_TIM
+						 
+						  
+						FROM
+						  PPM_CATE PC
+						  LEFT JOIN PPM_INFO PI ON PI.CATE_IDX = PC.CATE_IDX
+						  LEFT JOIN PPM_CODE P_CODE ON P_CODE.CODE_ID = SUBSTR(PC.CODE_ID,1,5)
+						  LEFT JOIN PPM_CODE M_CODE ON M_CODE.CODE_ID = PC.CODE_ID
+						  LEFT JOIN PPM_USER PU ON PU.USER_IDX = PC.USER_IDX
+						  LEFT JOIN PPM_PRDT_TYPE_VIEW PRTV ON PRTV.CATE_IDX = PC.CATE_IDX
+						  LEFT JOIN PPM_SALE_CD_VIEW PRDT ON PC.CATE_IDX = PRDT.CATE_IDX
+						  LEFT JOIN PPM_INFO_PRDT PIP ON ( PIP.PRDT_CD = CONCAT( 'COACHING' , PI.CATE_IDX ) OR PIP.PRDT_CD = PRDT.PRDT_CD ) 
+						  
+						WHERE
+						  PC.CATE_USE_YN = 'Y'
+						  AND PC.CATE_READ_YN = 'Y'
+						  AND PI.INFO_USE_YN = 'Y'
+						  AND PI.INFO_CD = 'INF01'
+						  AND PI.INFO_ORDE = 0
+						  AND ( PRDT.PRDT_CD LIKE '%FN%' OR PRDT.PRDT_CD LIKE '%CN%' OR PRDT.PRDT_CD LIKE '%LN%' )
+							AND PIP.INFO_IDX IS NOT NULL
+					) MAIN
+			WHERE
+				DATEDIFF(DATE_FORMAT( NOW(), '%Y-%m-%d' ) , DATE_FORMAT( TIME_TIM, '%Y-%m-%d ' )) < 1 
+				AND DATEDIFF(DATE_FORMAT( NOW(), '%Y-%m-%d' ) , DATE_FORMAT( TIME_TIM, '%Y-%m-%d ' )) > -2
+				AND DATE_FORMAT( TIME_TIM, '%Y-%m-%d %H:%i' ) > DATE_FORMAT( NOW(), '%Y-%m-%d %H:%i' )	
+			ORDER BY TIME_TIM
+			]]>
+	
+	</select>
+	
+	
+	<!-- 접수내역 목록 조회 -->
+	<select id="selectFrontPrdtList" parameterType="hashmap" resultType="hashmap">
+		<![CDATA[
+			SELECT
+				*,
+				PPCV_CODE.CODE_NM AS PRDT_DISC_NM,
+				(
+					CASE
+						WHEN PRDT_CD LIKE '%COACH%' THEN IFNULL( (SELECT PPB.BASK_IDX FROM PPM_PRDT_BASK PPB WHERE PPB.CATE_IDX = SUBSTR(PRDT_CD,9,LENGTH(PRDT_CD) ) AND PPB.BASK_USE_YN = 'Y' AND PPB.BASK_TYPE= 'K' AND PPB.USER_IDX = #{frontLoginIdx} ORDER BY BASK_IDX DESC LIMIT 1), 'NOJJIM' )
+						ELSE IFNULL( (SELECT PPB.BASK_IDX FROM PPM_PRDT_BASK PPB WHERE PPB.BASK_PRDT_CD = PRDT_CD AND PPB.BASK_USE_YN = 'Y' AND PPB.BASK_TYPE= 'K' AND PPB.USER_IDX = #{frontLoginIdx}), 'NOJJIM' )
+					END
+				) AS JJIM_IDX
+			FROM (
+					SELECT DISTINCT
+						PPV.*,
+			-- 			PIP.INFO_PRDT_TITL1,
+			-- 			PIP.INFO_PRDT_TITL2,
+						PC.CATE_ORDR,
+						(
+							CASE
+								WHEN PPV.PRDT_CD LIKE '%VL%' THEN ( SELECT FORMAT( PRDT_PRIC, 0 ) FROM PPM_SALE_CD_VIEW WHERE PRDT_CD = PPV.PRDT_CD )
+								WHEN PPV.PRDT_CD LIKE '%LN%' THEN ( SELECT FORMAT( PRDT_PRIC, 0 ) FROM PPM_SALE_CD_VIEW WHERE PRDT_CD = PPV.PRDT_CD )
+								ELSE ( SELECT FORMAT( PRDT_PRIC, 0 ) FROM PPM_SALE_CD_VIEW WHERE CATE_IDX = REPLACE(PPV.PRDT_CD, 'COACHING', '') AND ( PRDT_CD NOT LIKE '%VL%' OR PRDT_CD NOT LIKE '%LN%' ) ORDER BY PRDT_PRIC_REAL LIMIT 1 )
+							END
+						) AS PRDT_PRIC,
+						(
+							CASE
+								WHEN PPV.PRDT_CD LIKE '%VL%' THEN ( SELECT PRDT_DISC_CD FROM PPM_SALE_CD_VIEW WHERE PRDT_CD = PPV.PRDT_CD )
+								WHEN PPV.PRDT_CD LIKE '%LN%' THEN ( SELECT PRDT_DISC_CD FROM PPM_SALE_CD_VIEW WHERE PRDT_CD = PPV.PRDT_CD )
+								ELSE ( SELECT PRDT_DISC_CD FROM PPM_SALE_CD_VIEW WHERE CATE_IDX = REPLACE(PPV.PRDT_CD, 'COACHING', '') AND ( PRDT_CD NOT LIKE '%VL%' OR PRDT_CD NOT LIKE '%LN%' ) ORDER BY PRDT_PRIC_REAL LIMIT 1 )
+							END
+						) AS PRDT_DISC_CD,
+						(
+							CASE
+								WHEN PPV.PRDT_CD LIKE '%VL%' THEN ( SELECT PRDT_DISC FROM PPM_SALE_CD_VIEW WHERE PRDT_CD = PPV.PRDT_CD )
+								WHEN PPV.PRDT_CD LIKE '%LN%' THEN ( SELECT PRDT_DISC FROM PPM_SALE_CD_VIEW WHERE PRDT_CD = PPV.PRDT_CD )
+								ELSE ( SELECT PRDT_DISC FROM PPM_SALE_CD_VIEW WHERE CATE_IDX = REPLACE(PPV.PRDT_CD, 'COACHING', '') AND ( PRDT_CD NOT LIKE '%VL%' OR PRDT_CD NOT LIKE '%LN%' ) ORDER BY PRDT_PRIC_REAL LIMIT 1 )
+							END
+						) AS PRDT_DISC,
+						(
+							CASE
+								WHEN PPV.PRDT_CD LIKE '%VL%' THEN ( SELECT PRDT_PRIC_REAL FROM PPM_SALE_CD_VIEW WHERE PRDT_CD = PPV.PRDT_CD )
+								WHEN PPV.PRDT_CD LIKE '%LN%' THEN ( SELECT PRDT_PRIC_REAL FROM PPM_SALE_CD_VIEW WHERE PRDT_CD = PPV.PRDT_CD )
+								ELSE ( SELECT FORMAT( PRDT_PRIC_REAL, 0 ) FROM PPM_SALE_CD_VIEW WHERE CATE_IDX = REPLACE(PPV.PRDT_CD, 'COACHING', '') AND ( PRDT_CD NOT LIKE '%VL%' OR PRDT_CD NOT LIKE '%LN%' ) ORDER BY PRDT_PRIC_REAL LIMIT 1 )
+							END
+						) AS PRDT_PRIC_REAL,
+						PPV.PRDT_CD AS SALE_PRDT_CD,
+						CONVERT ( GROUP_CONCAT(
+					    	(SELECT COUNT(0) FROM PPM_PRDT_TIME
+					    		WHERE
+										(
+											CHAT_IDX = PSCV.PRDT_IDX
+											OR LIVE_IDX = PSCV.PRDT_IDX
+											OR FACE_IDX = PSCV.PRDT_IDX
+										)
+										AND DATEDIFF(TIME_DTM, NOW()) >= 0
+										AND TIME_USE_YN = 'Y'
+										AND ( DATE_FORMAT(CONCAT( TIME_DTM, ' ' ,TIME_STR ), '%Y-%m-%d %H:%i') < DATE_FORMAT(NOW(), '%Y-%m-%d %H:%i') ) = 0 
+									ORDER BY TIME_DTM, TIME_STR
+					    	)
+					    
+					    ORDER BY
+    					PSCV.PRDT_CD ASC SEPARATOR ',' ), CHAR ) AS TIME_CNT
+					FROM
+						PPM_PRDT_VIEW PPV
+							LEFT JOIN PPM_CATE PC ON PPV.CATE_IDX = PC.CATE_IDX
+			-- 				LEFT JOIN PPM_INFO_PRDT PIP ON PIP.CATE_IDX = PPV.CATE_IDX
+							LEFT JOIN PPM_SALE_CD_VIEW PSCV ON PSCV.CATE_IDX = PPV.CATE_IDX 
+					WHERE
+						PC.CATE_ORDR IS NOT NULL
+						AND PC.CATE_USE_YN = 'Y'
+			-- 			AND PIP.INFO_USE_YN = 'Y'
+			-- 			AND PIP.PRDT_CD = PPV.PRDT_CD
+			-- 			AND PIP.INFO_ORDE = 0
+						AND PC.CATE_READ_YN = 'Y'
+				]]>
+					<if test="codeNm not in {null, ''}">
+						<![CDATA[
+						AND P_CODE_NM LIKE '%${codeNm}%' 
+						]]>
+					</if>
+					
+					
+				<![CDATA[
+					GROUP BY PRDT_CD
+					
+			) MAIN
+				LEFT JOIN PPM_CODE PPCV_CODE ON PPCV_CODE.CODE_ID = MAIN.PRDT_DISC_CD
+			WHERE
+				PPCV_CODE.CODE_NM IS NOT NULL
+				
+				]]>
+					<if test="keyword not in {null, ''}">
+						<![CDATA[
+						AND (
+							INFO_PRDT_TITL1 LIKE '%${keyword}%' 
+							OR INFO_PRDT_TITL2 LIKE '%${keyword}%'
+							OR USER_NM LIKE '%${keyword}%'
+							)
+						]]>
+					</if>
+				<![CDATA[
+				
+			ORDER BY SALE_PRDT_CD, CATE_ORDR
+		]]>
+	</select>
+
+
+	
+	
+	<!-- 공지사항 목록 조회 -->
+	<select id="selectFrontPrdtListCnt" parameterType="hashmap" resultType="int">
+		
+		<![CDATA[
+		
+			SELECT
+				1
+			
+	]]>
+	</select>
+	
+	<insert id="insertFrontJjimDataDuple" parameterType="hashmap">
+		<![CDATA[
+			INSERT INTO 
+				PPM_PRDT_BASK
+				(
+				BASK_PRDT_CD,
+				USER_IDX,
+				CATE_IDX, 
+				BASK_TYPE, 
+				BASK_USE_YN,
+				BASK_CNT,
+				SYS_REG_IDX, 
+				SYS_REG_DTM,
+				SYS_MOD_IDX,
+				SYS_MOD_DTM
+				)
+				VALUES(
+				#{baskPrdtCd}, 
+				#{frontLoginIdx}, 
+				#{cateIdx},
+				#{baskType}, 
+				'Y',
+				#{baskCnt},
+				#{frontLoginIdx}, 
+				DATE_FORMAT( NOW(), '%Y-%m-%d %H:%i:%S' ),
+				#{frontLoginIdx}, 
+				DATE_FORMAT( NOW(), '%Y-%m-%d %H:%i:%S' )
+				)
+		]]>
+	</insert>
+	
+	
+		<update id="updateFrontJjimData" parameterType="hashmap">
+		<![CDATA[
+			UPDATE  
+				PPM_PRDT_BASK
+				SET
+					BASK_USE_YN = #{baskUseYn},	
+					BASK_CNT = #{baskCnt},
+					SYS_MOD_IDX = #{frontLoginIdx},
+					SYS_MOD_DTM = DATE_FORMAT( NOW(), '%Y-%m-%d %H:%i:%S' )
+					WHERE
+						BASK_PRDT_CD = #{baskPrdtCd}
+						AND CATE_IDX = #{cateIdx}
+						AND USER_IDX = #{frontLoginIdx}
+						AND BASK_TYPE = #{baskType}
+						AND SYS_REG_IDX = #{frontLoginIdx}
+		
+		]]>
+	</update>
+	
+	<select id="selectFrontUserHasSecession" parameterType="hashmap" resultType="hashmap">
+		<![CDATA[
+			SELECT 
+				PU.USER_USE_YN 
+					FROM PPM_USER PU 
+						WHERE PU.USER_IDX = #{frontLoginIdx}
+		
+		
+		]]>
+	
+	</select>
+	
+	<select id="selectFrontMainMasterTimeCnt" parameterType="hashmap" resultType="hashmap" >
+		<![CDATA[
+		SELECT
+			CATE_IDX,
+			TIME_CNT,
+			PRDT_CD,
+			PRDT_INFO_CD
+		FROM (
+				SELECT
+					PMI.CATE_IDX,
+					CONVERT (
+						GROUP_CONCAT(
+					    	( SELECT COUNT(0) FROM PPM_PRDT_TIME
+					    		WHERE
+										(
+											CHAT_IDX = PSCV.PRDT_IDX
+											OR FACE_IDX = PSCV.PRDT_IDX
+											OR LIVE_IDX = PSCV.PRDT_IDX
+										)
+										AND DATEDIFF(TIME_DTM, NOW()) >= 0
+										AND TIME_USE_YN = 'Y'
+										AND ( DATE_FORMAT(CONCAT( TIME_DTM, ' ' ,TIME_STR ), '%Y-%m-%d %H:%i') < DATE_FORMAT(NOW(), '%Y-%m-%d %H:%i') ) = 0
+										
+									ORDER BY TIME_DTM, TIME_STR
+					    	)
+					     ORDER BY PSCV.PRDT_CD ASC SEPARATOR ',' )
+					, CHAR ) AS TIME_CNT,
+					(
+						CASE
+							WHEN PC.CATE_ORDR IS NULL THEN '9999'
+							WHEN PC.CATE_ORDR = '' THEN '9999'
+							ELSE PC.CATE_ORDR
+						END
+					) AS CATE_ORDR,
+					PMI.PRDT_CD,
+					(
+						SELECT GROUP_CONCAT( SUBSTR(PRDT_CD,7,2) )
+						FROM PPM_INFO_PRDT PIP WHERE PIP.CATE_IDX = PMI.CATE_IDX AND PIP.PRDT_CD LIKE '%VL%' AND PIP.INFO_CD = 'PIN01'
+					) AS PRDT_INFO_CD,
+					PMI.P_CODE_NM
+					
+					FROM
+					PPM_MAIN_INDEX PMI
+					LEFT JOIN PPM_CATE PC ON PMI.CATE_IDX = PC.CATE_IDX
+					LEFT JOIN PPM_USER PU ON PC.USER_IDX = PU.USER_IDX
+					LEFT JOIN PPM_SALE_CD_VIEW PSCV  ON PSCV.CATE_IDX = PMI.CATE_IDX
+				--	LEFT JOIN PPM_PRDT_VIEW PPV ON PPV.CATE_IDX = PMI.CATE_IDX
+					
+					WHERE 
+						PC.CATE_USE_YN = 'Y'
+						AND PMI.PRDT_TYPE IS NOT NULL	
+					GROUP BY 
+						PSCV.CATE_IDX
+		) MAIN
+		ORDER BY 
+			CAST( CATE_ORDR AS SIGNED ), P_CODE_NM
+	
+		]]>
+	</select>
+	
+	<select id="selectFrontJjimCoachPrdtCd" parameterType="hashmap" resultType="hashmap">
+		<![CDATA[
+		SELECT
+			CATE_IDX,
+			PRDT_IDX,
+			PRDT_CD
+		
+			FROM 
+				PPM_SALE_CD_VIEW PSCV 
+				WHERE 
+				CATE_IDX = #{cateIdx}
+				AND 
+				( PRDT_CD LIKE '%CN%'
+				OR PRDT_CD LIKE '%EN%'
+				OR PRDT_CD LIKE '%FN%' )
+		]]>
+	</select>
+	
+	<select id="selectPrdtDetailLink" resultType="hashmap" parameterType="hashmap">
+	<![CDATA[
+	SELECT 
+		PRDT_CD ,CATE_IDX
+			FROM PPM_INFO_PRDT PIP 
+				WHERE PIP.CATE_IDX = #{cateIdx}
+					AND PIP.INFO_ORDE = 0
+					AND INFO_USE_YN = 'Y'
+					AND  
+						CASE 
+							WHEN #{prdtCd} = 'VL' THEN PIP.PRDT_CD LIKE '%VL%'
+							WHEN #{prdtCd} = 'LN' THEN PIP.PRDT_CD LIKE '%LN%'
+							ELSE PIP.PRDT_CD = CONCAT('COACHING',#{cateIdx})
+						END	
+						]]>
+	</select>
+	
+	
+	<select id="selectMainMdpickList" resultType="hashmap" parameterType="hashmap">
+	<![CDATA[
+			SELECT
+				*,
+				(
+					CASE
+						WHEN PRDT_CD LIKE '%COACH%'
+						THEN IFNULL( (
+							SELECT PPB.BASK_IDX FROM PPM_PRDT_BASK PPB
+							WHERE PPB.CATE_IDX = SUBSTR(PRDT_CD,9,LENGTH(PRDT_CD) )
+							AND PPB.BASK_USE_YN = 'Y' AND PPB.BASK_TYPE= 'K'
+							AND PPB.USER_IDX = #{frontLoginIdx}
+							AND ( PRDT_REG_CD LIKE '%CN%' OR PRDT_REG_CD LIKE '%FN%' OR PRDT_REG_CD LIKE '%EN%')
+							AND ( BASK_PRDT_CD = PRDT_CD OR BASK_PRDT_CD = PRDT_REG_CD ) ), 'NOJJIM' )
+						ELSE IFNULL( (SELECT PPB.BASK_IDX FROM PPM_PRDT_BASK PPB WHERE PPB.BASK_PRDT_CD = PRDT_CD AND PPB.BASK_USE_YN = 'Y' AND PPB.BASK_TYPE= 'K' AND PPB.USER_IDX = #{frontLoginIdx}), 'NOJJIM' )
+					END
+				) AS JJIM_IDX
+			FROM (
+				SELECT
+					*
+				FROM (
+					SELECT DISTINCT
+						MAIN_OPEN_YN,
+						IFNULL(MAIN_OPEN_ORDR,9999) AS MAIN_OPEN_ORDR,
+						SUBMAIN_OPEN_YN,
+						SUBMAIN_OPEN_ORDR,
+						PSCV.PRDT_CD AS PRDT_REG_CD,
+						S_CODE.CODE_NM AS S_CODE_NM,
+						DATE_FORMAT(PSCV.SYS_REG_DTM, '%Y-%m-%d') AS SYS_REG_DTM,
+					
+						PPV.*,
+						PPV.PRDT_CD AS SALE_PRDT_CD,
+						PC.CATE_ORDR,
+						(
+							CASE
+								WHEN PPV.PRDT_CD LIKE '%VL%' THEN ( SELECT FORMAT( PRDT_PRIC, 0 ) FROM PPM_SALE_CD_VIEW WHERE PRDT_CD = PPV.PRDT_CD )
+								WHEN PPV.PRDT_CD LIKE '%LN%' THEN ( SELECT FORMAT( PRDT_PRIC, 0 ) FROM PPM_SALE_CD_VIEW WHERE PRDT_CD = PPV.PRDT_CD )
+								ELSE ( SELECT FORMAT( PRDT_PRIC, 0 ) FROM PPM_SALE_CD_VIEW WHERE CATE_IDX = REPLACE(PPV.PRDT_CD, 'COACHING', '') AND ( PRDT_CD NOT LIKE '%VL%' OR PRDT_CD NOT LIKE '%LN%' ) ORDER BY PRDT_PRIC_REAL LIMIT 1 )
+							END
+						) AS PRDT_PRIC,
+						(
+							CASE
+								WHEN PPV.PRDT_CD LIKE '%VL%' THEN ( SELECT PRDT_DISC_CD FROM PPM_SALE_CD_VIEW WHERE PRDT_CD = PPV.PRDT_CD )
+								WHEN PPV.PRDT_CD LIKE '%LN%' THEN ( SELECT PRDT_DISC_CD FROM PPM_SALE_CD_VIEW WHERE PRDT_CD = PPV.PRDT_CD )
+								ELSE ( SELECT PRDT_DISC_CD FROM PPM_SALE_CD_VIEW WHERE CATE_IDX = REPLACE(PPV.PRDT_CD, 'COACHING', '') AND ( PRDT_CD NOT LIKE '%VL%' OR PRDT_CD NOT LIKE '%LN%' ) ORDER BY PRDT_PRIC_REAL LIMIT 1 )
+							END
+						) AS PRDT_DISC_CD,
+						(
+							CASE
+								WHEN PPV.PRDT_CD LIKE '%VL%' THEN ( SELECT PRDT_DISC FROM PPM_SALE_CD_VIEW WHERE PRDT_CD = PPV.PRDT_CD )
+								WHEN PPV.PRDT_CD LIKE '%LN%' THEN ( SELECT PRDT_DISC FROM PPM_SALE_CD_VIEW WHERE PRDT_CD = PPV.PRDT_CD )
+								ELSE ( SELECT PRDT_DISC FROM PPM_SALE_CD_VIEW WHERE CATE_IDX = REPLACE(PPV.PRDT_CD, 'COACHING', '') AND ( PRDT_CD NOT LIKE '%VL%' OR PRDT_CD NOT LIKE '%LN%' ) ORDER BY PRDT_PRIC_REAL LIMIT 1 )
+							END
+						) AS PRDT_DISC,
+						(
+							CASE
+								WHEN PPV.PRDT_CD LIKE '%VL%' THEN ( SELECT PRDT_PRIC_REAL FROM PPM_SALE_CD_VIEW WHERE PRDT_CD = PPV.PRDT_CD )
+								WHEN PPV.PRDT_CD LIKE '%LN%' THEN ( SELECT PRDT_PRIC_REAL FROM PPM_SALE_CD_VIEW WHERE PRDT_CD = PPV.PRDT_CD )
+								ELSE ( SELECT FORMAT( PRDT_PRIC_REAL, 0 ) FROM PPM_SALE_CD_VIEW WHERE CATE_IDX = REPLACE(PPV.PRDT_CD, 'COACHING', '') AND ( PRDT_CD NOT LIKE '%VL%' OR PRDT_CD NOT LIKE '%LN%' ) ORDER BY PRDT_PRIC_REAL LIMIT 1 )
+							END
+						) AS PRDT_PRIC_REAL,
+						CONVERT ( GROUP_CONCAT(
+					    	(SELECT COUNT(0) FROM PPM_PRDT_TIME
+					    		WHERE
+										(
+											CHAT_IDX = PSCV.PRDT_IDX
+											OR LIVE_IDX = PSCV.PRDT_IDX
+											OR FACE_IDX = PSCV.PRDT_IDX
+										)
+										AND DATEDIFF(TIME_DTM, NOW()) >= 0
+										AND TIME_USE_YN = 'Y'
+										AND ( DATE_FORMAT(CONCAT( TIME_DTM, ' ' ,TIME_STR ), '%Y-%m-%d %H:%i') < DATE_FORMAT(NOW(), '%Y-%m-%d %H:%i') ) = 0 
+									ORDER BY TIME_DTM, TIME_STR
+					    	)
+					    ORDER BY
+						PSCV.PRDT_CD ASC SEPARATOR ',' ), CHAR ) AS TIME_CNT
+					
+					FROM
+						PPM_PRDT_VIEW PPV
+							LEFT JOIN PPM_CATE PC ON PPV.CATE_IDX = PC.CATE_IDX
+							LEFT JOIN PPM_SALE_CD_VIEW PSCV
+								ON PSCV.CATE_IDX = PPV.CATE_IDX
+								AND PPV.PRDT_CD = ( CASE WHEN PSCV.PRDT_CD LIKE '%VL%' THEN PSCV.PRDT_CD WHEN PSCV.PRDT_CD LIKE '%LN%' THEN PSCV.PRDT_CD ELSE CONCAT('COACHING',PSCV.CATE_IDX) END )
+							LEFT JOIN PPM_CODE S_CODE ON S_CODE.CODE_ID = PSCV.CHAT_STAT_CD
+							
+							LEFT OUTER JOIN PPM_MDPICK PM ON PM.PRDT_CD = PSCV.PRDT_CD
+					WHERE
+						PC.CATE_IDX IS NOT NULL
+						AND PC.CATE_USE_YN = 'Y'
+						AND PC.CATE_READ_YN = 'Y'
+						AND PSCV.SYS_REG_DTM IS NOT NULL
+						AND PRDT_TYPE LIKE '%VOD%'
+				
+					GROUP BY
+						CATE_IDX
+					ORDER BY
+						MD_IDX DESC
+				) MAIN
+				WHERE
+					PRDT_PRIC IS NOT NULL
+					
+				UNION ALL
+				
+				SELECT
+					*
+				FROM (
+					SELECT DISTINCT
+						MAIN_OPEN_YN,
+						IFNULL(MAIN_OPEN_ORDR,9999) AS MAIN_OPEN_ORDR,
+						SUBMAIN_OPEN_YN,
+						SUBMAIN_OPEN_ORDR,
+						PSCV.PRDT_CD AS PRDT_REG_CD,
+						S_CODE.CODE_NM AS S_CODE_NM,
+						DATE_FORMAT(PSCV.SYS_REG_DTM, '%Y-%m-%d') AS SYS_REG_DTM,
+					
+						PPV.*,
+						PPV.PRDT_CD AS SALE_PRDT_CD,
+						PC.CATE_ORDR,
+						(
+							CASE
+								WHEN PPV.PRDT_CD LIKE '%VL%' THEN ( SELECT FORMAT( PRDT_PRIC, 0 ) FROM PPM_SALE_CD_VIEW WHERE PRDT_CD = PPV.PRDT_CD )
+								WHEN PPV.PRDT_CD LIKE '%LN%' THEN ( SELECT FORMAT( PRDT_PRIC, 0 ) FROM PPM_SALE_CD_VIEW WHERE PRDT_CD = PPV.PRDT_CD )
+								ELSE ( SELECT FORMAT( PRDT_PRIC, 0 ) FROM PPM_SALE_CD_VIEW WHERE CATE_IDX = REPLACE(PPV.PRDT_CD, 'COACHING', '') AND ( PRDT_CD NOT LIKE '%VL%' OR PRDT_CD NOT LIKE '%LN%' ) ORDER BY PRDT_PRIC_REAL LIMIT 1 )
+							END
+						) AS PRDT_PRIC,
+						(
+							CASE
+								WHEN PPV.PRDT_CD LIKE '%VL%' THEN ( SELECT PRDT_DISC_CD FROM PPM_SALE_CD_VIEW WHERE PRDT_CD = PPV.PRDT_CD )
+								WHEN PPV.PRDT_CD LIKE '%LN%' THEN ( SELECT PRDT_DISC_CD FROM PPM_SALE_CD_VIEW WHERE PRDT_CD = PPV.PRDT_CD )
+								ELSE ( SELECT PRDT_DISC_CD FROM PPM_SALE_CD_VIEW WHERE CATE_IDX = REPLACE(PPV.PRDT_CD, 'COACHING', '') AND ( PRDT_CD NOT LIKE '%VL%' OR PRDT_CD NOT LIKE '%LN%' ) ORDER BY PRDT_PRIC_REAL LIMIT 1 )
+							END
+						) AS PRDT_DISC_CD,
+						(
+							CASE
+								WHEN PPV.PRDT_CD LIKE '%VL%' THEN ( SELECT PRDT_DISC FROM PPM_SALE_CD_VIEW WHERE PRDT_CD = PPV.PRDT_CD )
+								WHEN PPV.PRDT_CD LIKE '%LN%' THEN ( SELECT PRDT_DISC FROM PPM_SALE_CD_VIEW WHERE PRDT_CD = PPV.PRDT_CD )
+								ELSE ( SELECT PRDT_DISC FROM PPM_SALE_CD_VIEW WHERE CATE_IDX = REPLACE(PPV.PRDT_CD, 'COACHING', '') AND ( PRDT_CD NOT LIKE '%VL%' OR PRDT_CD NOT LIKE '%LN%' ) ORDER BY PRDT_PRIC_REAL LIMIT 1 )
+							END
+						) AS PRDT_DISC,
+						(
+							CASE
+								WHEN PPV.PRDT_CD LIKE '%VL%' THEN ( SELECT PRDT_PRIC_REAL FROM PPM_SALE_CD_VIEW WHERE PRDT_CD = PPV.PRDT_CD )
+								WHEN PPV.PRDT_CD LIKE '%LN%' THEN ( SELECT PRDT_PRIC_REAL FROM PPM_SALE_CD_VIEW WHERE PRDT_CD = PPV.PRDT_CD )
+								ELSE ( SELECT FORMAT( PRDT_PRIC_REAL, 0 ) FROM PPM_SALE_CD_VIEW WHERE CATE_IDX = REPLACE(PPV.PRDT_CD, 'COACHING', '') AND ( PRDT_CD NOT LIKE '%VL%' OR PRDT_CD NOT LIKE '%LN%' ) ORDER BY PRDT_PRIC_REAL LIMIT 1 )
+							END
+						) AS PRDT_PRIC_REAL,
+						CONVERT ( GROUP_CONCAT(
+					    	(SELECT COUNT(0) FROM PPM_PRDT_TIME
+					    		WHERE
+										(
+											CHAT_IDX = PSCV.PRDT_IDX
+											OR LIVE_IDX = PSCV.PRDT_IDX
+											OR FACE_IDX = PSCV.PRDT_IDX
+										)
+										AND DATEDIFF(TIME_DTM, NOW()) >= 0
+										AND TIME_USE_YN = 'Y'
+										AND ( DATE_FORMAT(CONCAT( TIME_DTM, ' ' ,TIME_STR ), '%Y-%m-%d %H:%i') < DATE_FORMAT(NOW(), '%Y-%m-%d %H:%i') ) = 0 
+									ORDER BY TIME_DTM, TIME_STR
+					    	)
+					    ORDER BY
+						PSCV.PRDT_CD ASC SEPARATOR ',' ), CHAR ) AS TIME_CNT
+					
+					FROM
+						PPM_PRDT_VIEW PPV
+							LEFT JOIN PPM_CATE PC ON PPV.CATE_IDX = PC.CATE_IDX
+							LEFT JOIN PPM_SALE_CD_VIEW PSCV
+								ON PSCV.CATE_IDX = PPV.CATE_IDX
+								AND PPV.PRDT_CD = ( CASE WHEN PSCV.PRDT_CD LIKE '%VL%' THEN PSCV.PRDT_CD WHEN PSCV.PRDT_CD LIKE '%LN%' THEN PSCV.PRDT_CD ELSE CONCAT('COACHING',PSCV.CATE_IDX) END )
+							LEFT JOIN PPM_CODE S_CODE ON S_CODE.CODE_ID = PSCV.CHAT_STAT_CD
+							
+							LEFT OUTER JOIN PPM_MDPICK PM ON PM.PRDT_CD = PSCV.PRDT_CD
+					WHERE
+						PC.CATE_IDX IS NOT NULL
+						AND PC.CATE_USE_YN = 'Y'
+						AND PC.CATE_READ_YN = 'Y'
+						AND PSCV.SYS_REG_DTM IS NOT NULL
+						AND PRDT_TYPE LIKE '%1:1%'
+				
+					GROUP BY
+						CATE_IDX
+					ORDER BY
+						MD_IDX DESC
+				) MAIN
+				WHERE
+					PRDT_PRIC IS NOT NULL
+					AND TIME_CNT NOT IN ( '0', '0,0', '0,0,0', '0,0,0,0', '0,0,0,0,0' ) OR PRDT_TYPE3 LIKE '%EN%'
+				
+				UNION ALL
+				
+				SELECT
+					*
+				FROM (
+					SELECT DISTINCT
+						MAIN_OPEN_YN,
+						IFNULL(MAIN_OPEN_ORDR,9999) AS MAIN_OPEN_ORDR,
+						SUBMAIN_OPEN_YN,
+						SUBMAIN_OPEN_ORDR,
+						PSCV.PRDT_CD AS PRDT_REG_CD,
+						S_CODE.CODE_NM AS S_CODE_NM,
+						DATE_FORMAT(PSCV.SYS_REG_DTM, '%Y-%m-%d') AS SYS_REG_DTM,
+					
+						PPV.*,
+						PPV.PRDT_CD AS SALE_PRDT_CD,
+						PC.CATE_ORDR,
+						(
+							CASE
+								WHEN PPV.PRDT_CD LIKE '%VL%' THEN ( SELECT FORMAT( PRDT_PRIC, 0 ) FROM PPM_SALE_CD_VIEW WHERE PRDT_CD = PPV.PRDT_CD )
+								WHEN PPV.PRDT_CD LIKE '%LN%' THEN ( SELECT FORMAT( PRDT_PRIC, 0 ) FROM PPM_SALE_CD_VIEW WHERE PRDT_CD = PPV.PRDT_CD )
+								ELSE ( SELECT FORMAT( PRDT_PRIC, 0 ) FROM PPM_SALE_CD_VIEW WHERE CATE_IDX = REPLACE(PPV.PRDT_CD, 'COACHING', '') AND ( PRDT_CD NOT LIKE '%VL%' OR PRDT_CD NOT LIKE '%LN%' ) ORDER BY PRDT_PRIC_REAL LIMIT 1 )
+							END
+						) AS PRDT_PRIC,
+						(
+							CASE
+								WHEN PPV.PRDT_CD LIKE '%VL%' THEN ( SELECT PRDT_DISC_CD FROM PPM_SALE_CD_VIEW WHERE PRDT_CD = PPV.PRDT_CD )
+								WHEN PPV.PRDT_CD LIKE '%LN%' THEN ( SELECT PRDT_DISC_CD FROM PPM_SALE_CD_VIEW WHERE PRDT_CD = PPV.PRDT_CD )
+								ELSE ( SELECT PRDT_DISC_CD FROM PPM_SALE_CD_VIEW WHERE CATE_IDX = REPLACE(PPV.PRDT_CD, 'COACHING', '') AND ( PRDT_CD NOT LIKE '%VL%' OR PRDT_CD NOT LIKE '%LN%' ) ORDER BY PRDT_PRIC_REAL LIMIT 1 )
+							END
+						) AS PRDT_DISC_CD,
+						(
+							CASE
+								WHEN PPV.PRDT_CD LIKE '%VL%' THEN ( SELECT PRDT_DISC FROM PPM_SALE_CD_VIEW WHERE PRDT_CD = PPV.PRDT_CD )
+								WHEN PPV.PRDT_CD LIKE '%LN%' THEN ( SELECT PRDT_DISC FROM PPM_SALE_CD_VIEW WHERE PRDT_CD = PPV.PRDT_CD )
+								ELSE ( SELECT PRDT_DISC FROM PPM_SALE_CD_VIEW WHERE CATE_IDX = REPLACE(PPV.PRDT_CD, 'COACHING', '') AND ( PRDT_CD NOT LIKE '%VL%' OR PRDT_CD NOT LIKE '%LN%' ) ORDER BY PRDT_PRIC_REAL LIMIT 1 )
+							END
+						) AS PRDT_DISC,
+						(
+							CASE
+								WHEN PPV.PRDT_CD LIKE '%VL%' THEN ( SELECT PRDT_PRIC_REAL FROM PPM_SALE_CD_VIEW WHERE PRDT_CD = PPV.PRDT_CD )
+								WHEN PPV.PRDT_CD LIKE '%LN%' THEN ( SELECT PRDT_PRIC_REAL FROM PPM_SALE_CD_VIEW WHERE PRDT_CD = PPV.PRDT_CD )
+								ELSE ( SELECT FORMAT( PRDT_PRIC_REAL, 0 ) FROM PPM_SALE_CD_VIEW WHERE CATE_IDX = REPLACE(PPV.PRDT_CD, 'COACHING', '') AND ( PRDT_CD NOT LIKE '%VL%' OR PRDT_CD NOT LIKE '%LN%' ) ORDER BY PRDT_PRIC_REAL LIMIT 1 )
+							END
+						) AS PRDT_PRIC_REAL,
+						CONVERT ( GROUP_CONCAT(
+					    	(SELECT COUNT(0) FROM PPM_PRDT_TIME
+					    		WHERE
+										(
+											CHAT_IDX = PSCV.PRDT_IDX
+											OR LIVE_IDX = PSCV.PRDT_IDX
+											OR FACE_IDX = PSCV.PRDT_IDX
+										)
+										AND DATEDIFF(TIME_DTM, NOW()) >= 0
+										AND TIME_USE_YN = 'Y'
+										AND ( DATE_FORMAT(CONCAT( TIME_DTM, ' ' ,TIME_STR ), '%Y-%m-%d %H:%i') < DATE_FORMAT(NOW(), '%Y-%m-%d %H:%i') ) = 0 
+									ORDER BY TIME_DTM, TIME_STR
+					    	)
+					    ORDER BY
+						PSCV.PRDT_CD ASC SEPARATOR ',' ), CHAR ) AS TIME_CNT
+					
+					FROM
+						PPM_PRDT_VIEW PPV
+							LEFT JOIN PPM_CATE PC ON PPV.CATE_IDX = PC.CATE_IDX
+							LEFT JOIN PPM_SALE_CD_VIEW PSCV
+								ON PSCV.CATE_IDX = PPV.CATE_IDX
+								AND PPV.PRDT_CD = ( CASE WHEN PSCV.PRDT_CD LIKE '%VL%' THEN PSCV.PRDT_CD WHEN PSCV.PRDT_CD LIKE '%LN%' THEN PSCV.PRDT_CD ELSE CONCAT('COACHING',PSCV.CATE_IDX) END )
+							LEFT JOIN PPM_CODE S_CODE ON S_CODE.CODE_ID = PSCV.CHAT_STAT_CD
+							
+							LEFT OUTER JOIN PPM_MDPICK PM ON PM.PRDT_CD = PSCV.PRDT_CD
+					WHERE
+						PC.CATE_IDX IS NOT NULL
+						AND PC.CATE_USE_YN = 'Y'
+						AND PC.CATE_READ_YN = 'Y'
+						AND PSCV.SYS_REG_DTM IS NOT NULL
+						AND PRDT_TYPE LIKE '%LIVE%'
+				
+					GROUP BY
+						CATE_IDX
+					ORDER BY
+						MD_IDX DESC
+				) MAIN
+				WHERE
+					PRDT_PRIC IS NOT NULL
+					AND TIME_CNT NOT IN ( '0', '0,0', '0,0,0', '0,0,0,0', '0,0,0,0,0' )
+			) LIST
+			WHERE
+				CATE_IDX IS NOT NULL
+				AND MAIN_OPEN_YN = 'Y'
+				
+		]]>
+			<if test="searchVal not in {null, ''}">
+				<if test='searchVal == "VOD" '>
+				<![CDATA[
+ 				AND PRDT_TYPE LIKE '%VOD%'
+				]]>
+				</if>
+				<if test='searchVal == "1:1 코칭" '>
+				<![CDATA[
+ 				AND PRDT_TYPE LIKE '%1:1%'
+				]]>
+				</if>
+				<if test='searchVal == "LIVE CLASS" '>
+				<![CDATA[
+				AND PRDT_TYPE LIKE '%LIVE%'
+				]]>
+				</if>
+			</if>
+		<![CDATA[
+			ORDER BY MAIN_OPEN_ORDR, P_CODE_NM
+		]]>
+	</select>
+	
+	<select id="selectMainTimedealList" parameterType="hashmap" resultType="hashmap">
+		<![CDATA[
+				]]>
+			<if test="status not in {'LIST'}">
+				<![CDATA[
+SELECT C.*, REPLACE(CONVERT(C.NUM_DESC, CHAR),'.0','') AS NUM_DESC_ORDER FROM (
+  SELECT B.*, (@rownumB:=@rownumB+1) as NUM_ASC FROM(  
+    SELECT A.*, (@rownumA:=@rownumA+1) as NUM_DESC FROM (
+				]]>
+			</if>
+		<![CDATA[
+			SELECT
+				*,
+				(
+					CASE
+						WHEN PRDT_CD LIKE '%COACH%'
+						THEN IFNULL( (
+							SELECT PPB.BASK_IDX FROM PPM_PRDT_BASK PPB
+							WHERE PPB.CATE_IDX = SUBSTR(PRDT_CD,9,LENGTH(PRDT_CD) )
+							AND PPB.BASK_USE_YN = 'Y' AND PPB.BASK_TYPE= 'K'
+							AND PPB.USER_IDX = #{frontLoginIdx}
+							AND ( PRDT_REG_CD LIKE '%CN%' OR PRDT_REG_CD LIKE '%FN%' OR PRDT_REG_CD LIKE '%EN%')
+							AND ( BASK_PRDT_CD = PRDT_CD OR BASK_PRDT_CD = PRDT_REG_CD ) ), 'NOJJIM' )
+						ELSE IFNULL( (SELECT PPB.BASK_IDX FROM PPM_PRDT_BASK PPB WHERE PPB.BASK_PRDT_CD = PRDT_CD AND PPB.BASK_USE_YN = 'Y' AND PPB.BASK_TYPE= 'K' AND PPB.USER_IDX = #{frontLoginIdx}), 'NOJJIM' )
+					END
+				) AS JJIM_IDX
+			FROM (
+				SELECT
+					*
+				FROM (
+					SELECT DISTINCT
+						MAIN_OPEN_YN,
+						DATE_FORMAT(MAIN_OPEN_DTM, '%Y-%m-%d %H:%i:%s') AS MAIN_OPEN_DTM,
+						IFNULL( DATE_FORMAT(MAIN_OPEN_DTM, '%Y-%m-%d %H:%i:%s'), DATE_FORMAT('9999-12-31', '%Y-%m-%d %H:%i:%s') ) AS MAIN_OPEN_DTM_ORDR,
+						SUBMAIN_OPEN_YN,
+						DATE_FORMAT(SUBMAIN_OPEN_DTM, '%Y-%m-%d %H:%i:%s') AS SUBMAIN_OPEN_DTM,
+						IFNULL(DATE_FORMAT(SUBMAIN_OPEN_DTM, '%Y-%m-%d %H:%i:%s'), DATE_FORMAT('9999-12-31', '%Y-%m-%d %H:%i:%s') ) AS SUBMAIN_OPEN_DTM_ORDR,
+						PSCV.PRDT_CD AS PRDT_REG_CD,
+						S_CODE.CODE_NM AS S_CODE_NM,
+						DATE_FORMAT(PSCV.SYS_REG_DTM, '%Y-%m-%d') AS SYS_REG_DTM,
+						DEAL_DISC_PRIC,
+						DEAL_REAL_PRIC,
+					
+						PPV.*,
+						PPV.PRDT_CD AS SALE_PRDT_CD,
+						PC.CATE_ORDR,
+						(
+							CASE
+								WHEN PPV.PRDT_CD LIKE '%VL%' THEN ( SELECT FORMAT( PRDT_PRIC, 0 ) FROM PPM_SALE_CD_VIEW WHERE PRDT_CD = PPV.PRDT_CD )
+								WHEN PPV.PRDT_CD LIKE '%LN%' THEN ( SELECT FORMAT( PRDT_PRIC, 0 ) FROM PPM_SALE_CD_VIEW WHERE PRDT_CD = PPV.PRDT_CD )
+								ELSE ( SELECT FORMAT( PRDT_PRIC, 0 ) FROM PPM_SALE_CD_VIEW WHERE CATE_IDX = REPLACE(PPV.PRDT_CD, 'COACHING', '') AND ( PRDT_CD NOT LIKE '%VL%' OR PRDT_CD NOT LIKE '%LN%' ) ORDER BY PRDT_PRIC_REAL LIMIT 1 )
+							END
+						) AS PRDT_PRIC,
+						(
+							CASE
+								WHEN PPV.PRDT_CD LIKE '%VL%' THEN ( SELECT PRDT_DISC_CD FROM PPM_SALE_CD_VIEW WHERE PRDT_CD = PPV.PRDT_CD )
+								WHEN PPV.PRDT_CD LIKE '%LN%' THEN ( SELECT PRDT_DISC_CD FROM PPM_SALE_CD_VIEW WHERE PRDT_CD = PPV.PRDT_CD )
+								ELSE ( SELECT PRDT_DISC_CD FROM PPM_SALE_CD_VIEW WHERE CATE_IDX = REPLACE(PPV.PRDT_CD, 'COACHING', '') AND ( PRDT_CD NOT LIKE '%VL%' OR PRDT_CD NOT LIKE '%LN%' ) ORDER BY PRDT_PRIC_REAL LIMIT 1 )
+							END
+						) AS PRDT_DISC_CD,
+						(
+							CASE
+								WHEN PPV.PRDT_CD LIKE '%VL%' THEN ( SELECT PRDT_DISC FROM PPM_SALE_CD_VIEW WHERE PRDT_CD = PPV.PRDT_CD )
+								WHEN PPV.PRDT_CD LIKE '%LN%' THEN ( SELECT PRDT_DISC FROM PPM_SALE_CD_VIEW WHERE PRDT_CD = PPV.PRDT_CD )
+								ELSE ( SELECT PRDT_DISC FROM PPM_SALE_CD_VIEW WHERE CATE_IDX = REPLACE(PPV.PRDT_CD, 'COACHING', '') AND ( PRDT_CD NOT LIKE '%VL%' OR PRDT_CD NOT LIKE '%LN%' ) ORDER BY PRDT_PRIC_REAL LIMIT 1 )
+							END
+						) AS PRDT_DISC,
+						(
+							CASE
+								WHEN PPV.PRDT_CD LIKE '%VL%' THEN ( SELECT PRDT_PRIC_REAL FROM PPM_SALE_CD_VIEW WHERE PRDT_CD = PPV.PRDT_CD )
+								WHEN PPV.PRDT_CD LIKE '%LN%' THEN ( SELECT PRDT_PRIC_REAL FROM PPM_SALE_CD_VIEW WHERE PRDT_CD = PPV.PRDT_CD )
+								ELSE ( SELECT FORMAT( PRDT_PRIC_REAL, 0 ) FROM PPM_SALE_CD_VIEW WHERE CATE_IDX = REPLACE(PPV.PRDT_CD, 'COACHING', '') AND ( PRDT_CD NOT LIKE '%VL%' OR PRDT_CD NOT LIKE '%LN%' ) ORDER BY PRDT_PRIC_REAL LIMIT 1 )
+							END
+						) AS PRDT_PRIC_REAL,
+						CONVERT ( GROUP_CONCAT(
+					    	(SELECT COUNT(0) FROM PPM_PRDT_TIME
+					    		WHERE
+										(
+											CHAT_IDX = PSCV.PRDT_IDX
+											OR LIVE_IDX = PSCV.PRDT_IDX
+											OR FACE_IDX = PSCV.PRDT_IDX
+										)
+										AND DATEDIFF(TIME_DTM, NOW()) >= 0
+										AND TIME_USE_YN = 'Y'
+										AND ( DATE_FORMAT(CONCAT( TIME_DTM, ' ' ,TIME_STR ), '%Y-%m-%d %H:%i') < DATE_FORMAT(NOW(), '%Y-%m-%d %H:%i') ) = 0 
+									ORDER BY TIME_DTM, TIME_STR
+					    	)
+					    ORDER BY
+						PSCV.PRDT_CD ASC SEPARATOR ',' ), CHAR ) AS TIME_CNT
+					
+					FROM
+						PPM_PRDT_VIEW PPV
+							LEFT JOIN PPM_CATE PC ON PPV.CATE_IDX = PC.CATE_IDX
+							LEFT JOIN PPM_SALE_CD_VIEW PSCV
+								ON PSCV.CATE_IDX = PPV.CATE_IDX
+								AND PPV.PRDT_CD = ( CASE WHEN PSCV.PRDT_CD LIKE '%VL%' THEN PSCV.PRDT_CD WHEN PSCV.PRDT_CD LIKE '%LN%' THEN PSCV.PRDT_CD ELSE CONCAT('COACHING',PSCV.CATE_IDX) END )
+							LEFT JOIN PPM_CODE S_CODE ON S_CODE.CODE_ID = PSCV.CHAT_STAT_CD
+							
+							LEFT OUTER JOIN PPM_TIME_DEAL PM ON PM.PRDT_CD = PSCV.PRDT_CD
+					WHERE
+						PC.CATE_IDX IS NOT NULL
+						AND PC.CATE_USE_YN = 'Y'
+						AND PC.CATE_READ_YN = 'Y'
+						AND PSCV.SYS_REG_DTM IS NOT NULL
+						AND PRDT_TYPE LIKE '%VOD%'
+				
+					GROUP BY
+						CATE_IDX
+					ORDER BY
+						DEAL_IDX DESC
+				) MAIN
+				WHERE
+					PRDT_PRIC IS NOT NULL
+					
+				UNION ALL
+				
+				SELECT
+					*
+				FROM (
+					SELECT DISTINCT
+						MAIN_OPEN_YN,
+						DATE_FORMAT(MAIN_OPEN_DTM, '%Y-%m-%d %H:%i:%s') AS MAIN_OPEN_DTM,
+						IFNULL( DATE_FORMAT(MAIN_OPEN_DTM, '%Y-%m-%d %H:%i:%s'), DATE_FORMAT('9999-12-31', '%Y-%m-%d %H:%i:%s') ) AS MAIN_OPEN_DTM_ORDR,
+						SUBMAIN_OPEN_YN,
+						DATE_FORMAT(SUBMAIN_OPEN_DTM, '%Y-%m-%d %H:%i:%s') AS SUBMAIN_OPEN_DTM,
+						IFNULL(DATE_FORMAT(SUBMAIN_OPEN_DTM, '%Y-%m-%d %H:%i:%s'), DATE_FORMAT('9999-12-31', '%Y-%m-%d %H:%i:%s') ) AS SUBMAIN_OPEN_DTM_ORDR,
+						PSCV.PRDT_CD AS PRDT_REG_CD,
+						S_CODE.CODE_NM AS S_CODE_NM,
+						DATE_FORMAT(PSCV.SYS_REG_DTM, '%Y-%m-%d') AS SYS_REG_DTM,
+						DEAL_DISC_PRIC,
+						DEAL_REAL_PRIC,
+					
+						PPV.*,
+						PPV.PRDT_CD AS SALE_PRDT_CD,
+						PC.CATE_ORDR,
+						(
+							CASE
+								WHEN PPV.PRDT_CD LIKE '%VL%' THEN ( SELECT FORMAT( PRDT_PRIC, 0 ) FROM PPM_SALE_CD_VIEW WHERE PRDT_CD = PPV.PRDT_CD )
+								WHEN PPV.PRDT_CD LIKE '%LN%' THEN ( SELECT FORMAT( PRDT_PRIC, 0 ) FROM PPM_SALE_CD_VIEW WHERE PRDT_CD = PPV.PRDT_CD )
+								ELSE ( SELECT FORMAT( PRDT_PRIC, 0 ) FROM PPM_SALE_CD_VIEW WHERE CATE_IDX = REPLACE(PPV.PRDT_CD, 'COACHING', '') AND ( PRDT_CD NOT LIKE '%VL%' OR PRDT_CD NOT LIKE '%LN%' ) ORDER BY PRDT_PRIC_REAL LIMIT 1 )
+							END
+						) AS PRDT_PRIC,
+						(
+							CASE
+								WHEN PPV.PRDT_CD LIKE '%VL%' THEN ( SELECT PRDT_DISC_CD FROM PPM_SALE_CD_VIEW WHERE PRDT_CD = PPV.PRDT_CD )
+								WHEN PPV.PRDT_CD LIKE '%LN%' THEN ( SELECT PRDT_DISC_CD FROM PPM_SALE_CD_VIEW WHERE PRDT_CD = PPV.PRDT_CD )
+								ELSE ( SELECT PRDT_DISC_CD FROM PPM_SALE_CD_VIEW WHERE CATE_IDX = REPLACE(PPV.PRDT_CD, 'COACHING', '') AND ( PRDT_CD NOT LIKE '%VL%' OR PRDT_CD NOT LIKE '%LN%' ) ORDER BY PRDT_PRIC_REAL LIMIT 1 )
+							END
+						) AS PRDT_DISC_CD,
+						(
+							CASE
+								WHEN PPV.PRDT_CD LIKE '%VL%' THEN ( SELECT PRDT_DISC FROM PPM_SALE_CD_VIEW WHERE PRDT_CD = PPV.PRDT_CD )
+								WHEN PPV.PRDT_CD LIKE '%LN%' THEN ( SELECT PRDT_DISC FROM PPM_SALE_CD_VIEW WHERE PRDT_CD = PPV.PRDT_CD )
+								ELSE ( SELECT PRDT_DISC FROM PPM_SALE_CD_VIEW WHERE CATE_IDX = REPLACE(PPV.PRDT_CD, 'COACHING', '') AND ( PRDT_CD NOT LIKE '%VL%' OR PRDT_CD NOT LIKE '%LN%' ) ORDER BY PRDT_PRIC_REAL LIMIT 1 )
+							END
+						) AS PRDT_DISC,
+						(
+							CASE
+								WHEN PPV.PRDT_CD LIKE '%VL%' THEN ( SELECT PRDT_PRIC_REAL FROM PPM_SALE_CD_VIEW WHERE PRDT_CD = PPV.PRDT_CD )
+								WHEN PPV.PRDT_CD LIKE '%LN%' THEN ( SELECT PRDT_PRIC_REAL FROM PPM_SALE_CD_VIEW WHERE PRDT_CD = PPV.PRDT_CD )
+								ELSE ( SELECT FORMAT( PRDT_PRIC_REAL, 0 ) FROM PPM_SALE_CD_VIEW WHERE CATE_IDX = REPLACE(PPV.PRDT_CD, 'COACHING', '') AND ( PRDT_CD NOT LIKE '%VL%' OR PRDT_CD NOT LIKE '%LN%' ) ORDER BY PRDT_PRIC_REAL LIMIT 1 )
+							END
+						) AS PRDT_PRIC_REAL,
+						CONVERT ( GROUP_CONCAT(
+					    	(SELECT COUNT(0) FROM PPM_PRDT_TIME
+					    		WHERE
+										(
+											CHAT_IDX = PSCV.PRDT_IDX
+											OR LIVE_IDX = PSCV.PRDT_IDX
+											OR FACE_IDX = PSCV.PRDT_IDX
+										)
+										AND DATEDIFF(TIME_DTM, NOW()) >= 0
+										AND TIME_USE_YN = 'Y'
+										AND ( DATE_FORMAT(CONCAT( TIME_DTM, ' ' ,TIME_STR ), '%Y-%m-%d %H:%i') < DATE_FORMAT(NOW(), '%Y-%m-%d %H:%i') ) = 0 
+									ORDER BY TIME_DTM, TIME_STR
+					    	)
+					    ORDER BY
+						PSCV.PRDT_CD ASC SEPARATOR ',' ), CHAR ) AS TIME_CNT
+					
+					FROM
+						PPM_PRDT_VIEW PPV
+							LEFT JOIN PPM_CATE PC ON PPV.CATE_IDX = PC.CATE_IDX
+							LEFT JOIN PPM_SALE_CD_VIEW PSCV
+								ON PSCV.CATE_IDX = PPV.CATE_IDX
+								AND PPV.PRDT_CD = ( CASE WHEN PSCV.PRDT_CD LIKE '%VL%' THEN PSCV.PRDT_CD WHEN PSCV.PRDT_CD LIKE '%LN%' THEN PSCV.PRDT_CD ELSE CONCAT('COACHING',PSCV.CATE_IDX) END )
+							LEFT JOIN PPM_CODE S_CODE ON S_CODE.CODE_ID = PSCV.CHAT_STAT_CD
+							
+							LEFT OUTER JOIN PPM_TIME_DEAL PM ON PM.PRDT_CD = PSCV.PRDT_CD
+					WHERE
+						PC.CATE_IDX IS NOT NULL
+						AND PC.CATE_USE_YN = 'Y'
+						AND PC.CATE_READ_YN = 'Y'
+						AND PSCV.SYS_REG_DTM IS NOT NULL
+						AND PRDT_TYPE LIKE '%1:1%'
+				
+					GROUP BY
+						CATE_IDX
+					ORDER BY
+						DEAL_IDX DESC
+				) MAIN
+				WHERE
+					PRDT_PRIC IS NOT NULL
+					AND TIME_CNT NOT IN ( '0', '0,0', '0,0,0', '0,0,0,0', '0,0,0,0,0' ) OR PRDT_TYPE3 LIKE '%EN%'
+				
+				UNION ALL
+				
+				SELECT
+					*
+				FROM (
+					SELECT DISTINCT
+						MAIN_OPEN_YN,
+						DATE_FORMAT(MAIN_OPEN_DTM, '%Y-%m-%d %H:%i:%s') AS MAIN_OPEN_DTM,
+						IFNULL( DATE_FORMAT(MAIN_OPEN_DTM, '%Y-%m-%d %H:%i:%s'), DATE_FORMAT('9999-12-31', '%Y-%m-%d %H:%i:%s') ) AS MAIN_OPEN_DTM_ORDR,
+						SUBMAIN_OPEN_YN,
+						DATE_FORMAT(SUBMAIN_OPEN_DTM, '%Y-%m-%d %H:%i:%s') AS SUBMAIN_OPEN_DTM,
+						IFNULL(DATE_FORMAT(SUBMAIN_OPEN_DTM, '%Y-%m-%d %H:%i:%s'), DATE_FORMAT('9999-12-31', '%Y-%m-%d %H:%i:%s') ) AS SUBMAIN_OPEN_DTM_ORDR,
+						PSCV.PRDT_CD AS PRDT_REG_CD,
+						S_CODE.CODE_NM AS S_CODE_NM,
+						DATE_FORMAT(PSCV.SYS_REG_DTM, '%Y-%m-%d') AS SYS_REG_DTM,
+						DEAL_DISC_PRIC,
+						DEAL_REAL_PRIC,
+					
+						PPV.*,
+						PPV.PRDT_CD AS SALE_PRDT_CD,
+						PC.CATE_ORDR,
+						(
+							CASE
+								WHEN PPV.PRDT_CD LIKE '%VL%' THEN ( SELECT FORMAT( PRDT_PRIC, 0 ) FROM PPM_SALE_CD_VIEW WHERE PRDT_CD = PPV.PRDT_CD )
+								WHEN PPV.PRDT_CD LIKE '%LN%' THEN ( SELECT FORMAT( PRDT_PRIC, 0 ) FROM PPM_SALE_CD_VIEW WHERE PRDT_CD = PPV.PRDT_CD )
+								ELSE ( SELECT FORMAT( PRDT_PRIC, 0 ) FROM PPM_SALE_CD_VIEW WHERE CATE_IDX = REPLACE(PPV.PRDT_CD, 'COACHING', '') AND ( PRDT_CD NOT LIKE '%VL%' OR PRDT_CD NOT LIKE '%LN%' ) ORDER BY PRDT_PRIC_REAL LIMIT 1 )
+							END
+						) AS PRDT_PRIC,
+						(
+							CASE
+								WHEN PPV.PRDT_CD LIKE '%VL%' THEN ( SELECT PRDT_DISC_CD FROM PPM_SALE_CD_VIEW WHERE PRDT_CD = PPV.PRDT_CD )
+								WHEN PPV.PRDT_CD LIKE '%LN%' THEN ( SELECT PRDT_DISC_CD FROM PPM_SALE_CD_VIEW WHERE PRDT_CD = PPV.PRDT_CD )
+								ELSE ( SELECT PRDT_DISC_CD FROM PPM_SALE_CD_VIEW WHERE CATE_IDX = REPLACE(PPV.PRDT_CD, 'COACHING', '') AND ( PRDT_CD NOT LIKE '%VL%' OR PRDT_CD NOT LIKE '%LN%' ) ORDER BY PRDT_PRIC_REAL LIMIT 1 )
+							END
+						) AS PRDT_DISC_CD,
+						(
+							CASE
+								WHEN PPV.PRDT_CD LIKE '%VL%' THEN ( SELECT PRDT_DISC FROM PPM_SALE_CD_VIEW WHERE PRDT_CD = PPV.PRDT_CD )
+								WHEN PPV.PRDT_CD LIKE '%LN%' THEN ( SELECT PRDT_DISC FROM PPM_SALE_CD_VIEW WHERE PRDT_CD = PPV.PRDT_CD )
+								ELSE ( SELECT PRDT_DISC FROM PPM_SALE_CD_VIEW WHERE CATE_IDX = REPLACE(PPV.PRDT_CD, 'COACHING', '') AND ( PRDT_CD NOT LIKE '%VL%' OR PRDT_CD NOT LIKE '%LN%' ) ORDER BY PRDT_PRIC_REAL LIMIT 1 )
+							END
+						) AS PRDT_DISC,
+						(
+							CASE
+								WHEN PPV.PRDT_CD LIKE '%VL%' THEN ( SELECT PRDT_PRIC_REAL FROM PPM_SALE_CD_VIEW WHERE PRDT_CD = PPV.PRDT_CD )
+								WHEN PPV.PRDT_CD LIKE '%LN%' THEN ( SELECT PRDT_PRIC_REAL FROM PPM_SALE_CD_VIEW WHERE PRDT_CD = PPV.PRDT_CD )
+								ELSE ( SELECT FORMAT( PRDT_PRIC_REAL, 0 ) FROM PPM_SALE_CD_VIEW WHERE CATE_IDX = REPLACE(PPV.PRDT_CD, 'COACHING', '') AND ( PRDT_CD NOT LIKE '%VL%' OR PRDT_CD NOT LIKE '%LN%' ) ORDER BY PRDT_PRIC_REAL LIMIT 1 )
+							END
+						) AS PRDT_PRIC_REAL,
+						CONVERT ( GROUP_CONCAT(
+					    	(SELECT COUNT(0) FROM PPM_PRDT_TIME
+					    		WHERE
+										(
+											CHAT_IDX = PSCV.PRDT_IDX
+											OR LIVE_IDX = PSCV.PRDT_IDX
+											OR FACE_IDX = PSCV.PRDT_IDX
+										)
+										AND DATEDIFF(TIME_DTM, NOW()) >= 0
+										AND TIME_USE_YN = 'Y'
+										AND ( DATE_FORMAT(CONCAT( TIME_DTM, ' ' ,TIME_STR ), '%Y-%m-%d %H:%i') < DATE_FORMAT(NOW(), '%Y-%m-%d %H:%i') ) = 0 
+									ORDER BY TIME_DTM, TIME_STR
+					    	)
+					    ORDER BY
+						PSCV.PRDT_CD ASC SEPARATOR ',' ), CHAR ) AS TIME_CNT
+					
+					FROM
+						PPM_PRDT_VIEW PPV
+							LEFT JOIN PPM_CATE PC ON PPV.CATE_IDX = PC.CATE_IDX
+							LEFT JOIN PPM_SALE_CD_VIEW PSCV
+								ON PSCV.CATE_IDX = PPV.CATE_IDX
+								AND PPV.PRDT_CD = ( CASE WHEN PSCV.PRDT_CD LIKE '%VL%' THEN PSCV.PRDT_CD WHEN PSCV.PRDT_CD LIKE '%LN%' THEN PSCV.PRDT_CD ELSE CONCAT('COACHING',PSCV.CATE_IDX) END )
+							LEFT JOIN PPM_CODE S_CODE ON S_CODE.CODE_ID = PSCV.CHAT_STAT_CD
+							
+							LEFT OUTER JOIN PPM_TIME_DEAL PM ON PM.PRDT_CD = PSCV.PRDT_CD
+					WHERE
+						PC.CATE_IDX IS NOT NULL
+						AND PC.CATE_USE_YN = 'Y'
+						AND PC.CATE_READ_YN = 'Y'
+						AND PSCV.SYS_REG_DTM IS NOT NULL
+						AND PRDT_TYPE LIKE '%LIVE%'
+				
+					GROUP BY
+						CATE_IDX
+					ORDER BY
+						DEAL_IDX DESC
+				) MAIN
+				WHERE
+					PRDT_PRIC IS NOT NULL
+					AND TIME_CNT NOT IN ( '0', '0,0', '0,0,0', '0,0,0,0', '0,0,0,0,0' )
+			) LIST
+			WHERE
+				CATE_IDX IS NOT NULL
+				AND MAIN_OPEN_YN = 'Y'
+				AND DEAL_DISC_PRIC IS NOT NULL
+				AND DEAL_REAL_PRIC IS NOT NULL
+				AND DATEDIFF( MAIN_OPEN_DTM, DATE_FORMAT(NOW(), '%Y-%m-%d %H:%i:%s') ) > -1
+				AND TIMEDIFF( MAIN_OPEN_DTM, DATE_FORMAT(NOW(), '%Y-%m-%d %H:%i:%s') ) > '00:00:00'
+				
+		]]>
+			<if test="searchVal not in {null, ''}">
+				<if test='searchVal == "VOD" '>
+				<![CDATA[
+ 				AND PRDT_TYPE LIKE '%VOD%'
+				]]>
+				</if>
+				<if test='searchVal == "1:1 코칭" '>
+				<![CDATA[
+ 				AND PRDT_TYPE LIKE '%1:1%'
+				]]>
+				</if>
+				<if test='searchVal == "LIVE CLASS" '>
+				<![CDATA[
+				AND PRDT_TYPE LIKE '%LIVE%'
+				]]>
+				</if>
+			</if>
+		<![CDATA[
+				
+				
+			ORDER BY MAIN_OPEN_DTM_ORDR, SUBMAIN_OPEN_DTM_ORDR, SYS_REG_DTM DESC
+				]]>
+			<if test="status not in {'LIST'}">
+				<![CDATA[
+						) A JOIN (SELECT @rownumA:=0) rownumA
+  ) B JOIN (SELECT @rownumB:=0) rownumB ORDER BY NUM_DESC
+) C WHERE NUM_ASC BETWEEN 1 AND 99999999
+				]]>
+			</if>
+		<![CDATA[
+		]]>
+	</select>
+</mapper>

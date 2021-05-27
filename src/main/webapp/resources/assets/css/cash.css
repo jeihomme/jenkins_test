@@ -1,0 +1,261 @@
+@charset "UTF-8";
+
+/* cart_payment 및 공통?.jsp */
+.designRadiobutton { 
+	z-index: 1; 
+	display: inline-block;
+	position: relative; 
+	padding: 2px 0; 
+}
+.designRadiobutton * { 
+	vertical-align: middle;
+ }
+.designRadiobutton input[type="radio"] { 
+	z-index: 1; 
+	position: absolute; 
+	top: 0; 
+	left: 0; 
+	width: 20px; 
+	height: 20px; 
+	opacity: 0; 
+	filter: alpha(opacity=0); 
+	-ms-filter: "progid:DXImageTransform.Microsoft.Alpha(Opacity=0)"; 
+}
+.designRadiobutton input[type="radio"] + label {
+	z-index: 2; 
+	display: inline-block; 
+	position: relative; 
+	min-width: 25px; 
+	height: 25px; 
+	background: url('/resources/images/input_radio.png') no-repeat; 
+	text-indent: -9999px; 
+	box-sizing: border-box;  	
+}
+.designRadiobutton input[type="radio"] + label.label_txt { 
+	padding: 2px 30px 0 35px;
+	text-indent: 0;
+	cursor:pointer;	
+}
+.designRadiobutton input[type="radio"]:checked + label { 
+	background: url('/resources/images/input_radio_checked.png') no-repeat; 
+}
+.designRadiobutton input[type="radio"]:disabled + label { 
+	opacity: 0.5; 
+	filter: alpha(opacity=50); 
+	-ms-filter: "progid:DXImageTransform.Microsoft.Alpha(Opacity=50)"; /* IE 8 */
+}
+.designRadiobutton input[type="radio"]:readonly + label { 
+	opacity: 0.5;
+	filter: alpha(opacity=50); 
+	-ms-filter: "progid:DXImageTransform.Microsoft.Alpha(Opacity=50)"; /* IE 8 */ 
+}
+
+
+
+.cash_input {
+    width: 100%;
+    height: 40px;
+    padding: 0 20px;
+    color: #fff;
+    border: 1px solid #444;
+    background-color: transparent;
+    border-radius: 2px;
+    font-size: 17px;
+    font-weight: 300;
+    letter-spacing: -1.20px;
+}
+.tell_item .cash_input {
+    float: left;
+    width: 100px;
+}
+.tell_item.post_item_tell .cash_input {
+    float: left;
+    width: 100px;
+}
+.cash_item {
+    margin-top: 10px;
+}
+
+.cash_select {
+    margin-top: 10px;
+    float: left;
+    width: 155px;
+    height: 40px;
+    padding: 0 20px;
+    margin-right: 4px;
+    color: #444;
+    background: url(/resources/assets/images/icon/icon_select_arrow_white.png) 90% 50% / 10px 6px no-repeat;
+    background-color: transparent;
+    border: 1px solid #444;
+    border-radius: 2px;
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    appearance: none;
+    font-size: 17px;
+    font-weight: 300;
+    letter-spacing: -1.19px;
+    cursor: pointer;
+}
+
+
+.designRadiobutton { 
+	z-index: 1; 
+	display: inline-block;
+	position: relative; 
+	padding: 2px 0; 
+}
+.designRadiobutton * { 
+	vertical-align: middle;
+ }
+.designRadiobutton input[type="radio"] { 
+	z-index: 1; 
+	position: absolute; 
+	top: 0; 
+	left: 0; 
+	width: 20px; 
+	height: 20px; 
+	opacity: 0; 
+	filter: alpha(opacity=0); 
+	-ms-filter: "progid:DXImageTransform.Microsoft.Alpha(Opacity=0)"; 
+}
+.designRadiobutton input[type="radio"] + label {
+	z-index: 2; 
+	display: inline-block; 
+	position: relative; 
+	min-width: 25px; 
+	height: 25px; 
+	background: url('/resources/images/input_radio.png') no-repeat; 
+	text-indent: -9999px; 
+	box-sizing: border-box;  	
+}
+.designRadiobutton input[type="radio"] + label.label_txt { 
+	padding: 2px 30px 0 35px;
+	text-indent: 0;
+	cursor:pointer;	
+}
+.designRadiobutton input[type="radio"]:checked + label { 
+	background: url('/resources/images/input_radio_checked.png') no-repeat; 
+}
+.designRadiobutton input[type="radio"]:disabled + label { 
+	opacity: 0.5; 
+	filter: alpha(opacity=50); 
+	-ms-filter: "progid:DXImageTransform.Microsoft.Alpha(Opacity=50)"; /* IE 8 */
+}
+.designRadiobutton input[type="radio"]:readonly + label { 
+	opacity: 0.5;
+	filter: alpha(opacity=50); 
+	-ms-filter: "progid:DXImageTransform.Microsoft.Alpha(Opacity=50)"; /* IE 8 */ 
+}
+
+
+
+.cash_input {
+    width: 100%;
+    height: 40px;
+    padding: 0 20px;
+    color: #fff;
+    border: 1px solid #444;
+    background-color: transparent;
+    border-radius: 2px;
+    font-size: 17px;
+    font-weight: 300;
+    letter-spacing: -1.20px;
+}
+.tell_item .cash_input {
+    float: left;
+    width: 100px;
+}
+.tell_item.post_item_tell .cash_input {
+    float: left;
+    width: 100px;
+}
+.cash_item {
+    margin-top: 10px;
+}
+
+.cash_select {
+    margin-top: 10px;
+    float: left;
+    width: 155px;
+    height: 40px;
+    padding: 0 20px;
+    margin-right: 4px;
+    color: #444;
+    background: url(/resources/assets/images/icon/icon_select_arrow_white.png) 90% 50% / 10px 6px no-repeat;
+    background-color: transparent;
+    border: 1px solid #444;
+    border-radius: 2px;
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    appearance: none;
+    font-size: 17px;
+    font-weight: 300;
+    letter-spacing: -1.19px;
+    cursor: pointer;
+}
+
+
+
+
+/* payment.jsp */
+
+
+.pop-cash-area{
+	display: none;
+    z-index: 9999;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0,0,0,0.1);
+}
+.popup-cash{
+	position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 100%;
+    max-width: 500px;
+    max-height: 600px;
+    padding: 3.5em 0 3em 0;
+    background-color: #000;
+    border-radius: 5px;
+    border: 1px solid #444;
+    box-shadow: 0 0 20px rgb(0 0 0 / 20%);
+    transform: translateX(-50%) translateY(-50%);
+}
+
+.btn-confirm-popup-cash{
+	width: 87px;
+    height: 40px;
+    border: 0;
+    margin: 0 .25em;
+    font-size: 1rem;
+    font-weight: 400;
+    line-height: 1;
+    text-align: center;
+    border-radius: 4px;
+	background-color: #fff;
+    color: #000;
+}
+.popup-cash-text-area{
+	position: relative;
+    text-align: center;
+    box-sizing: border-box;
+    display: flex;
+    align-items: center;
+    padding: 0;
+    margin: 0;
+}
+.popup-cash-text{
+	display: block;
+    width: 90%;
+    font-size: 1rem;
+    padding: 0;
+    margin: 0 auto;
+    font-weight: 400;
+    line-height: 1.4;
+    box-sizing: border-box;
+    text-align: center;
+}
+#cashRecei { border: none!important; }

@@ -1,0 +1,846 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd"> 
+<mapper namespace="mngChat">
+
+	<!-- 로그인 체크 -->
+	<select id="selectMngChatList" parameterType="hashmap" resultType="hashmap">
+		<![CDATA[
+				]]>
+			<if test="status not in {'LIST'}">
+				<![CDATA[
+SELECT C.*, REPLACE(CONVERT(C.NUM_DESC, CHAR),'.0','') AS NUM_DESC_ORDER FROM (
+  SELECT B.*, (@rownumB:=@rownumB+1) as NUM_ASC FROM(  
+    SELECT A.*, (@rownumA:=@rownumA+1) as NUM_DESC FROM (
+				]]>
+			</if>
+		<![CDATA[
+			SELECT
+				*
+			FROM (
+			    SELECT 
+			    	CHAT_IDX, 
+			    	PPF.CATE_IDX,
+			    	(SELECT PU.USER_NM FROM PPM_USER PU WHERE PU.USER_IDX IN (SELECT PC.USER_IDX FROM PPM_CATE PC WHERE PC.CATE_IDX = PPF.CATE_IDX) ) MASTER_NM,
+			    	CHAT_CD, 
+			    	CHAT_STAT_CD,
+			    	( SELECT CODE_NM FROM PPM_CODE WHERE CODE_ID = PPF.CHAT_STAT_CD ) AS CHAT_STAT_NM,
+			    	
+			    	CHAT_NM,
+			    	CHAT_IMG_UUID,
+			--    	DATE_FORMAT(CHAT_STR_DTM, '%H:%i') AS CHAT_STR_DTM,
+			--    	DATE_FORMAT(CHAT_END_DTM, '%H:%i') AS CHAT_END_DTM,
+			    	
+			    	CHAT_REST,
+			    	
+			    	CHAT_PRIC,
+			    	( SELECT CODE_NM FROM PPM_CODE WHERE CODE_ID = PPF.CHAT_DISC_CD ) AS CHAT_DISC_CD,
+			    	CHAT_DISC,
+			    	CHAT_PRIC_REAL,
+
+			    	CHAT_MAIL_YN,			    	
+			    	CHAT_SMS_YN,
+			    	
+			    	CHAT_PW,
+			    	CHAT_USE_YN,
+			    	
+			    	PPF.SYS_REG_IDX, 
+			    	DATE_FORMAT(PPF.SYS_REG_DTM, '%Y-%m-%d') AS SYS_REG_DTM,
+			    	PPF.SYS_MOD_IDX,
+			    	DATE_FORMAT(PPF.SYS_MOD_DTM, '%Y-%m-%d') AS SYS_MOD_DTM,
+					
+			    	P_CODE.CODE_ID AS P_CODE_ID,
+			    	M_CODE.CODE_ID AS M_CODE_ID,
+			    	P_CODE.CODE_NM AS P_CODE_NM,
+			    	M_CODE.CODE_NM AS M_CODE_NM,
+			    	(
+			    		SELECT
+			    			PPT.TIME_RUN
+			    		FROM
+			    			PPM_PRDT_TIME PPT
+			    		WHERE
+			    			PPT.CHAT_IDX = PPF.CHAT_IDX
+			    			AND TIME_USE_YN = 'Y'
+			    			AND TIME_RUN != '00'
+			    		ORDER BY
+			    			 TIME_IDX DESC
+			    		LIMIT 1
+			    	) AS TIME_RUN
+				FROM 
+					PPM_PRDT_CHAT PPF
+						LEFT JOIN PPM_CATE PC ON PPF.CATE_IDX = PC.CATE_IDX
+						LEFT JOIN PPM_CODE P_CODE ON SUBSTR(PC.CODE_ID,1,5) = P_CODE.CODE_ID
+						LEFT JOIN PPM_CODE M_CODE ON PC.CODE_ID = M_CODE.CODE_ID
+			) TEMP
+				WHERE
+					CHAT_USE_YN = 'Y'
+					-- AND CATE_IDX IN ( SELECT CATE_IDX FROM PPM_CATE WHERE CATE_USE_YN = 'Y' ) 
+				]]>
+			<if test='mngLoginType not in {"A"}'>
+				<![CDATA[
+					AND SYS_REG_IDX = #{mngLoginIdx }
+				]]>
+			</if>
+			<if test="parentCodeId not in {null, ''}">
+				<![CDATA[
+					AND P_CODE_ID = #{parentCodeId}  
+				]]>
+			</if>
+			<if test="codeId not in {null, ''}">
+				<![CDATA[
+					AND M_CODE_ID = #{codeId}  
+				]]>
+			</if>
+			<if test="searchList not in {null, ''}">
+				<![CDATA[
+				-- OR CHAT_NM LIKE '%${searchList}%'
+					AND ( MASTER_NM LIKE '%${searchList}%' OR CHAT_CD LIKE '%${searchList}%'  )
+				]]>
+			</if>
+			<if test="sysRegDtmStr not in {null, ''} and sysRegDtmEnd not in {null, ''}">
+				<![CDATA[
+					AND DATE_FORMAT( SYS_REG_DTM, '%Y-%m-%d' ) BETWEEN '${sysRegDtmStr}' AND '${sysRegDtmEnd}' 
+				]]>
+			</if>
+			<if test="chatStatCd not in {null, ''}">
+				<![CDATA[
+					AND CHAT_STAT_CD = '${chatStatCd}'
+				]]>
+			</if>
+			<if test="status not in {'LIST'}">
+				<![CDATA[
+						) A JOIN (SELECT @rownumA:=0) rownumA
+  ) B JOIN (SELECT @rownumB:=0) rownumB ORDER BY CHAT_IDX DESC
+) C WHERE NUM_ASC BETWEEN '${startRow }' AND '${endRow }'
+				]]>
+			</if>
+		<![CDATA[
+		]]>
+	</select>
+	
+	<!-- 로그인 체크 -->
+	<select id="selectMngChatListCnt" parameterType="hashmap" resultType="java.lang.Integer">
+		<![CDATA[
+			SELECT
+				COUNT(0)
+			FROM (
+			    SELECT 
+			    	CHAT_IDX, 
+			    	PPF.CATE_IDX,
+			    	(SELECT PU.USER_NM FROM PPM_USER PU WHERE PU.USER_IDX IN (SELECT PC.USER_IDX FROM PPM_CATE PC WHERE PC.CATE_IDX = PPF.CATE_IDX) ) MASTER_NM,
+			    	CHAT_CD, 
+			    	CHAT_STAT_CD,
+			    	( SELECT CODE_NM FROM PPM_CODE WHERE CODE_ID = PPF.CHAT_STAT_CD ) AS CHAT_STAT_NM,
+			    	
+			    	CHAT_NM,
+			    	CHAT_IMG_UUID,
+			--    	DATE_FORMAT(CHAT_STR_DTM, '%H:%i') AS CHAT_STR_DTM,
+			--    	DATE_FORMAT(CHAT_END_DTM, '%H:%i') AS CHAT_END_DTM,
+			    	
+			    	CHAT_REST,
+			    	
+			    	CHAT_PRIC,
+			    	( SELECT CODE_NM FROM PPM_CODE WHERE CODE_ID = PPF.CHAT_DISC_CD ) AS CHAT_DISC_CD,
+			    	CHAT_DISC,
+			    	CHAT_PRIC_REAL,
+
+			    	CHAT_MAIL_YN,			    	
+			    	CHAT_SMS_YN,
+			    	
+			    	CHAT_PW,
+			    	CHAT_USE_YN,
+			    	
+			    	PPF.SYS_REG_IDX, 
+			    	DATE_FORMAT(PPF.SYS_REG_DTM, '%Y-%m-%d') AS SYS_REG_DTM,
+			    	PPF.SYS_MOD_IDX,
+			    	DATE_FORMAT(PPF.SYS_MOD_DTM, '%Y-%m-%d') AS SYS_MOD_DTM,
+					
+			    	P_CODE.CODE_ID AS P_CODE_ID,
+			    	M_CODE.CODE_ID AS M_CODE_ID,
+			    	P_CODE.CODE_NM AS P_CODE_NM,
+			    	M_CODE.CODE_NM AS M_CODE_NM,
+			    	(
+			    		SELECT
+			    			PPT.TIME_RUN
+			    		FROM
+			    			PPM_PRDT_TIME PPT
+			    		WHERE
+			    			PPT.CHAT_IDX = PPF.CHAT_IDX
+			    			AND TIME_USE_YN = 'Y'
+			    			AND TIME_RUN != '00'
+			    		ORDER BY
+			    			 TIME_IDX DESC
+			    		LIMIT 1
+			    	) AS TIME_RUN
+				FROM 
+					PPM_PRDT_CHAT PPF
+						LEFT JOIN PPM_CATE PC ON PPF.CATE_IDX = PC.CATE_IDX
+						LEFT JOIN PPM_CODE P_CODE ON SUBSTR(PC.CODE_ID,1,5) = P_CODE.CODE_ID
+						LEFT JOIN PPM_CODE M_CODE ON PC.CODE_ID = M_CODE.CODE_ID
+			) TEMP
+				WHERE
+					CHAT_USE_YN = 'Y'
+					-- AND CATE_IDX IN ( SELECT CATE_IDX FROM PPM_CATE WHERE CATE_USE_YN = 'Y' ) 
+				]]>
+			<if test='mngLoginType not in {"A"}'>
+				<![CDATA[
+					AND SYS_REG_IDX = #{mngLoginIdx }
+				]]>
+			</if>
+			<if test="parentCodeId not in {null, ''}">
+				<![CDATA[
+					AND P_CODE_ID = #{parentCodeId}  
+				]]>
+			</if>
+			<if test="codeId not in {null, ''}">
+				<![CDATA[
+					AND M_CODE_ID = #{codeId}  
+				]]>
+			</if>
+			<if test="searchList not in {null, ''}">
+				<![CDATA[
+				-- OR CHAT_NM LIKE '%${searchList}%'
+					AND ( MASTER_NM LIKE '%${searchList}%' OR CHAT_CD LIKE '%${searchList}%'  )
+				]]>
+			</if>
+			<if test="sysRegDtmStr not in {null, ''} and sysRegDtmEnd not in {null, ''}">
+				<![CDATA[
+					AND DATE_FORMAT( SYS_REG_DTM, '%Y-%m-%d' ) BETWEEN '${sysRegDtmStr}' AND '${sysRegDtmEnd}' 
+				]]>
+			</if>
+			<if test="chatStatCd not in {null, ''}">
+				<![CDATA[
+					AND CHAT_STAT_CD = '${chatStatCd}'
+				]]>
+			</if>
+	</select>
+	
+	<select id="selectMngChatDetail" parameterType="hashmap" resultType="hashmap">
+		<![CDATA[
+			    
+			    SELECT 
+			    	CHAT_IDX, 
+			    	CATE_IDX,
+			    	(SELECT CODE_ID FROM PPM_CATE PC WHERE PC.CATE_IDX = PPF.CATE_IDX) CODE_ID,
+			    	CHAT_CD, 
+			    	CHAT_STAT_CD,
+			    	
+			    	CHAT_NM,
+			    	CHAT_IMG_UUID,
+			  --  	DATE_FORMAT(CHAT_STR_DTM, '%H:%i') AS CHAT_STR_DTM,
+			  --  	DATE_FORMAT(CHAT_END_DTM, '%H:%i') AS CHAT_END_DTM,
+			    	
+			    	CHAT_REST,
+			    	
+			    	CHAT_PRIC,
+			    	CHAT_DISC_CD,
+			    	CHAT_DISC,
+			    	CHAT_PRIC_REAL,
+
+			  --  	CHAT_MAIL_YN,
+			  -- 	CHAT_SMS_YN,
+			    	
+			    	CHAT_PW,
+			    	CHAT_USE_YN,
+			    	
+			    	SYS_REG_IDX, 
+			    	DATE_FORMAT(SYS_REG_DTM, '%Y-%m-%d') AS SYS_REG_DTM,
+			    	SYS_MOD_IDX,
+			    	DATE_FORMAT(SYS_MOD_DTM, '%Y-%m-%d') AS SYS_MOD_DTM
+				FROM 
+					PPM_PRDT_CHAT PPF
+				WHERE
+					CHAT_IDX = '${chatIdx}'
+		]]>
+	</select>
+	
+	<insert id="insertMngChatData" parameterType="hashmap">
+		<![CDATA[
+			INSERT 
+				INTO PPM_PRDT_CHAT (
+			    	CATE_IDX,
+			    	CHAT_CD, 
+			    	CHAT_STAT_CD,
+			    	
+			    	CHAT_NM,
+			    	CHAT_IMG_UUID,
+			  --  	DATE_FORMAT(CHAT_STR_DTM, '%H:%i') AS CHAT_STR_DTM,
+			  --  	DATE_FORMAT(CHAT_END_DTM, '%H:%i') AS CHAT_END_DTM,
+			    	
+			    	CHAT_REST,
+			    	CHAT_PRIC,
+			    	CHAT_DISC_CD,
+			    	CHAT_DISC,
+			    	CHAT_PRIC_REAL,
+
+			    	CHAT_MAIL_YN,
+			    	CHAT_SMS_YN,
+			    	
+			    	CHAT_PW,
+			    	CHAT_USE_YN,
+			    	
+			    	SYS_REG_IDX, 
+			    	SYS_REG_DTM,
+			    	SYS_MOD_IDX,
+			    	SYS_MOD_DTM
+				) VALUES (
+					'${cateIdx}', 
+					(
+						SELECT
+								CONCAT(
+									CONCAT(
+										'${chatCd}',
+										(
+											CASE
+												WHEN COUNT(PPF.CHAT_IDX) BETWEEN 0 AND 9999 THEN 'A'
+												WHEN COUNT(PPF.CHAT_IDX) > 9999 THEN CHAR(ASCII('A') + FLOOR(COUNT(PPF.CHAT_IDX)/10000))
+												WHEN COUNT(PPF.CHAT_IDX) = 0 THEN 'A'
+											END
+										)
+									),
+									(
+										CASE 
+											WHEN COUNT(PPF.CHAT_IDX) BETWEEN 0 AND 9999 THEN LPAD( COUNT(PPF.CHAT_IDX)+1 , 4 , 0)
+											WHEN COUNT(PPF.CHAT_IDX) > 9999 THEN LPAD( COUNT(PPF.CHAT_IDX)+1 - 9999 , 4 , 0)
+											WHEN COUNT(PPF.CHAT_IDX) = 0 THEN '0001'
+										END
+									)
+								)
+						FROM
+							PPM_PRDT_CHAT PPF
+						WHERE
+							CHAT_CD LIKE '%${chatCd}%'
+					),
+					'${chatStatCd}', 
+					
+					'${chatNm}', 
+					'${chatImgUuid}', 
+			--		CONCAT(DATE_FORMAT(NOW(), '%Y%m%d'),'${chatStrDtm}'), 
+			--		CONCAT(DATE_FORMAT(NOW(), '%Y%m%d'),'${chatEndDtm}'),
+					
+					
+					'${chatRest}', 
+					'${chatPric}', 
+					'${chatDiscCd}', 
+					'${chatDisc}', 
+					'${chatPricReal}', 
+					
+					'${chatMailYn}', 
+					'${chatSmsYn}',
+					
+					'${chatPw}',
+					'Y', 
+					
+					#{mngLoginIdx}, 
+					DATE_FORMAT(NOW(), '%Y%m%d%H%i%S'), 
+					#{mngLoginIdx}, 
+					DATE_FORMAT(NOW(), '%Y%m%d%H%i%S')
+			);
+		]]>
+	</insert>
+	
+	<update id="updateMngChatData" parameterType="hashmap">
+		<![CDATA[
+			UPDATE
+				PPM_PRDT_CHAT
+			SET 
+		]]>
+		<if test="mngPw not in {null , ''}">
+			<![CDATA[
+						  MNG_PW='${mngPw}', 
+			]]>
+		</if>			
+			
+		<![CDATA[
+				CHAT_STAT_CD = '${chatStatCd}', 
+	
+				CHAT_NM = '${chatNm}',
+				CHAT_IMG_UUID = '${chatImgUuid}', 
+		--		CHAT_STR_DTM = CONCAT(DATE_FORMAT(NOW(), '%Y%m%d'),'${chatStrDtm}'),
+		--		CHAT_END_DTM = CONCAT(DATE_FORMAT(NOW(), '%Y%m%d'),'${chatEndDtm}'),
+				
+				CHAT_REST = '${chatRest}',
+				CHAT_PRIC = '${chatPric}', 
+				CHAT_DISC_CD = '${chatDiscCd}', 
+				CHAT_DISC = '${chatDisc}', 
+				CHAT_PRIC_REAL = '${chatPricReal}', 
+				
+				CHAT_MAIL_YN = '${chatMailYn}', 
+				CHAT_SMS_YN = '${chatSmsYn}', 
+				
+		    	CHAT_PW= '${chatPw}', 
+				
+				SYS_MOD_IDX = '${mngLoginIdx}', 
+				SYS_MOD_DTM = DATE_FORMAT(NOW(), '%Y%m%d%H%i%S')
+		    	
+			WHERE 
+				CHAT_IDX = '${chatIdx}'
+
+		]]>
+	</update>
+
+	<update id="deleteMngChatData" parameterType="hashmap" >
+		<![CDATA[
+			    
+		    UPDATE
+		    	PPM_PRDT_CHAT 
+    		SET
+    			CHAT_USE_YN = 'N'
+	    	WHERE 
+	    		CHAT_IDX = '${chatIdx}'
+		]]>
+	</update>
+	
+	
+	
+	<select id="selectMngTimeList" parameterType="hashmap" resultType="hashmap">
+		<![CDATA[
+SELECT C.*, REPLACE(CONVERT(C.NUM_DESC, CHAR),'.0','') AS NUM_DESC_ORDER FROM (
+  SELECT B.*, (@rownumB:=@rownumB+1) as NUM_ASC FROM(  
+    SELECT A.*, (@rownumA:=@rownumA+1) as NUM_DESC FROM (
+			    SELECT
+			    	TIME_IDX AS TIME_IDX_CHK1, 
+			    	TIME_IDX AS TIME_IDX2, 
+			    	DATE_FORMAT( TIME_DTM ,'%Y-%m-%d' ) AS TIME_DTM3,
+			    	TIME_STR AS TIME_STR4,
+			    	TIME_RUN AS TIME_RUN5
+			    	
+			    --	'CHKBOX,TIME_IDX,TIME_DTM,TIME_STR,TIME_RUN' AS DATA_ORDER6
+			    
+				FROM 
+					PPM_PRDT_TIME
+				WHERE
+					TIME_USE_YN = 'Y'
+					AND CHAT_IDX = '${chatIdx}'
+					
+	) A JOIN (SELECT @rownumA:=0) rownumA
+  ) B JOIN (SELECT @rownumB:=0) rownumB ORDER BY TIME_IDX2 DESC
+) C WHERE NUM_ASC BETWEEN '${startRow }' AND '9999'
+		]]>
+	</select>
+	
+	<insert id="insertMngTimeData" parameterType="hashmap">
+		<![CDATA[
+			INSERT 
+				INTO PPM_PRDT_TIME (
+		]]>
+			<if test="chatIdx not in {null, ''}">
+				<![CDATA[
+					CHAT_IDX,
+				]]>
+			</if>
+		<![CDATA[
+			    	TIME_DTM,
+			    	TIME_STR, 
+			    	TIME_RUN,
+			    	
+			    	TIME_USE_YN,
+			    	
+			    	SYS_REG_IDX, 
+			    	SYS_REG_DTM,
+			    	SYS_MOD_IDX,
+			    	SYS_MOD_DTM
+				) VALUES (
+		]]>
+			<if test="chatIdx not in {null, ''}">
+				<![CDATA[
+					'${chatIdx}', 
+				]]>
+			</if>
+		<![CDATA[
+					'${timeDtm}', 
+					'${timeStr}', 
+					'${timeRun}', 
+					
+					'Y', 
+					
+					'${mngLoginIdx}', 
+					DATE_FORMAT(NOW(), '%Y%m%d%H%i%S'), 
+					'${mngLoginIdx}', 
+					DATE_FORMAT(NOW(), '%Y%m%d%H%i%S')
+			);
+		]]>
+	</insert>
+	
+	<insert id="updateMngTimeEqualData" parameterType="hashmap">
+		<selectKey resultType="string" keyProperty="timeIdxSelectKey" order="BEFORE"> 
+		<![CDATA[
+			SELECT
+				GROUP_CONCAT( TIME_IDX ) AS TIME_IDX
+			FROM
+				PPM_USER_BUY
+			WHERE
+				BUY_STAT = '결제완료'
+				AND TIME_IDX IS NOT NULL
+	]]>
+		<if test="chatIdx in {null, ''}">
+			<![CDATA[
+				AND BUY_PRDT_CD = ( SELECT CHAT_CD FROM PPM_PRDT_CHAT WHERE CHAT_IDX = '0' )
+			]]>
+		</if>
+		<if test="chatIdx not in {null, ''}">
+			<![CDATA[
+				AND BUY_PRDT_CD = ( SELECT CHAT_CD FROM PPM_PRDT_CHAT WHERE CHAT_IDX = '${chatIdx}' )
+			]]>
+		</if>
+	<![CDATA[
+	]]>
+	    </selectKey>    
+		<![CDATA[
+			UPDATE
+				PPM_PRDT_TIME
+			SET 
+				TIME_RUN = '${timeRun}', 
+				
+				SYS_MOD_IDX = '${mngLoginIdx}', 
+				SYS_MOD_DTM = DATE_FORMAT(NOW(), '%Y%m%d%H%i%S')
+			WHERE
+				SYS_REG_IDX = '${mngLoginIdx}'
+				AND TIME_USE_YN = 'Y'
+				AND TIME_IDX NOT IN ( '${timeIdxSelectKey}' )
+	]]>
+		<if test="chatIdx in {null, ''}">
+			<![CDATA[
+				AND CHAT_IDX = '0'
+			]]>
+		</if>
+		<if test="chatIdx not in {null, ''}">
+			<![CDATA[
+				AND CHAT_IDX = '${chatIdx}'
+			]]>
+		</if>
+	</insert>
+
+	<update id="deleteMngTimeData" parameterType="hashmap" >
+		<![CDATA[
+		    UPDATE
+		    	PPM_PRDT_TIME 
+    		SET
+    			TIME_USE_YN = 'N'
+	    	WHERE 
+	    		TIME_IDX = '${timeIdx}'
+	    		AND SYS_REG_IDX = '${mngLoginIdx}'
+	]]>
+		<if test="chatIdx not in {null, ''}">
+			<![CDATA[
+				AND CHAT_IDX = '${chatIdx}'
+			]]>
+		</if>
+	<![CDATA[
+		]]>
+	</update>
+	
+	<insert id="updateMngTimeData" parameterType="hashmap">
+		<selectKey resultType="string" keyProperty="chatIdxSelectKey" order="BEFORE"> 
+		<![CDATA[
+	        SELECT
+	        	MAX(CHAT_IDX) AS CHAT_IDX
+	       	FROM
+	       		PPM_PRDT_CHAT
+	       	WHERE
+	       		SYS_REG_IDX = '${mngLoginIdx}'     
+	]]>
+		<if test="chatIdx not in {null, ''}">
+			<![CDATA[
+				AND CHAT_IDX = '${chatIdx}'
+			]]>
+		</if>
+	<![CDATA[
+		]]>
+	    </selectKey>    
+		<![CDATA[
+			UPDATE
+				PPM_PRDT_TIME
+			SET 
+				CHAT_IDX = '${chatIdxSelectKey}', 
+				
+				SYS_MOD_IDX = '${mngLoginIdx}', 
+				SYS_MOD_DTM = DATE_FORMAT(NOW(), '%Y%m%d%H%i%S')
+			WHERE 
+	]]>
+		<if test="chatIdx in {null, ''}">
+			<![CDATA[
+				CHAT_IDX = 0
+			]]>
+		</if>
+		<if test="chatIdx not in {null, ''}">
+			<![CDATA[
+				CHAT_IDX = '${chatIdxSelectKey}'
+			]]>
+		</if>
+	<![CDATA[
+				AND SYS_REG_IDX = '${mngLoginIdx}'
+				AND TIME_USE_YN = 'Y'
+		]]>
+	</insert>
+	
+	<update id="updateMngTimeUseNo" parameterType="hashmap">
+		<![CDATA[
+			UPDATE
+				PPM_PRDT_TIME
+			SET 
+			  TIME_USE_YN='N', 
+			  
+			  SYS_MOD_IDX=#{mngLoginIdx}, 
+			  SYS_MOD_DTM=DATE_FORMAT(NOW(), '%Y%m%d%H%i%S')
+			  
+			WHERE 
+				CHAT_IDX = 0
+				AND SYS_REG_IDX = '${mngLoginIdx}'
+
+		]]>
+	</update>
+<!-- 사전질문 설정 --><!-- 사전질문 설정 --><!-- 사전질문 설정 --><!-- 사전질문 설정 --><!-- 사전질문 설정 --><!-- 사전질문 설정 --><!-- 사전질문 설정 --><!-- 사전질문 설정 -->
+	
+	<select id="selectMngQuesList" parameterType="hashmap" resultType="hashmap">
+		<![CDATA[
+SELECT C.*, REPLACE(CONVERT(C.NUM_DESC, CHAR),'.0','') AS NUM_DESC_ORDER FROM (
+  SELECT B.*, (@rownumB:=@rownumB+1) as NUM_ASC FROM(  
+    SELECT A.*, (@rownumA:=@rownumA+1) as NUM_DESC FROM (
+			    SELECT
+			    	QUES_IDX,
+			    	QUES_CNTN
+			    
+				FROM 
+					PPM_PRDT_QUES
+				WHERE
+					QUES_USE_YN = 'Y'
+					AND CHAT_IDX = '${chatIdx}'
+					
+					
+	) A JOIN (SELECT @rownumA:=0) rownumA
+  ) B JOIN (SELECT @rownumB:=0) rownumB ORDER BY QUES_IDX DESC
+) C WHERE NUM_ASC BETWEEN '${startRow }' AND '9999'
+		]]>
+	</select>
+	
+	<insert id="insertMngQuesData" parameterType="hashmap">
+		<![CDATA[
+			INSERT 
+				INTO PPM_PRDT_QUES (
+					CHAT_IDX,
+			    	QUES_CNTN,
+			    	
+			    	QUES_USE_YN,
+			    	
+			    	SYS_REG_IDX, 
+			    	SYS_REG_DTM,
+			    	SYS_MOD_IDX,
+			    	SYS_MOD_DTM
+				) VALUES (
+					'${chatIdx}', 
+					'${quesCntn}', 
+					
+					'Y', 
+					
+					'${mngLoginIdx}', 
+					DATE_FORMAT(NOW(), '%Y%m%d%H%i%S'), 
+					'${mngLoginIdx}', 
+					DATE_FORMAT(NOW(), '%Y%m%d%H%i%S')
+			);
+		]]>
+	</insert>
+
+	<update id="deleteMngQuesData" parameterType="hashmap" >
+		<![CDATA[
+		    UPDATE
+		    	PPM_PRDT_QUES 
+    		SET
+    			QUES_USE_YN = 'N'
+	    	WHERE 
+	    		QUES_IDX = '${quesIdx}'
+	    		AND SYS_REG_IDX = '${mngLoginIdx}'
+				AND CHAT_IDX = '${chatIdx}'
+		]]>
+	</update>
+	
+	<insert id="updateMngQuesData" parameterType="hashmap">
+		<selectKey resultType="string" keyProperty="chatIdxSelectKey" order="BEFORE"> 
+		<![CDATA[
+	        SELECT
+	        	MAX(CHAT_IDX) AS CHAT_IDX
+	       	FROM
+	       		PPM_PRDT_CHAT
+	       	WHERE
+	       		SYS_REG_IDX = '${mngLoginIdx}'     
+	]]>
+		<if test="chatIdx not in {null, ''}">
+			<![CDATA[
+				AND CHAT_IDX = '${chatIdx}'
+			]]>
+		</if>
+	<![CDATA[
+		]]>
+	    </selectKey>    
+		<![CDATA[
+			UPDATE
+				PPM_PRDT_QUES
+			SET 
+				CHAT_IDX = '${chatIdxSelectKey}', 
+				
+				SYS_MOD_IDX = '${mngLoginIdx}', 
+				SYS_MOD_DTM = DATE_FORMAT(NOW(), '%Y%m%d%H%i%S')
+			WHERE 
+	]]>
+		<if test="chatIdx in {null, ''}">
+			<![CDATA[
+				CHAT_IDX = 0
+			]]>
+		</if>
+		<if test="chatIdx not in {null, ''}">
+			<![CDATA[
+				CHAT_IDX = '${chatIdxSelectKey}'
+			]]>
+		</if>
+	<![CDATA[
+				AND SYS_REG_IDX = '${mngLoginIdx}'
+				AND QUES_USE_YN = 'Y'
+		]]>
+	</insert>
+	
+	<update id="updateMngQuesUseNo" parameterType="hashmap">
+		<![CDATA[
+			UPDATE
+				PPM_PRDT_QUES
+			SET 
+			  QUES_USE_YN='N', 
+			  
+			  SYS_MOD_IDX=#{mngLoginIdx}, 
+			  SYS_MOD_DTM=DATE_FORMAT(NOW(), '%Y%m%d%H%i%S')
+			  
+			WHERE 
+				CHAT_IDX = 0
+				AND SYS_REG_IDX = '${mngLoginIdx}'
+
+		]]>
+	</update>
+	
+	
+	<select id="selectMngChatList_Excel" parameterType="hashmap" resultType="hashmap">
+		<![CDATA[
+				]]>
+			<if test="status not in {'LIST'}">
+				<![CDATA[
+SELECT 
+
+		CONVERT( REPLACE(CONVERT(C.NUM_DESC, CHAR),'.0',''), UNSIGNED ) AS 'ㄱ_No',
+		MASTER_NM AS 'ㄴ_마스터명',
+		CHAT_CD AS 'ㄷ_상품코드',
+		
+		TIME_RUN AS 'ㅂ_상담진행시간(분)',
+		CHAT_PRIC AS 'ㅇ_상품가(원)',
+		CHAT_DISC_CD AS 'ㅈ_할인종류',
+		CHAT_DISC AS 'ㅊ_할인폭',
+		CHAT_PRIC_REAL AS 'ㅋ_판매가(원)',
+		SYS_REG_DTM AS 'ㅌ_등록일' ,
+		CHAT_STAT_NM AS 'ㅍ_판매상태'
+	
+	FROM (
+  SELECT B.*, (@rownumB:=@rownumB+1) as NUM_ASC FROM(  
+    SELECT A.*, (@rownumA:=@rownumA+1) as NUM_DESC FROM (
+				]]>
+			</if>
+		<![CDATA[
+			SELECT
+				*
+			FROM (
+			    SELECT 
+			    	CHAT_IDX, 
+			    	PPF.CATE_IDX,
+			    	(SELECT PU.USER_NM FROM PPM_USER PU WHERE PU.USER_IDX IN (SELECT PC.USER_IDX FROM PPM_CATE PC WHERE PC.CATE_IDX = PPF.CATE_IDX) ) MASTER_NM,
+			    	CHAT_CD, 
+			    	CHAT_STAT_CD,
+			    	( SELECT CODE_NM FROM PPM_CODE WHERE CODE_ID = PPF.CHAT_STAT_CD ) AS CHAT_STAT_NM,
+			    	
+			    	CHAT_NM,
+			    	CHAT_IMG_UUID,
+			--    	DATE_FORMAT(CHAT_STR_DTM, '%H:%i') AS CHAT_STR_DTM,
+			--    	DATE_FORMAT(CHAT_END_DTM, '%H:%i') AS CHAT_END_DTM,
+			    	
+			    	CHAT_REST,
+			    	
+			    	CHAT_PRIC,
+			    	( SELECT CODE_NM FROM PPM_CODE WHERE CODE_ID = PPF.CHAT_DISC_CD ) AS CHAT_DISC_CD,
+			    	CHAT_DISC,
+			    	CHAT_PRIC_REAL,
+
+			    	CHAT_MAIL_YN,			    	
+			    	CHAT_SMS_YN,
+			    	
+			    	CHAT_PW,
+			    	CHAT_USE_YN,
+			    	
+			    	PPF.SYS_REG_IDX, 
+			    	DATE_FORMAT(PPF.SYS_REG_DTM, '%Y-%m-%d') AS SYS_REG_DTM,
+			    	PPF.SYS_MOD_IDX,
+			    	DATE_FORMAT(PPF.SYS_MOD_DTM, '%Y-%m-%d') AS SYS_MOD_DTM,
+					
+			    	P_CODE.CODE_ID AS P_CODE_ID,
+			    	M_CODE.CODE_ID AS M_CODE_ID,
+			    	P_CODE.CODE_NM AS P_CODE_NM,
+			    	M_CODE.CODE_NM AS M_CODE_NM,
+			    	(
+			    		SELECT
+			    			PPT.TIME_RUN
+			    		FROM
+			    			PPM_PRDT_TIME PPT
+			    		WHERE
+			    			PPT.CHAT_IDX = PPF.CHAT_IDX
+			    			AND TIME_USE_YN = 'Y'
+			    			AND TIME_RUN != '00'
+			    		ORDER BY
+			    			 TIME_IDX DESC
+			    		LIMIT 1
+			    	) AS TIME_RUN
+				FROM 
+					PPM_PRDT_CHAT PPF
+						LEFT JOIN PPM_CATE PC ON PPF.CATE_IDX = PC.CATE_IDX
+						LEFT JOIN PPM_CODE P_CODE ON SUBSTR(PC.CODE_ID,1,5) = P_CODE.CODE_ID
+						LEFT JOIN PPM_CODE M_CODE ON PC.CODE_ID = M_CODE.CODE_ID
+			) TEMP
+				WHERE
+					CHAT_USE_YN = 'Y'
+					-- AND CATE_IDX IN ( SELECT CATE_IDX FROM PPM_CATE WHERE CATE_USE_YN = 'Y' ) 
+				]]>
+			<if test='mngLoginType not in {"A"}'>
+				<![CDATA[
+					AND SYS_REG_IDX = #{mngLoginIdx }
+				]]>
+			</if>
+			<if test="parentCodeId not in {null, ''}">
+				<![CDATA[
+					AND P_CODE_ID = #{parentCodeId}  
+				]]>
+			</if>
+			<if test="codeId not in {null, ''}">
+				<![CDATA[
+					AND M_CODE_ID = #{codeId}  
+				]]>
+			</if>
+			<if test="searchList not in {null, ''}">
+				<![CDATA[
+				-- OR CHAT_NM LIKE '%${searchList}%'
+					AND ( MASTER_NM LIKE '%${searchList}%' OR CHAT_CD LIKE '%${searchList}%'  )
+				]]>
+			</if>
+			<if test="sysRegDtmStr not in {null, ''} and sysRegDtmEnd not in {null, ''}">
+				<![CDATA[
+					AND DATE_FORMAT( SYS_REG_DTM, '%Y-%m-%d' ) BETWEEN '${sysRegDtmStr}' AND '${sysRegDtmEnd}' 
+				]]>
+			</if>
+			<if test="chatStatCd not in {null, ''}">
+				<![CDATA[
+					AND CHAT_STAT_CD = '${chatStatCd}'
+				]]>
+			</if>
+			<if test="status not in {'LIST'}">
+				<![CDATA[
+						) A JOIN (SELECT @rownumA:=0) rownumA
+  ) B JOIN (SELECT @rownumB:=0) rownumB ORDER BY CHAT_IDX DESC
+) C 
+				]]>
+			</if>
+		<![CDATA[
+		]]>
+	</select>
+	
+</mapper>

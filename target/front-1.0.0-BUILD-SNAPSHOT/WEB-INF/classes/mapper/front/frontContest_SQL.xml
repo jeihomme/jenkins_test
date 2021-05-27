@@ -1,0 +1,304 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd"> 
+<mapper namespace="frontContest">
+
+	<!-- 공모전 목록 조회 -->
+	<select id="selectContestList" parameterType="hashmap" resultType="hashmap">
+		<![CDATA[
+			SELECT
+				CAST(@rownum:=@rownum+1 AS UNSIGNED) as NO,
+				A.*
+			FROM (
+				SELECT
+					COMP_IDX,
+					COMP_MNG_EMAIL,
+					COMP_MNG_PW,
+					COMP_MNG_NM,
+					COMP_MNG_PHONE,
+					COMP_MNG_CO,
+					COMP_NM,
+					COMP_SPONSOR,
+					COMP_SUPERVISOR,
+					COMP_URL,
+					COMP_POSTER,
+					COMP_MAIN_IMAGE,
+					COMP_REWARD,
+					CAST( COMP_DEADLINE AS CHAR(10) ) AS COMP_DEADLINE,
+					COMP_RECRUIT,
+					COMP_CATEGORY,
+					COMP_GUIDELINE,
+					COMP_PERMISSION,
+					COMP_STAT,
+					
+					DATEDIFF( NOW(), DATE( COMP_DEADLINE ) ) AS COMP_DDAY,
+					
+					SYS_REG_ID,
+					CAST( SYS_REG_DTM AS CHAR(10) ) AS SYS_REG_DTM,
+					SYS_MOD_ID,
+					SYS_MOD_DTM
+				FROM
+				    NSTR_SITE_COMP
+				WHERE
+					(@rownum:=0)=0
+			]]>
+			<if test="compNm not in {null, ''}">
+				<![CDATA[
+					AND COMP_NM LIKE '%${compNm}%'
+				]]>
+			</if>
+			<if test="compSponsor not in {null, ''}">
+				<![CDATA[
+					AND COMP_SPONSOR LIKE '%${compSponsor}%'
+				]]>
+			</if>
+			<if test="compCategory not in {null, ''}" >
+				<![CDATA[
+					AND COMP_CATEGORY LIKE '%${compCategory}%'
+				]]>
+			</if>
+			<if test="compPermission not in {null, ''}">
+				<![CDATA[
+					AND COMP_PERMISSION LIKE '%${compPermission}%'
+				]]>
+			</if>
+			<if test="compStat not in {null, ''}">
+				<![CDATA[
+					AND COMP_STAT LIKE '%${compStat}%'
+				]]>
+			</if>
+			<if test="compMngEmail not in {null, ''}">
+				<![CDATA[
+					AND COMP_MNG_EMAIL LIKE '%${compMngEmail}%'
+				]]>
+			</if>
+			<if test="compMngPw not in {null, ''}">
+				<![CDATA[
+					AND COMP_MNG_PW = '${compMngPw}'
+				]]>
+			</if>
+			<if test="compLoginYn not in {null, ''}">
+				<![CDATA[
+					AND COMP_LOGIN_YN LIKE '%${compLoginYn}%'
+				]]>
+			</if>
+			
+			
+			<if test="order == 1">
+				<![CDATA[
+					ORDER BY DATEDIFF( NOW(), DATE( COMP_DEADLINE ) ) ASC
+				]]>
+			</if>
+			<if test="order == 2">
+				<![CDATA[
+					ORDER BY SYS_REG_DTM DESC
+				]]>
+			</if>
+			<if test="order == 3">
+				<![CDATA[
+					ORDER BY SYS_REG_DTM ASC
+				]]>
+			</if>
+			<if test="order == 4">
+				<![CDATA[
+					ORDER BY COMP_REWARD ASC
+				]]>
+			</if>
+			<![CDATA[
+				
+			) A
+			
+			WHERE COMP_DDAY < 1
+			ORDER BY NO DESC
+			]]>
+	</select>
+	
+	<!-- 공모전 상세 조회 -->
+	<select id="selectContestDetail" parameterType="hashmap" resultType="hashmap">
+		<![CDATA[
+				SELECT
+					COMP_IDX,
+					COMP_MNG_EMAIL,
+					COMP_MNG_PW,
+					COMP_MNG_NM,
+					COMP_MNG_PHONE,
+					COMP_MNG_CO,
+					COMP_NM,
+					COMP_SPONSOR,
+					COMP_SUPERVISOR,
+					COMP_URL,
+					COMP_POSTER,
+					COMP_MAIN_IMAGE,
+					COMP_REWARD,
+					CAST( COMP_DEADLINE AS CHAR(10) ) AS COMP_DEADLINE,
+					COMP_RECRUIT,
+					COMP_CATEGORY,
+					COMP_GUIDELINE,
+					COMP_PERMISSION,
+					COMP_STAT,
+					SYS_REG_ID,
+					CAST( SYS_REG_DTM AS CHAR(10) ) AS SYS_REG_DTM,
+					SYS_MOD_ID,
+					SYS_MOD_DTM
+				FROM
+				    NSTR_SITE_COMP
+				WHERE
+					COMP_IDX = '${compIdx}'
+		]]>
+	</select>
+
+	<!-- 공모전 상세 조회 -->
+	<select id="selectContestCal" parameterType="hashmap" resultType="hashmap">
+		<![CDATA[
+				SELECT
+					CAL_IDX,
+					COMP_IDX,
+					CAST( CAL_DATE AS CHAR(10) ) AS CAL_DATE,
+					CAL_CNTNT,
+					SYS_REG_ID,
+					SYS_REG_DTM,
+					SYS_MOD_ID,
+					SYS_MOD_DTM
+				FROM
+				    NSTR_SITE_COMP_CAL
+				WHERE
+					COMP_IDX = '${compIdx}'
+				ORDER BY CAL_DATE ASC
+		]]>
+	</select>
+	
+	<!-- 공모전 ID 중복 조회 -->
+	<select id="selectContestCheckYn" parameterType="hashmap" resultType="hashmap">
+		<![CDATA[
+			SELECT
+			   COMP_IDX
+			FROM
+			    NSTR_SITE_COMP
+			WHERE
+			    COMP_ID = '${admWrtId}'
+			ORDER BY 
+				COMP_IDX DESC
+			LIMIT 1
+		]]>
+	</select>
+
+	<!-- 공모전 등록 -->
+	<insert id="insertContestData" parameterType="hashmap">
+		<selectKey keyProperty="SEQ" resultType="int" order="BEFORE">
+			<![CDATA[
+			SELECT LAST_INSERT_ID() AS SEQ
+			]]>
+		</selectKey>
+		<![CDATA[
+			INSERT INTO NSTR_SITE_COMP (
+				COMP_MNG_EMAIL,
+				COMP_MNG_PW,
+				COMP_MNG_NM,
+				COMP_MNG_PHONE,
+				COMP_MNG_CO,
+				
+				COMP_NM,
+				COMP_SPONSOR,
+				COMP_SUPERVISOR,
+				COMP_URL,
+				COMP_POSTER,
+				
+				COMP_MAIN_IMAGE,
+				COMP_REWARD,
+				COMP_DEADLINE,
+				COMP_RECRUIT,
+				COMP_CATEGORY,
+				
+				COMP_GUIDELINE,
+				COMP_PERMISSION,
+				COMP_STAT,
+				COMP_LOGIN_YN,
+				
+				SYS_REG_ID,
+				SYS_REG_DTM,
+				SYS_MOD_ID,
+				SYS_MOD_DTM
+			) VALUES (
+				'${emailAddress}',
+				'${password}',
+				'${name}',
+				'${phone}',
+				'${company}',
+				
+				'${contestName}',
+				'${contestCompany}',
+				'${contestHolder}',
+				'${contestUrl}',
+				'1',
+				
+				'1',
+				'${contestPrize}',
+				'${contestDeadline}',
+				'${job}',
+				'${category}',
+				
+				'${guideLine}',
+				'N',
+				'W',
+				'${compLoginYn}',
+				
+				'${userId}',
+				DATE_FORMAT(NOW(), '%Y%m%d%H%i%S'),
+				'${userId}',
+				DATE_FORMAT(NOW(), '%Y%m%d%H%i%S')
+			)
+		]]>
+	</insert>
+
+<!-- 공모전 일정 등록 -->
+	<insert id="insertContestCalData" parameterType="hashmap">
+		<selectKey keyProperty="compIdx" resultType="int" order="BEFORE">
+			<![CDATA[
+			SELECT LAST_INSERT_ID() AS COMP_IDX
+			]]>
+		</selectKey>
+		<![CDATA[
+			INSERT INTO NSTR_SITE_COMP_CAL (
+				COMP_IDX,
+				CAL_DATE,
+				CAL_CNTNT,
+				
+				SYS_REG_ID,
+				SYS_REG_DTM,
+				SYS_MOD_ID,
+				SYS_MOD_DTM
+			) VALUES (
+				'${compIdx}',
+				'${schduleDate}',
+				'${schduleMemo}',
+				
+				'${userId}',
+				DATE_FORMAT(NOW(), '%Y%m%d%H%i%S'),
+				'${userId}',
+				DATE_FORMAT(NOW(), '%Y%m%d%H%i%S')
+			)
+		]]>
+	</insert>
+	
+	<!-- 공모전 수정 -->
+	<update id="updateContestData" parameterType="hashmap">
+		<![CDATA[
+			UPDATE NSTR_SITE_COMP SET
+				COMP_PERMISSION = '${compPermission}',
+				COMP_STAT = '${compStat}',
+				SYS_MOD_ID = '${userId}',
+				SYS_MOD_DTM = DATE_FORMAT(NOW(), '%Y%m%d%H%i%S')
+			WHERE
+				COMP_IDX = '${compIdx}'
+		]]>
+	</update>
+	
+	<!-- 공모전 삭제 -->
+	<update id="deleteContestData" parameterType="hashmap">
+		<![CDATA[
+			DELETE FROM NSTR_SITE_COMP
+			WHERE
+				COMP_IDX = '${mngIdx}'
+		]]>
+	</update>
+
+</mapper>

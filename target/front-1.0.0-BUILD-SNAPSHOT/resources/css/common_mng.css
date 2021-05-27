@@ -1,0 +1,757 @@
+﻿@charset "utf-8";
+
+@import url('https://fonts.googleapis.com/css?family=Noto+Sans+KR:100,300,400,500,700,900|Open+Sans:400,700');
+
+/* CSS reset */
+body,div,dl,dt,dd,ul,ol,li,h1,h2,h3,h4,h5,h6,pre,code,form,fieldset,legend,textarea,p,blockquote,th,td,input,select,textarea,button {
+	margin:0;
+	padding:0;
+}
+body, th, td, input, select, textarea, button {
+	font-family: 'Open Sans','Noto Sans Gothic', 'Noto Sans KR';
+	font-weight: 400;	
+	color:#000; 
+}
+fieldset, img {
+	border:none;
+}
+img {
+	vertical-align: middle;
+}
+fieldset { 
+	border: 0; 
+	border-style: none;
+}
+fieldset legend { 
+	display: none; 
+}
+caption { 
+	display: none;
+ }
+dl, ul, ol, menu, li {
+	list-style:none;
+}
+table {
+	border-collapse:collapse;	
+	border-spacing:0;
+}
+a, a:hover, a:focus, a:active {
+	text-decoration:none;
+}
+* {
+  -webkit-box-sizing: border-box;
+      -moz-box-sizing: border-box;
+                box-sizing: border-box;	
+}
+
+/* body layout */
+ html {
+	 font-size:14px; 
+	 min-width:1440px;
+	 height:100%;
+	}
+body, th, td, input, select, textarea, button, a {
+	font-size: 14px;
+	color: #000;
+	vertical-align: middle;
+}
+input { 
+	border: 1px solid #cccccc; 
+	padding:0 10px; 
+	vertical-align: middle; 
+	font-size: 14px;
+}
+select, textarea { 
+	border: 1px solid #cccccc; 
+}
+input::-webkit-input-placeholder { 
+	color: #cccccc;
+}
+label {
+	margin-bottom:0;
+}
+.form-control {
+	outline:none; 
+	box-shadow:none; 
+	color: #000;	
+	border: 1px solid #ddd; 
+	background-color:#fff;
+}
+.form-control:focus {
+	outline:none; 
+	box-shadow:none; 
+	color: #000;	
+	border: 1px solid #ddd; 
+	background-color:#fff;
+}
+.form-control-sm {
+	font-size:14px;
+}
+select.designSelectBox.form-control-sm {
+	min-width:100px;
+	background: url('/resources/images/mng/select_arrow.png') no-repeat right -1px;  /* 네이티브 화살표 대체 */ 	
+}
+/*
+select.designSelectBox:focus.form-control-sm { 
+	background: url('/resources/images/mng/select_arrow_over.png') no-repeat right -1px; 
+}*/
+label.label_select_txt {
+	padding: 3px 10px 0 0;	
+}
+
+.form-control-sm.designRadiobutton input[type="radio"] + label { 
+	height:20px;
+	line-height:20px;
+	background-size: 19px 19px; 		
+}
+.form-control-sm.designRadiobutton input[type="radio"]:checked + label { 
+	background-size: 19px 19px; 	
+}
+.form-control-sm.designRadiobutton input[type="radio"] + label.label_txt { 
+	padding: 0px 27px 0 25px;	
+}
+.form-control-sm.designCheckbox input[type="checkbox"] + label { 
+	height:20px;
+	line-height:20px;
+	background-size: 19px 19px; 		
+}
+.form-control-sm.designCheckbox input[type="checkbox"]:checked + label { 
+	background-size: 19px 19px; 	
+}
+.form-control-sm.designCheckbox input[type="checkbox"] + label.label_txt { 
+	padding: 0px 27px 0 25px;
+}
+
+.btn_wrap {
+	width: 100%; 
+	padding: 20px 0; 
+	text-align: center; 
+}
+.btn {
+	outline:none; 
+	box-shadow:none; 	
+	-webkit-border-radius: 2px;
+	-moz-border-radius: 2px;
+	border-radius: 2px; 	
+}
+.btn:focus, .btn:active, .btn:hover {
+	outline:none; 
+	box-shadow:none !important; 
+}
+.btn-md {
+	padding-left:30px;
+	padding-right:30px;	
+}
+ .btn-sm {
+	padding-left:12px;
+	padding-right:12px;	
+}
+.btn-outline-secondary:not(:disabled):not(.disabled):active, 
+.btn-outline-secondary:not(:disabled):not(.disabled).active,
+.btn-outline-secondary:hover, 
+.btn-outline-secondary:focus {
+	background-color:#fff;
+	color:#6c757d;
+}
+.btn-outline-dark:not(:disabled):not(.disabled):active, 
+.btn-outline-dark:not(:disabled):not(.disabled).active,
+.btn-outline-dark:hover, 
+.btn-outline-dark:focus {
+	background-color:#fff;
+   color: #343a40;
+}
+
+.toggle_wrap { 
+	width: 100%; 
+	min-height: 30px; 
+	margin-left: 2px;  
+}
+.btn_toggle { 
+	z-index: 1; 
+	position: relative; 
+	float: left; 
+	min-width: 90px; 
+	height: 30px; 
+	line-height: 30px; 
+	margin-left: -2px; 
+	padding: 0 10px; 
+	background: #f8f8f8; 
+	border: 1px solid #dadada; 
+	border-radius: 2px; 
+	font-size: 12px;
+}
+.btn_toggle.active { 
+	z-index: 2; 
+	border: 1px solid #007feb; 
+	background: #ffffff; 
+	color: #007feb; 
+}
+a.btn_toggle, a.btn_toggle:hover, a.btn_toggle:link, a.btn_toggle:active, a.btn_toggle:visited { 
+	text-decoration: none; 
+	color: #707070;
+ }
+
+/* Scroll to top */
+.scrollToTop {
+	color: #fff;
+	position: fixed;
+	bottom: 5px;
+	right: 20px;
+	width: 50px;
+	height: 50px;
+	text-align: center;
+	cursor: pointer;
+	background-color: rgba(0, 0, 0, 0.6); 
+	z-index: 1005;
+	display: none;
+	-webkit-backface-visibility: hidden;
+	-webkit-transform: translateZ(0);
+	-webkit-transition: all 0.2s ease-in-out;
+	-o-transition: all 0.2s ease-in-out;
+	transition: all 0.2s ease-in-out;
+
+	-webkit-border-radius: 5px;
+	-moz-border-radius: 5px;
+	border-radius: 5px; 
+}
+.scrollToTop i {
+	line-height: 50px;
+	font-size: 30px;
+}
+.scrollToTop:hover {
+	background-color: rgba(0, 0, 0, 0.9);
+}
+
+/* dim */
+.dim { 
+	z-index: 1; 
+	position: fixed; 
+	top: 0; 
+	left: 0; 
+	right: 0; 
+	bottom: 0; 
+	background: #000000; 
+	opacity: 0.30; 
+	filter:alpha(opacity=30); 
+	-ms-filter: "progid:DXImageTransform.Microsoft.Alpha(Opacity=30)"; /* IE 8 */ 
+}
+
+.ellipsis{overflow: hidden; text-overflow: ellipsis; white-space: nowrap;}
+.ellipsis-multi {display:block; overflow: hidden; text-overflow: ellipsis;  word-wrap: break-word; white-space: normal; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical;}
+
+/* 디자인 스타일*/
+select.designSelectBox  { 
+	min-width: 180px; 
+	height: 30px; 
+	line-height: 30px; 
+	margin: 0; 
+	padding: 0 30px 0 10px; 
+	background-color:#fff !important;
+	background: url('/resources/images/select_arrow.png') no-repeat right 3px;  /* 네이티브 화살표 대체 */ 
+	border: 1px solid #ddd; 
+	border-radius: 2px; 
+	box-sizing: border-box; 
+	-webkit-appearance: none; 
+	appearance: none;  /* 네이티브 외형 감추기 */ 
+	-ms-appearance: none; 
+	-moz-appearance: none; 
+	cursor:pointer;	
+}
+select.designSelectBox::-ms-expand { 
+	display: none;  /* IE 10, 11의 네이티브 화살표 숨기기  */
+}
+select.designSelectBox:disabled { 
+	opacity: 0.5; 
+	filter: alpha(opacity=50); 
+	-ms-filter: "progid:DXImageTransform.Microsoft.Alpha(Opacity=50)"; /* IE 8 */ 
+}
+/*
+select.designSelectBox:focus { 
+	background: url('/resources/images/mng/select_arrow_over.png') no-repeat right 2px; 
+}*/
+
+textarea.designTextarea { 
+	width: 100%; 
+	height: 50px; 
+	padding: 12px; 
+	background: #fff; 
+	border: 1px solid #ddd; 
+	box-sizing: border-box; 
+}
+textarea.designTextarea:disabled,
+textarea.designTextarea:read-only,
+textarea.designTextarea[readonly="disabled"],
+textarea.designTextarea[readonly="readonly"] { 
+	opacity: 0.5; 
+	filter: alpha(opacity=50); 
+	-ms-filter: "progid:DXImageTransform.Microsoft.Alpha(Opacity=50)"; /* IE 8 */
+}
+textarea.designTextarea:focus { 
+	background: #fff; 
+	border: 1px solid #ddd; 
+	color: #333; 
+}
+
+.designRadiobutton { 
+	z-index: 1; 
+	display: inline-block;
+	position: relative; 
+	padding: 2px 0; 
+}
+.designRadiobutton * { 
+	vertical-align: middle;
+ }
+.designRadiobutton input[type="radio"] { 
+	z-index: 1; 
+	position: absolute; 
+	top: 0; 
+	left: 0; 
+	width: 25px; 
+	height: 25px; 
+	opacity: 0; 
+	filter: alpha(opacity=0); 
+	-ms-filter: "progid:DXImageTransform.Microsoft.Alpha(Opacity=0)"; 
+}
+.designRadiobutton input[type="radio"] + label {
+	z-index: 2; 
+	display: inline-block; 
+	position: relative; 
+	min-width: 25px; 
+	height: 25px; 
+	background: url('/resources/images/mng/input_radio.png') no-repeat; 
+	text-indent: -9999px; 
+	box-sizing: border-box;  	
+}
+.designRadiobutton input[type="radio"] + label.label_txt { 
+	padding: 2px 30px 0 35px;
+	text-indent: 0;
+	cursor:pointer;	
+}
+.designRadiobutton input[type="radio"]:checked + label { 
+	background: url('/resources/images/mng/input_radio_checked.png') no-repeat; 
+}
+.designRadiobutton input[type="radio"]:disabled + label { 
+	opacity: 0.5; 
+	filter: alpha(opacity=50); 
+	-ms-filter: "progid:DXImageTransform.Microsoft.Alpha(Opacity=50)"; /* IE 8 */
+}
+.designRadiobutton input[type="radio"]:readonly + label { 
+	opacity: 0.5;
+	filter: alpha(opacity=50); 
+	-ms-filter: "progid:DXImageTransform.Microsoft.Alpha(Opacity=50)"; /* IE 8 */ 
+}
+
+.designCheckbox { 
+	z-index: 1; 
+	display: inline-block; 
+	position: relative; 
+	padding: 2px 0; 
+}
+.designCheckbox * { 
+	vertical-align: middle;
+}
+.designCheckbox input[type="checkbox"] { 
+	z-index: 1; 
+	position: absolute; 
+	top: 0; 
+	left: 0; 
+	width: 25px; 
+	height: 25px; 
+	opacity: 0; 
+	filter: alpha(opacity=0); 
+	-ms-filter: "progid:DXImageTransform.Microsoft.Alpha(Opacity=0)"; 
+}
+.designCheckbox input[type="checkbox"] + label { 
+	z-index: 2; 
+	display: inline-block; 
+	position: relative; 
+	min-width: 25px; 
+	height: 25px; 
+	background: url('/resources/images/mng/input_checkbox.png') no-repeat; 
+	text-indent: -9999px; 
+	box-sizing: border-box;
+}
+.designCheckbox input[type="checkbox"] + label.label_txt { 
+	padding: 2px 30px 0 35px; 
+	text-indent: 0;
+	cursor:pointer;
+}
+.designCheckbox input[type="checkbox"]:checked + label { 
+	background: url('/resources/images/mng/input_checkbox_checked.png') no-repeat;
+}
+.designCheckbox input[type="checkbox"]:disabled + label { 
+	opacity:0.5; 
+	filter: alpha(opacity=50); 
+	-ms-filter: "progid:DXImageTransform.Microsoft.Alpha(Opacity=50)"; /* IE 8 */
+}
+.designCheckbox input[type="checkbox"]:readonly + label { 
+	opacity:0.5; 
+	filter: alpha(opacity=50); 
+	-ms-filter: "progid:DXImageTransform.Microsoft.Alpha(Opacity=50)"; /* IE 8 */ 
+}
+span.input_bar { display: inline-block; width: 18px; text-align: center; box-sizing: border-box; }
+
+.file_wrap {}
+.file_wrap .file_upload { 
+	display: none;
+ }
+.file_wrap .file_possible { 
+	padding: 5px 0 3px 5px;
+	font-size:12px;
+	color:red;
+	font-weight:bold;
+ }
+.file_wrap .flie_list { 
+	width: 100%; 
+	margin: 5px 0 3px 0; 
+	padding: 10px; 
+	border: 1px solid #e0e0e0;
+}
+.file_wrap .flie_list .file_delete { 
+	float: right; 
+	color: #0085ec;  
+	margin-top:-6px;
+}
+
+/*datepicker  
+---------------------------------- */
+input.datepicker { 
+	position: relative; 
+	padding-right: 30px; 
+	background: #f8f8f8 url('/resources/images/mng/input_cal_date.png') no-repeat 95% 50%; 
+	cursor:pointer;
+}
+input.datepicker::-ms-clear { 
+	display: none; 
+}
+input.datepicker:disabled,
+input.datepicker:read-only,
+input.datepicker[readonly="disabled"],
+input.datepicker[readonly="readonly"] { 
+	opacity: 1; 
+	background: #f8f8f8 url('/resources/images/mng/input_cal_date.png') no-repeat right 50%;
+}
+input.datepicker:focus { 
+	background: #f8f8f8 ('/resources/images/mng/input_cal_date.png') no-repeat right 50%; 
+	border: 1px solid #ced4da; 
+	color: #495057; 
+}
+span.date_arrow { 
+	display: none; 
+	position: relative; 
+	width: 0px; 
+	height: 0px; 
+	z-index: 111;
+}
+span.date_arrow .arrow { 
+	display: block; 
+	width: 14px; 
+	height: 7px; 
+	position: absolute; 
+	top: 12px; 
+	left: -24px; 
+	background:url('/resources/images/mng/input_cal_arrow.png') no-repeat center top; 
+	z-index: 111;
+}
+
+div.ui-datepicker { 
+	display: none; 
+	position: relative; 
+	width: 235px; 
+	height: 285px; 
+	margin-top: 32px; 
+	margin-left: 10px; 
+	padding: 0 2px; 
+	background: #007feb; 
+	border-top: solid 0px #007feb; 
+	border-radius: 5px; 
+	font-family: 'Dotum', '돋움'	;
+	font-size:11px;
+}
+div.ui-datepicker:after { 
+	content: ' '; 
+	display: block; 
+	width: 231px; 
+	height: 208px; 
+	position: absolute; 
+	top: 75px; 
+	left: 2px; 
+	background: #ffffff; 
+	border-radius: 0 0 3px 3px; 
+	z-index: 1; 
+	cursor:pointer;	
+}
+div.ui-datepicker table.ui-datepicker-calendar { width: 100%; }
+div.ui-datepicker div.ui-datepicker-header { 
+	display: table; 
+	width: 100%; 
+	height: 40px; 
+	padding-top: 15px;	
+}
+div.ui-datepicker div.ui-datepicker-header .ui-datepicker-title { 
+	text-align: center; 
+	color:#007feb; 
+}
+div.ui-datepicker div.ui-datepicker-header span.ui-datepicker-year { 
+	color: #fff; 
+	font-size: 16px; 
+	font-weight: bold; 
+}
+div.ui-datepicker div.ui-datepicker-header span.ui-datepicker-year:after { 
+	content:'년'; 
+	position: relative; 
+	top: -1px; 
+	margin: 0 5px 0 2px;
+	font-size: 12px; 
+	font-weight: normal; 
+}
+div.ui-datepicker div.ui-datepicker-header span.ui-datepicker-month { 
+	color: #fff; 
+	font-size: 16px; 
+	font-weight: bold; 
+}
+div.ui-datepicker div.ui-datepicker-header span.ui-datepicker-month:after { 
+	content:'월'; 
+	position: relative; 
+	top: -1px; 
+	margin: 0 0 0 2px; 
+	font-size: 12px; 
+	font-weight: normal;
+}
+div.ui-datepicker div.ui-datepicker-header a { 
+	position: absolute; 
+	top: 19px; 
+	text-indent: -9999px; 
+	cursor: pointer; 
+}
+div.ui-datepicker div.ui-datepicker-header a.ui-datepicker-prev { 
+	left: 42px; 
+	width: 16px; 
+	height: 16px; 
+	background: url('/resources/images/mng/btn_cal_prev_month.png') no-repeat center center; 
+	background-size: 100% 
+}
+div.ui-datepicker div.ui-datepicker-header a.ui-datepicker-next { 
+	right: 42px; 
+	width: 16px; 
+	height: 16px; 
+	background: url('/resources/images/mng/btn_cal_next_month.png') no-repeat center center; 
+	background-size: 100%;
+}
+div.ui-datepicker div.ui-datepicker-header a.prevYear { 
+	left: 22px; 
+	width: 16px; 
+	height: 16px; 
+	background: url('/resources/images/mng/btn_cal_prev_year.png') no-repeat center center; 
+	background-size: 100%;
+}
+div.ui-datepicker div.ui-datepicker-header a.nextYear {
+	right: 22px; 
+	width: 16px; 
+	height: 16px; 
+	background: url('/resources/images/mng/btn_cal_next_year.png') no-repeat center center; 
+	background-size: 100%; 
+}
+div.ui-datepicker .ui-datepicker-current { 
+	display: none;
+}
+div.ui-datepicker table.ui-datepicker-calendar { 
+	position: relative; 
+	width: 85%; 
+	margin: 0 auto;
+}
+div.ui-datepicker table.ui-datepicker-calendar thead tr th,
+div.ui-datepicker table.ui-datepicker-calendar tbody tr td {
+	z-index: 2; 
+	text-align: center;
+}
+div.ui-datepicker table.ui-datepicker-calendar thead tr th {
+	padding: 10px 0 10px 0;
+}
+div.ui-datepicker table.ui-datepicker-calendar thead tr th span {
+	display: block; 
+	color: #dde9fb; 
+	font-size: 11px ; 
+	font-weight: normal;
+}
+div.ui-datepicker table.ui-datepicker-calendar tbody tr td {
+	position: relative; 
+	font-family: 'Dotum', '돋움'	;
+	font-size:11px;	
+	padding: 9px 5px 9px 5px; 
+	vertical-align: top;
+}
+div.ui-datepicker table.ui-datepicker-calendar tbody tr td:after {
+	z-index: 1; 
+	content: ' '; 
+	display: block; 
+	position: absolute; 
+	bottom: 0px; 
+	left: 0px;
+	width: 100%; 
+	height: 1px; 
+	background:#e1e1e1; 
+	border-radius: 0 0 3px 3px;
+}
+div.ui-datepicker table.ui-datepicker-calendar tbody tr td a {
+	display: block; 
+	color: #303030; 
+	font-size: 11px;
+}
+div.ui-datepicker table.ui-datepicker-calendar tbody tr td:first-child a { 
+	color: #f04343;
+}
+div.ui-datepicker table.ui-datepicker-calendar td.ui-datepicker-today a {
+	position: absolute; 
+	top: 0; 
+	left: 50%; 
+	width: 22px; 
+	height: 23px; 
+	line-height: 22px;
+	padding: 0; 
+	margin-left: -11px; 
+	margin-top: 5px; 
+	background:url('/resources/images/mng/cal_today.png') no-repeat center top;
+}
+div.ui-datepicker table.ui-datepicker-calendar td.ui-datepicker-current-day a { 
+	position: absolute; 
+	top: 0; 
+	left: 50%; 
+	width: 22px; 
+	height: 22px; 
+	line-height: 22px;
+	padding: 0; 
+	margin-left: -11px; 
+	margin-top: 5px;  
+	background:url('/resources/images/mng/cal_select.png') no-repeat center top; 
+	color: #ffffff; 
+}
+input.form-control-sm.datepicker {font-size:12px;}
+
+/******************************************************
+	팝업 class
+******************************************************/
+/* layer_popup */
+div.popup_wrap { display: none }
+div.popup_layer { overflow: hidden; z-index: 100; position: fixed; top: 50%; left: 50%; width: 720px; margin-left: -360px; border: solid 1px #bcbdc0; background: #ffffff; border-radius: 2px; }
+div.popup_layer div.popup_inner { position: relative; width: 100%; height: 100%; }
+div.popup_layer div.popup_header { position: relative; height: 50px; margin: 0 0px 0 0px; background: #007feb; }
+div.popup_layer div.popup_header h1.title { height: 50px; line-height: 50px; color: #ffffff;  font-size: 20px; font-weight: bold; text-align: center; }
+div.popup_layer div.popup_header .btn_close_pop { overflow: hidden; position: absolute; top: 15px; right: 15px; width: 21px; height: 21px; background: url('/resources/images/pop_close.png') no-repeat center top; text-indent:-9999px}
+div.popup_layer div.dialog_content { overflow-x: hidden }
+div.popup_layer div.dialog_content div.scroll_area { padding: 20px 20px 20px 20px; box-sizing: border-box; }
+div.popup_layer div.dialog_content div.scroll_area div.big_msg { padding: 0px; }
+
+/* layer_alert */
+div.alert_wrap { display: none }
+div.alert_layer { overflow: hidden; z-index: 100; position: fixed; top: 50%; left: 50%; width: 300px; margin-left: -150px; border: solid 1px #bcbdc0; background: #ffffff; border-radius: 3px; }
+div.alert_layer div.alert_inner { position: relative; width: 100%; height: 100%; }
+div.alert_layer div.alert_header { position: relative; height: 25px; padding: 0 0 0 0; background:#ffffff; }
+div.alert_layer div.alert_header .btn_close_pop { position: absolute; top: 18px; right: 20px; padding: 5px 8px; display: none; }
+div.alert_layer div.dialog_content { overflow-x: hidden }
+div.alert_layer div.dialog_content div.scroll_area { padding: 10px 30px 10px 30px; box-sizing: border-box; }
+div.alert_layer div.dialog_content div.alert_msg_area { display: table;  width: 100% }
+div.alert_layer div.dialog_content div.alert_msg { display: table-cell; width: 100%; height: 20px; line-height: 18px; vertical-align: middle; text-align: center; padding: 0 0 0 0;}
+
+.btn_round { border-radius:50px;}
+.floatL { 
+	float: left !important; 
+}
+.floatR { 
+	float: right !important; 
+}
+.mt5 { 
+	margin-top:5px !important; 
+}
+.mt10 { 
+	margin-top:10px !important; 
+}
+.mt20 {
+	margin-top:20px !important; 
+}
+.mt29 {
+	margin-top:29px !important;
+}
+.mt30 { 
+	margin-top:30px !important;
+}
+.mr5 {
+	margin-right:5px !important;
+}
+.mr10 {
+	margin-right:10px !important;
+}
+.mb5 {
+	margin-bottom:5px !important;
+}
+.mb10 { 
+	margin-bottom:10px !important;
+}
+.mb50 {
+	margin-bottom:50px !important; 
+}
+
+.ml7 {
+	margin-left:7px !important; 
+}
+.ml10 {
+	margin-left:10px !important;
+}
+.ml20 {
+	margin-left:20px !important;
+}
+.mv20 {
+	margin-bottom:20px !important;
+	margin-top:20px !important; 
+}
+.mh0 {
+	margin-left:0 !important; 
+	margin-right:0 !important;
+}
+.pt10 {
+	padding-top:10px !important; 
+}
+.pt20 {
+	padding-top:20px !important; 
+}
+.pr0 {
+	padding-right:0 !important;
+}
+.pr10 {
+	padding-right:10px !important;
+}
+.pb10 {
+	padding-bottom:10px !important; 
+}
+.pl10 {
+	padding-left:10px !important;
+ }
+.pl20 {
+	padding-left:20px !important;
+ }
+.pv10 {
+	padding-bottom:10px !important;
+	padding-top:10px !important; 
+}
+.pv20 {
+	padding-bottom:20px !important;
+	padding-top:20px !important; 
+}
+.red {
+	color:red !important; 
+}
+.blue {
+	color:blue !important; 
+}
+.w45pro {width:45% !important;}
+.w70pro {width:70% !important;}
+.justify_between{justify-content: space-between !important;}
+
+.dpblock { display:block !important; }
+.font500	{font-weight: bold;}
+.red_80pro { color:red !important;  font-size:80%;}
+.red_80pro_inline { color:red !important;  font-size:80%; display:inline; margin-left:10px;}
+
+
+
+

@@ -1,0 +1,254 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd"> 
+<mapper namespace="mngBann">
+
+	<!-- 로그인 체크 -->
+	<select id="selectMngBannList" parameterType="hashmap" resultType="hashmap">
+		<![CDATA[
+				]]>
+			<if test="status not in {'LIST'}">
+				<![CDATA[
+SELECT C.*, REPLACE(CONVERT(C.NUM_DESC, CHAR),'.0','') AS NUM_DESC_ORDER FROM (
+  SELECT B.*, (@rownumB:=@rownumB+1) as NUM_ASC FROM(  
+    SELECT A.*, (@rownumA:=@rownumA+1) as NUM_DESC FROM (
+				]]>
+			</if>
+		<![CDATA[
+		
+			    SELECT
+					PSB.BANN_IDX,
+					PC.CODE_NM AS BANN_TYPE,
+					PSB.BANN_ORDR,
+					PSB.BANN_TITL1,
+					PSB.BANN_USE_YN,
+					PSB.BANN_BANN_TITL,
+					DATE_FORMAT(PSB.SYS_REG_DTM, '%Y-%m-%d') AS SYS_REG_DTM
+				FROM
+					PPM_SITE_BANN PSB LEFT JOIN PPM_CODE PC
+						ON PC.CODE_ID = PSB.BANN_TYPE
+				WHERE
+					PSB.BANN_DEL_YN = 'N'
+					AND PC.CODE_USE_YN = 'Y'
+				]]>
+			<if test="bannType not in {null, ''}">
+				<![CDATA[
+					AND PSB.BANN_TYPE = #{bannType}
+				]]>
+			</if>
+			<if test="bannTitl1 not in {null, ''}">
+				<![CDATA[
+					AND PSB.BANN_TITL1 LIKE '%${bannTitl1}%'
+				]]>
+			</if>
+			<if test="bannUseYn not in {null, ''}">
+				<![CDATA[
+					AND PSB.BANN_USE_YN = #{bannUseYn}
+				]]>
+			</if>
+			
+			
+			<if test="status not in {'LIST'}">
+				<![CDATA[
+						) A JOIN (SELECT @rownumA:=0) rownumA
+				]]>
+				
+					<if test=' bannOrdr == "Y" '>
+						<![CDATA[
+							ORDER BY BANN_ORDR
+						]]>
+					</if>
+		
+					<if test=' bannOrdr == "N" '>
+						<![CDATA[
+							ORDER BY BANN_ORDR DESC
+						]]>
+					</if>
+					
+					<if test="bannOrdr in {null, ''}">
+						<![CDATA[
+							ORDER BY BANN_IDX ASC
+						]]>
+					</if>
+			
+				<![CDATA[
+  ) B JOIN (SELECT @rownumB:=0) rownumB  ORDER BY NUM_DESC DESC
+) C WHERE NUM_ASC BETWEEN '${startRow }' AND '${endRow }'
+				]]>
+			</if>
+		<![CDATA[
+		]]>
+	</select>
+	
+	<!-- 로그인 체크 -->
+	<select id="selectMngBannListCnt" parameterType="hashmap" resultType="java.lang.Integer">
+		<![CDATA[
+			    SELECT
+					COUNT(0) AS CNT
+				FROM
+					PPM_SITE_BANN PSB LEFT JOIN PPM_CODE PC
+						ON PC.CODE_ID = PSB.BANN_TYPE
+				WHERE
+					PSB.BANN_DEL_YN = 'N'
+					AND PC.CODE_USE_YN = 'Y'
+				]]>
+			<if test="bannType not in {null, ''}">
+				<![CDATA[
+					AND PSB.BANN_TYPE = #{bannType}
+				]]>
+			</if>
+			<if test="bannTitl1 not in {null, ''}">
+				<![CDATA[
+					AND PSB.BANN_TITL1 LIKE '%${bannTitl1}%'
+				]]>
+			</if>
+			<if test="bannUseYn not in {null, ''}">
+				<![CDATA[
+					AND PSB.BANN_USE_YN = #{bannUseYn}
+				]]>
+			</if>
+	</select>
+	
+	<select id="selectMngBannDetail" parameterType="hashmap" resultType="hashmap">
+		<![CDATA[
+			    
+		    SELECT
+		    	BANN_IDX,
+				BANN_TYPE, 
+				BANN_BANN_TITL,
+				BANN_TITL1, 
+				BANN_TITL2, 
+				BANN_SUBT1, 
+				BANN_SUBT2,
+				
+				BANN_CLR,
+				BANN_UUID_WEB,
+				BANN_UUID_MOBI,
+				BANN_LINK,
+				BANN_ORDR,
+				BANN_USE_YN,
+				
+				DATE_FORMAT(BANN_STR_DTM, '%Y-%m-%d') AS BANN_STR_DTM,
+				DATE_FORMAT(BANN_END_DTM, '%Y-%m-%d') AS BANN_END_DTM
+				
+			FROM
+			    PPM_SITE_BANN
+			WHERE
+			   BANN_IDX = #{bannIdx}
+		]]>
+	</select>
+	
+	<insert id="insertMngBannData" parameterType="hashmap">
+		<![CDATA[
+			INSERT INTO
+				PPM_SITE_BANN
+			(
+				BANN_TYPE, 
+				BANN_BANN_TITL,
+				BANN_TITL1, 
+				BANN_TITL2, 
+				BANN_SUBT1, 
+				BANN_SUBT2,
+				
+				BANN_CLR,
+				BANN_UUID_WEB,
+				BANN_UUID_MOBI,
+				BANN_LINK,
+				BANN_ORDR,
+				BANN_USE_YN,
+				
+				BANN_DEL_YN,
+		]]>		
+		<if test="bannStrDtm not in {'', null}">
+		<![CDATA[
+				BANN_STR_DTM,
+				BANN_END_DTM,
+		]]>		
+		</if>
+		<![CDATA[
+				
+				SYS_REG_IDX, 
+				SYS_REG_DTM, 
+				SYS_MOD_IDX, 
+				SYS_MOD_DTM
+			) VALUES (
+				#{bannType},
+				#{bannBannTitl}, 
+				#{bannTitl1}, 
+				#{bannTitl2}, 
+				#{bannSubt1}, 
+				#{bannSubt2}, 
+				
+				#{bannClr}, 
+				#{bannUuidWeb}, 
+				#{bannUuidMobi}, 
+				#{bannLink}, 
+				#{bannOrdr}, 
+				#{bannUseYn}, 
+				
+				'N', 
+				
+			]]>		
+		<if test="bannStrDtm not in {'', null}">
+		<![CDATA[
+				#{bannStrDtm}, 
+				#{bannEndDtm}, 
+			]]>	
+		</if>		
+		<![CDATA[
+				
+				#{mngLoginIdx}, 
+				DATE_FORMAT(NOW(), '%Y%m%d%H%i%S'), 
+				#{mngLoginIdx}, 
+				DATE_FORMAT(NOW(), '%Y%m%d%H%i%S')
+			);
+		]]>
+	</insert>
+	
+	<update id="updateMngBannData" parameterType="hashmap">
+		<![CDATA[
+			UPDATE
+				PPM_SITE_BANN
+			SET 
+				BANN_TYPE = #{bannType},
+				BANN_BANN_TITL = #{bannBannTitl}, 
+				BANN_TITL1 = #{bannTitl1},
+				BANN_TITL2 = #{bannTitl2},
+				BANN_SUBT1 = #{bannSubt1},
+				BANN_SUBT2 = #{bannSubt2},
+			  
+				BANN_CLR = #{bannClr},
+				BANN_UUID_WEB = #{bannUuidWeb},
+				BANN_UUID_MOBI = #{bannUuidMobi},
+				BANN_LINK = #{bannLink},
+				BANN_ORDR = #{bannOrdr},
+				BANN_USE_YN = #{bannUseYn},
+				
+				BANN_STR_DTM = #{bannStrDtm},
+				BANN_END_DTM = #{bannEndDtm},
+				
+				SYS_MOD_IDX = #{mngLoginIdx}, 
+				SYS_MOD_DTM=DATE_FORMAT(NOW(), '%Y%m%d%H%i%S')
+			WHERE 
+				BANN_IDX = #{bannIdx}
+		]]>
+	</update>
+
+
+	<update id="deleteMngBannData" parameterType="hashmap" >
+		<![CDATA[
+			    
+		    UPDATE
+		    	PPM_SITE_BANN 
+    		SET 
+    			BANN_DEL_YN = 'Y',
+    			
+    			SYS_MOD_IDX = #{mngLoginIdx}, 
+				SYS_MOD_DTM = DATE_FORMAT(NOW(), '%Y%m%d%H%i%S')
+	    	WHERE 
+				BANN_IDX = #{bannIdx}
+		]]>
+	</update>
+	
+	
+	
+</mapper>

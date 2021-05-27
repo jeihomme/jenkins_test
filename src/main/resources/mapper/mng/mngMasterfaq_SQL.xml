@@ -1,0 +1,310 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd"> 
+<mapper namespace="mngMasterfaq">
+
+	<!-- 로그인 체크 -->
+	<select id="selectMngMasterfaqList" parameterType="hashmap" resultType="hashmap">
+		<![CDATA[
+				]]>
+			<if test="status not in {'LIST'}">
+				<![CDATA[
+SELECT C.* FROM (
+  SELECT B.*, (@rownumB:=@rownumB+1) as NUM_ASC FROM(  
+    SELECT A.*, (@rownumA:=@rownumA+1) as NUM_DESC FROM (
+				]]>
+			</if>
+		<![CDATA[
+				SELECT
+					*
+				FROM (
+				      SELECT DISTINCT
+						CATE_CD,
+						PC.CATE_IDX,
+						PC.CODE_ID,
+						( SELECT PU.USER_NM FROM PPM_USER PU WHERE PU.USER_IDX = PC.USER_IDX AND PU.USER_USE_YN = 'Y' AND PU.USER_TYPE = 'M') AS MASTER_NM,
+						( SELECT CODE_NM FROM PPM_CODE PD WHERE PD.CODE_ID = (SELECT SUBSTRING(CODE_ID, 1,5) FROM PPM_CODE PCD WHERE PCD.CODE_ID = PC.CODE_ID ) ) AS P_CODE_NM,
+						( SELECT CODE_NM FROM PPM_CODE PD WHERE PD.CODE_ID = (SELECT CODE_ID FROM PPM_CODE PCD WHERE PCD.CODE_ID = PC.CODE_ID ) ) AS M_CODE_NM 	,				
+						(
+							CASE 
+								WHEN
+									(SELECT COUNT(*) FROM PPM_SITE_MAST_FAQ WHERE CATE_IDX = PC.CATE_IDX AND FAQ_USE_YN = 'Y') > 0
+								THEN 'Y'
+							ELSE
+								'N'
+							END
+						) AS FAQ_INSERT_YN ,
+					
+					  	CASE 
+					  	WHEN 
+					  		( SELECT COUNT(0) FROM PPM_SITE_MAST_FAQ PSMF2 WHERE PSMF2.CATE_IDX = PC.CATE_IDX AND PSMF2.FAQ_DEL_YN = 'N' AND PSMF2.FAQ_USE_YN = 'Y' ) > 0 
+					  	THEN 
+					  		'Y'
+					 	ELSE 
+					 		'N' 
+					 	END 	FAQ_USE_YN,
+					 	
+					  	PC.SYS_REG_IDX,
+					  	(SELECT MNG_NM FROM PPM_MNG PM WHERE PM.MNG_IDX = PC.SYS_REG_IDX) SYS_REG_NM,
+					  	DATE_FORMAT( PC.SYS_REG_DTM, '%Y-%m-%d' ) SYS_REG_DTM,
+					  	PC.SYS_MOD_IDX,
+					  	PC.SYS_MOD_DTM,
+						( SELECT COUNT(0) FROM PPM_SITE_MAST_FAQ WHERE FAQ_IDX = PSMF.FAQ_IDX ) AS FAQ_CNT
+				
+					FROM
+					    PPM_CATE PC LEFT JOIN PPM_SITE_MAST_FAQ PSMF 
+					    ON (PC.CATE_IDX = PSMF.CATE_IDX )
+					WHERE
+						PC.CATE_USE_YN = 'Y'
+					) MAIN
+				WHERE
+					CATE_CD IS NOT NULL
+				]]>
+				<if test='faqYn == "Y" '>
+					<![CDATA[
+					AND FAQ_INSERT_YN  = 'Y'
+					]]>
+				</if>
+				<if test='faqYn == "N" '>
+					<![CDATA[
+					AND FAQ_INSERT_YN  = 'N'
+					]]>
+					</if>
+				<if test='faqUseYn not in {null, ""}'>
+					<![CDATA[
+					AND FAQ_USE_YN = #{faqUseYn}
+					]]>
+				</if>
+				<if test="codeId not in {null, ''}">
+					<![CDATA[
+					AND CODE_ID = #{codeId}
+					]]>
+				</if>
+				<if test="parentCodeId not in {null, ''}">
+					<![CDATA[
+					AND CODE_ID LIKE '%${parentCodeId}%'
+					]]>
+				</if>
+				<if test="cateIdx not in {null, ''}">
+					<![CDATA[
+					AND MASTER_NM  LIKE '%${cateIdx}%'
+					]]>
+				</if>
+			<if test="status not in {'LIST'}">
+				<![CDATA[
+				 
+						) A JOIN (SELECT @rownumA:=0) rownumA ORDER BY CATE_IDX 
+  ) B JOIN (SELECT @rownumB:=0) rownumB  ORDER BY NUM_DESC DESC
+) C WHERE NUM_ASC BETWEEN #{startRow } AND #{endRow }
+				]]>
+			</if>
+		<![CDATA[
+		]]>
+	</select>
+	
+	<!-- 로그인 체크 -->
+	<select id="selectMngMasterfaqListCnt" parameterType="hashmap" resultType="java.lang.Integer">
+		<![CDATA[
+		SELECT
+					COUNT(0) AS CNT
+				FROM (
+				      SELECT DISTINCT
+						CATE_CD,
+						PC.CATE_IDX,
+						PC.CODE_ID,
+						( SELECT PU.USER_NM FROM PPM_USER PU WHERE PU.USER_IDX = PC.USER_IDX AND PU.USER_USE_YN = 'Y' AND PU.USER_TYPE = 'M') AS MASTER_NM,
+						( SELECT CODE_NM FROM PPM_CODE PD WHERE PD.CODE_ID = (SELECT SUBSTRING(CODE_ID, 1,5) FROM PPM_CODE PCD WHERE PCD.CODE_ID = PC.CODE_ID ) ) AS P_CODE_NM,
+						( SELECT CODE_NM FROM PPM_CODE PD WHERE PD.CODE_ID = (SELECT CODE_ID FROM PPM_CODE PCD WHERE PCD.CODE_ID = PC.CODE_ID ) ) AS M_CODE_NM 	,				
+								
+						(
+							CASE 
+								WHEN
+									(SELECT COUNT(*) FROM PPM_SITE_MAST_FAQ WHERE CATE_IDX = PC.CATE_IDX AND FAQ_USE_YN = 'Y') > 0
+								THEN 'Y'
+							ELSE
+								'N'
+							END
+						) AS FAQ_INSERT_YN ,
+					
+					  	CASE 
+					  	WHEN 
+					  		( SELECT COUNT(0) FROM PPM_SITE_MAST_FAQ PSMF2 WHERE PSMF2.CATE_IDX = PC.CATE_IDX AND PSMF2.FAQ_DEL_YN = 'N' AND PSMF2.FAQ_USE_YN = 'Y' ) > 0 
+					  	THEN 
+					  		'Y'
+					 	ELSE 
+					 		'N' 
+					 	END 	FAQ_USE_YN,
+					 	
+					  	PC.SYS_REG_IDX,
+					  	(SELECT MNG_NM FROM PPM_MNG PM WHERE PM.MNG_IDX = PC.SYS_REG_IDX) SYS_REG_NM,
+					  	DATE_FORMAT( PC.SYS_REG_DTM, '%Y-%m-%d' ) SYS_REG_DTM,
+					  	PC.SYS_MOD_IDX,
+					  	PC.SYS_MOD_DTM,
+						( SELECT COUNT(0) FROM PPM_SITE_MAST_FAQ WHERE FAQ_IDX = PSMF.FAQ_IDX ) AS FAQ_CNT
+				
+					FROM
+					    PPM_CATE PC LEFT JOIN PPM_SITE_MAST_FAQ PSMF 
+					    ON (PC.CATE_IDX = PSMF.CATE_IDX )
+					WHERE
+						PC.CATE_USE_YN = 'Y'
+					) MAIN
+				WHERE
+					CATE_CD IS NOT NULL
+				]]>
+				<if test='faqYn == "Y" '>
+					<![CDATA[
+					AND FAQ_INSERT_YN  = 'Y'
+					]]>
+				</if>
+				<if test='faqYn == "N" '>
+					<![CDATA[
+					AND FAQ_INSERT_YN  = 'N'
+					]]>
+					</if>
+				<if test='faqUseYn not in {null, ""}'>
+					<![CDATA[
+					AND FAQ_USE_YN = #{faqUseYn}
+					]]>
+				</if>
+				<if test="codeId not in {null, ''}">
+					<![CDATA[
+					AND CODE_ID = #{codeId}
+					]]>
+				</if>
+				<if test="parentCodeId not in {null, ''}">
+					<![CDATA[
+					AND CODE_ID LIKE '%${parentCodeId}%'
+					]]>
+				</if>
+				<if test="cateIdx not in {null, ''}">
+					<![CDATA[
+					AND MASTER_NM  LIKE '%${cateIdx}%'
+					]]>
+				</if>
+	</select>
+	
+	<select id="selectMngMasterfaqDetail" parameterType="hashmap" resultType="hashmap">
+		<![CDATA[
+			    
+		    SELECT
+					FAQ_IDX,
+					FAQ_TITL,
+					PSMF.CATE_IDX,
+					CONCAT( (SELECT PU.USER_NM 
+									FROM PPM_USER PU 
+										WHERE 
+										PU.USER_IDX = PC.USER_IDX 
+										AND PU.USER_USE_YN = 'Y' 
+										AND PU.USER_TYPE = 'M') ,
+										' / ',
+										(SELECT CODE_NM FROM PPM_CODE PD WHERE PD.CODE_ID = (SELECT SUBSTRING(CODE_ID, 1,5) FROM PPM_CODE PCD WHERE PCD.CODE_ID = PC.CODE_ID ) ),
+										' / ',
+										(SELECT CODE_NM FROM PPM_CODE PD WHERE PD.CODE_ID = (SELECT CODE_ID FROM PPM_CODE PCD WHERE PCD.CODE_ID = PC.CODE_ID ) )
+						) USER_CATE,
+					FAQ_CNTN,
+				  	FAQ_USE_YN,
+				  	
+				  	PSMF.SYS_REG_IDX,
+				  	(SELECT MNG_NM FROM PPM_MNG PM WHERE PM.MNG_IDX = PSMF.SYS_REG_IDX) SYS_REG_NM,
+				  	DATE_FORMAT( PSMF.SYS_REG_DTM, '%Y-%m-%d' ) SYS_REG_DTM,
+				  	PSMF.SYS_MOD_IDX,
+				  	PSMF.SYS_MOD_DTM
+			FROM
+				PPM_SITE_MAST_FAQ PSMF, PPM_CATE PC 
+			WHERE
+				PSMF.CATE_IDX  = PC.CATE_IDX 
+				AND FAQ_DEL_YN = 'N'
+				AND PC.CATE_USE_YN = 'Y'
+			    AND PSMF.CATE_IDX = #{cateIdx}
+		]]>
+	</select>
+
+	<update id="deleteMngMasterfaqData" parameterType="hashmap" >
+		<![CDATA[
+			    
+		    UPDATE
+		    	PPM_SITE_MAST_FAQ SET 
+		    		FAQ_USE_YN = 'N', 
+		    		FAQ_DEL_YN = 'Y', 
+		    		SYS_MOD_IDX = #{mngLoginIdx}, 
+					SYS_MOD_DTM = DATE_FORMAT(NOW(), '%Y%m%d%H%i%S')
+		    	
+		    	WHERE 
+		    		FAQ_IDX = #{faqIdx}
+		]]>
+	</update>
+	
+	<insert id="insertMngMasterfaqData" parameterType="hashmap">
+		<![CDATA[
+			INSERT INTO 
+				PPM_SITE_MAST_FAQ
+					(
+					FAQ_IDX,
+					CATE_IDX, 
+					FAQ_TITL, 
+					FAQ_CNTN, 
+					FAQ_USE_YN,
+					FAQ_DEL_YN,
+					
+					SYS_REG_IDX, 
+					SYS_REG_DTM, 
+					SYS_MOD_IDX, 
+					SYS_MOD_DTM
+					)
+					VALUES(
+						#{faqIdx},
+						#{cateIdx}, 
+						#{faqTitl}, 
+						#{faqCntn}, 
+						'Y', 
+						'N', 
+						
+						#{mngLoginIdx}, 
+						DATE_FORMAT(NOW(), '%Y%m%d%H%i%S'), 
+						#{mngLoginIdx}, 
+						DATE_FORMAT(NOW(), '%Y%m%d%H%i%S')
+					)
+					ON DUPLICATE KEY UPDATE
+						FAQ_TITL = #{faqTitl}, 
+						FAQ_CNTN = #{faqCntn}, 
+						SYS_MOD_IDX = #{mngLoginIdx}, 
+						SYS_MOD_DTM = DATE_FORMAT(NOW(), '%Y%m%d%H%i%S')
+
+		]]>
+	</insert>
+	
+	<update id="updateMngMasterfaqData" parameterType="hashmap">
+		<![CDATA[
+			UPDATE PPM_SITE_MAST_FAQ
+				SET 
+		]]>
+		<![CDATA[
+					  CATE_CD=#{faqCd},
+					  FAQ_TITL=#{faqTitl}, 
+					  FAQ_CNTN=#{faqCntn}, 
+					  FAQ_USE_YN=#{faqUseYn}, 
+					  SYS_MOD_IDX=#{mngLoginIdx}, 
+					  SYS_MOD_DTM=DATE_FORMAT(NOW(), '%Y%m%d%H%i%S')
+					  
+					WHERE 
+						FAQ_IDX=#{faqIdx}
+
+		]]>
+	</update>
+	<update id="updateMngUseYn" parameterType="hashmap">
+		<![CDATA[
+			UPDATE PPM_SITE_MAST_FAQ
+				SET 
+		]]>
+		<![CDATA[
+					  FAQ_USE_YN=#{useYn}, 
+					  SYS_MOD_IDX=#{mngLoginIdx}, 
+					  SYS_MOD_DTM=DATE_FORMAT(NOW(), '%Y%m%d%H%i%S')
+					  
+					WHERE 
+						CATE_IDX=#{idx}
+						AND FAQ_DEL_YN = 'N'
+
+		]]>
+	</update>
+	
+</mapper>

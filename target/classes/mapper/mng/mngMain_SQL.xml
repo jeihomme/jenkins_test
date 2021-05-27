@@ -1,0 +1,597 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd"> 
+<mapper namespace="mngMain">
+
+	<!-- 로그인 체크 -->
+	<select id="selectMngMainList" parameterType="hashmap" resultType="hashmap">
+		<![CDATA[
+			SELECT
+				'1' AS CNT
+			FROM
+				DUAL
+		]]>
+	</select>
+	<select id="selectMngMainListCnt" parameterType="hashmap" resultType="int">
+		<![CDATA[
+			SELECT
+				COUNT(0)
+			FROM
+				PPM_USER
+		]]>
+	</select>
+	<select id="selectMngMainPlatform" parameterType="hashmap" resultType="hashmap">
+		<![CDATA[
+			SELECT
+				SUM(USER_JOIN) AS USER_JOIN,
+				SUM(USER_LEAV) AS USER_LEAV,
+				SUM(USER_REST) AS USER_REST,
+				SUM(M_USER_APPL) AS M_USER_APPL,
+				SUM(M_USER_CHK) AS M_USER_CHK,
+				
+				SUM(M_USER_RJT) AS M_USER_RJT,
+				SUM(M_USER_DONE) AS M_USER_DONE,
+				SUM(USER_BUY) AS USER_BUY,
+				SUM(USER_REFU) AS USER_REFU,
+				SUM(USER_DONE) AS USER_DONE,
+				
+				SUM(QNA_DONE) AS QNA_DONE,
+				SUM(QNA_WAIT) AS QNA_WAIT
+			FROM
+				PPM_DASH_PLATFORM
+			WHERE
+				]]>
+					<if test='searchType in {"1","2"}'>
+					<![CDATA[		
+						DATE_FORMAT(SYS_REG_DTM, '%Y-%m-%d') = DATE_FORMAT(#{searchDate}, '%Y-%m-%d')
+					]]>	 
+					</if>
+					<if test='searchType not in {"1","2"}'>
+					<![CDATA[		
+						DATE_FORMAT(SYS_REG_DTM, '%Y-%m-%d') BETWEEN DATE_FORMAT(#{searchDate}, '%Y-%m-%d') AND DATE_FORMAT(NOW(), '%Y-%m-%d')
+					]]>	 
+					</if>
+				<![CDATA[
+		]]>
+	</select>
+	
+	<select id="selectMngMainService" parameterType="hashmap" resultType="hashmap">
+		<![CDATA[
+			
+			SELECT
+				'FN' AS SERV_TYPE,
+				SUM(BUY) AS BUY,
+				SUM(BUY_RSV) AS BUY_RSV,
+				SUM(BUY_CNFM) AS BUY_CNFM,
+				SUM(BUY_NOT_CNFM) AS BUY_NOT_CNFM,
+				SUM(BUY_DONE) AS BUY_DONE,
+				
+				SUM(USER_REVI) AS USER_REVI,
+				SUM(M_USER_REVI) AS M_USER_REVI
+			FROM
+				PPM_DASH_SERVICE
+			WHERE
+				SERV_TYPE = 'FN'
+				]]>
+					<if test='searchType in {"1","2"}'>
+					<![CDATA[		
+						AND DATE_FORMAT(SYS_REG_DTM, '%Y-%m-%d') = DATE_FORMAT(#{searchDate}, '%Y-%m-%d')
+					]]>	 
+					</if>
+					<if test='searchType not in {"1","2"}'>
+					<![CDATA[		
+						AND DATE_FORMAT(SYS_REG_DTM, '%Y-%m-%d') BETWEEN DATE_FORMAT(#{searchDate}, '%Y-%m-%d') AND DATE_FORMAT(NOW(), '%Y-%m-%d')
+					]]>	 
+					</if>
+				<![CDATA[
+			
+			UNION ALL
+			
+			SELECT
+				'CN' AS SERV_TYPE,
+				SUM(BUY) AS BUY,
+				SUM(BUY_RSV) AS BUY_RSV,
+				SUM(BUY_CNFM) AS BUY_CNFM,
+				SUM(BUY_NOT_CNFM) AS BUY_NOT_CNFM,
+				SUM(BUY_DONE) AS BUY_DONE,
+				
+				SUM(USER_REVI) AS USER_REVI,
+				SUM(M_USER_REVI) AS M_USER_REVI
+			FROM
+				PPM_DASH_SERVICE
+			WHERE
+				SERV_TYPE = 'CN'
+				]]>
+					<if test='searchType in {"1","2"}'>
+					<![CDATA[		
+						AND DATE_FORMAT(SYS_REG_DTM, '%Y-%m-%d') = DATE_FORMAT(#{searchDate}, '%Y-%m-%d')
+					]]>	 
+					</if>
+					<if test='searchType not in {"1","2"}'>
+					<![CDATA[		
+						AND DATE_FORMAT(SYS_REG_DTM, '%Y-%m-%d') BETWEEN DATE_FORMAT(#{searchDate}, '%Y-%m-%d') AND DATE_FORMAT(NOW(), '%Y-%m-%d')
+					]]>	 
+					</if>
+				<![CDATA[
+			
+			UNION ALL
+			
+			SELECT
+				'EN' AS SERV_TYPE,
+				SUM(BUY) AS BUY,
+				SUM(BUY_RSV) AS BUY_RSV,
+				NULL AS BUY_CNFM,
+				NULL AS BUY_NOT_CNFM,
+				SUM(BUY_DONE) AS BUY_DONE,
+				
+				SUM(USER_REVI) AS USER_REVI,
+				SUM(M_USER_REVI) AS M_USER_REVI
+			FROM
+				PPM_DASH_SERVICE
+			WHERE
+				SERV_TYPE = 'EN'
+				]]>
+					<if test='searchType in {"1","2"}'>
+					<![CDATA[		
+						AND DATE_FORMAT(SYS_REG_DTM, '%Y-%m-%d') = DATE_FORMAT(#{searchDate}, '%Y-%m-%d')
+					]]>	 
+					</if>
+					<if test='searchType not in {"1","2"}'>
+					<![CDATA[		
+						AND DATE_FORMAT(SYS_REG_DTM, '%Y-%m-%d') BETWEEN DATE_FORMAT(#{searchDate}, '%Y-%m-%d') AND DATE_FORMAT(NOW(), '%Y-%m-%d')
+					]]>	 
+					</if>
+				<![CDATA[
+			
+			UNION ALL
+			
+			SELECT
+				'VL' AS SERV_TYPE,
+				SUM(BUY) AS BUY,
+				NULL AS BUY_RSV,
+				NULL AS BUY_CNFM,
+				NULL AS BUY_NOT_CNFM,
+				NULL AS BUY_DONE,
+				
+				NULL AS USER_REVI,
+				NULL AS M_USER_REVI
+			FROM
+				PPM_DASH_SERVICE
+			WHERE
+				SERV_TYPE = 'VL'
+				]]>
+					<if test='searchType in {"1","2"}'>
+					<![CDATA[		
+						AND DATE_FORMAT(SYS_REG_DTM, '%Y-%m-%d') = DATE_FORMAT(#{searchDate}, '%Y-%m-%d')
+					]]>	 
+					</if>
+					<if test='searchType not in {"1","2"}'>
+					<![CDATA[		
+						AND DATE_FORMAT(SYS_REG_DTM, '%Y-%m-%d') BETWEEN DATE_FORMAT(#{searchDate}, '%Y-%m-%d') AND DATE_FORMAT(NOW(), '%Y-%m-%d')
+					]]>	 
+					</if>
+				<![CDATA[
+			
+			UNION ALL
+			
+			SELECT
+				'LN' AS SERV_TYPE,
+				SUM(BUY) AS BUY,
+				NULL AS BUY_RSV,
+				NULL AS BUY_CNFM,
+				NULL AS BUY_NOT_CNFM,
+				NULL AS BUY_DONE,
+				
+				NULL AS USER_REVI,
+				NULL AS M_USER_REVI
+			FROM
+				PPM_DASH_SERVICE
+			WHERE
+				SERV_TYPE = 'LN'
+				]]>
+					<if test='searchType in {"1","2"}'>
+					<![CDATA[		
+						AND DATE_FORMAT(SYS_REG_DTM, '%Y-%m-%d') = DATE_FORMAT(#{searchDate}, '%Y-%m-%d')
+					]]>	 
+					</if>
+					<if test='searchType not in {"1","2"}'>
+					<![CDATA[		
+						AND DATE_FORMAT(SYS_REG_DTM, '%Y-%m-%d') BETWEEN DATE_FORMAT(#{searchDate}, '%Y-%m-%d') AND DATE_FORMAT(NOW(), '%Y-%m-%d')
+					]]>	 
+					</if>
+				<![CDATA[
+			
+			UNION ALL
+			
+			SELECT
+				'LN_A' AS SERV_TYPE,
+				SUM(BUY) AS BUY,
+				NULL AS BUY_RSV,
+				NULL AS BUY_CNFM,
+				NULL AS BUY_NOT_CNFM,
+				NULL AS BUY_DONE,
+				
+				NULL AS USER_REVI,
+				NULL AS M_USER_REVI
+			FROM
+				PPM_DASH_SERVICE
+			WHERE
+				SERV_TYPE = 'LN_A'
+				]]>
+					<if test='searchType in {"1","2"}'>
+					<![CDATA[		
+						AND DATE_FORMAT(SYS_REG_DTM, '%Y-%m-%d') = DATE_FORMAT(#{searchDate}, '%Y-%m-%d')
+					]]>	 
+					</if>
+					<if test='searchType not in {"1","2"}'>
+					<![CDATA[		
+						AND DATE_FORMAT(SYS_REG_DTM, '%Y-%m-%d') BETWEEN DATE_FORMAT(#{searchDate}, '%Y-%m-%d') AND DATE_FORMAT(NOW(), '%Y-%m-%d')
+					]]>	 
+					</if>
+				<![CDATA[
+				
+		]]>
+	</select>
+	
+
+	
+	<update id="insertDashPlatform" parameterType="hashmap" >
+		<![CDATA[
+		INSERT INTO PPM_DASH_PLATFORM (
+			USER_JOIN,
+			USER_LEAV,
+			USER_REST,
+			M_USER_APPL,
+			M_USER_CHK,
+			
+			M_USER_RJT,
+			M_USER_DONE,
+			USER_BUY,
+			USER_REFU,
+			USER_DONE,
+			
+			QNA_DONE,
+			QNA_WAIT,
+			
+			SYS_REG_IDX,
+			SYS_REG_DTM,
+			SYS_MOD_IDX,
+			SYS_MOD_DTM
+			
+		)
+			SELECT
+				*
+			FROM (
+				SELECT
+							( SELECT COUNT(0) FROM PPM_USER WHERE USER_TYPE = 'U' AND USER_USE_YN = 'Y' AND USER_REST_YN = 'N' AND DATE_FORMAT(SYS_REG_DTM, '%Y-%m-%d') = DATE_FORMAT(NOW(), '%Y-%m-%d') ) AS USER_JOIN,
+							( SELECT COUNT(0) FROM PPM_USER WHERE USER_TYPE = 'U' AND USER_USE_YN = 'N' AND DATE_FORMAT(SYS_REG_DTM, '%Y-%m-%d') = DATE_FORMAT(NOW(), '%Y-%m-%d') ) AS USER_LEAV,
+							( SELECT COUNT(0) FROM PPM_USER WHERE USER_TYPE = 'U' AND USER_USE_YN = 'Y' AND USER_REST_YN = 'Y' AND DATE_FORMAT(SYS_REG_DTM, '%Y-%m-%d') = DATE_FORMAT(NOW(), '%Y-%m-%d') ) AS USER_REST,
+							
+							( SELECT COUNT(0) FROM PPM_USER_MAST_APPL WHERE APPL_USE_YN = 'Y' AND ( APPL_CD IS NULL OR APPL_CD = 'MAC01' ) AND DATE_FORMAT(SYS_REG_DTM, '%Y-%m-%d') = DATE_FORMAT(NOW(), '%Y-%m-%d') ) AS M_USER_APPL,
+							( SELECT COUNT(0) FROM PPM_USER_MAST_APPL WHERE APPL_USE_YN = 'Y' AND APPL_CD = 'MAC02' AND DATE_FORMAT(SYS_REG_DTM, '%Y-%m-%d') = DATE_FORMAT(NOW(), '%Y-%m-%d') ) AS M_USER_CHK,
+							( SELECT COUNT(0) FROM PPM_USER_MAST_APPL WHERE APPL_USE_YN = 'Y' AND APPL_CD = 'MAC04' AND DATE_FORMAT(SYS_REG_DTM, '%Y-%m-%d') = DATE_FORMAT(NOW(), '%Y-%m-%d') ) AS M_USER_RJT,
+							( SELECT COUNT(0) FROM PPM_USER_MAST_APPL WHERE APPL_USE_YN = 'Y' AND APPL_CD = 'MAC03' AND DATE_FORMAT(SYS_REG_DTM, '%Y-%m-%d') = DATE_FORMAT(NOW(), '%Y-%m-%d') ) AS M_USER_DONE,
+							
+							( SELECT COUNT(0) FROM PPM_USER_BUY WHERE BUY_NO IS NOT NULL AND (  BUY_STAT = '결제완료' OR BUY_STAT = '취소완료' OR BUY_STAT = '환불완료' ) AND DATE_FORMAT(BUY_COMP_DTM, '%Y-%m-%d') = DATE_FORMAT(NOW(), '%Y-%m-%d') ) AS USER_BUY,
+							( SELECT IFNULL(SUM(REAL_PAY_PRIC),0) FROM PPM_USER_BUY WHERE BUY_NO IS NOT NULL AND ( BUY_STAT = '취소완료' OR BUY_STAT = '환불완료' ) AND DATE_FORMAT(BUY_REFU_DTM, '%Y-%m-%d') = DATE_FORMAT(NOW(), '%Y-%m-%d') ) AS USER_REFU,
+							( SELECT IFNULL(SUM(REAL_PAY_PRIC),0) FROM PPM_USER_BUY WHERE BUY_NO IS NOT NULL AND ( BUY_STAT = '결제완료' ) AND DATE_FORMAT(BUY_COMP_DTM, '%Y-%m-%d') = DATE_FORMAT(NOW(), '%Y-%m-%d') ) AS USER_DONE,
+							
+							( SELECT COUNT(0) FROM PPM_SITE_QNA WHERE QNA_REPL IS NOT NULL AND DATE_FORMAT(SYS_REG_DTM, '%Y-%m-%d') = DATE_FORMAT(NOW(), '%Y-%m-%d') ) AS QNA_DONE,
+							( SELECT COUNT(0) FROM PPM_SITE_QNA WHERE QNA_REPL IS NULL AND DATE_FORMAT(SYS_REG_DTM, '%Y-%m-%d') = DATE_FORMAT(NOW(), '%Y-%m-%d') ) AS QNA_WAIT,
+							
+				0 AS SYS_REG_IDX,
+				NOW() AS SYS_REG_DTM,	
+				0 AS SYS_MOD_IDX,
+				NOW() AS SYS_MOD_DTM
+			) MAIN
+		]]>
+	</update>
+	
+	
+	<update id="insertDashService" parameterType="hashmap" >
+		<![CDATA[
+		INSERT INTO PPM_DASH_SERVICE (
+			SERV_TYPE,
+			BUY,
+			BUY_RSV,
+			BUY_CNFM,
+			BUY_NOT_CNFM,
+			
+			BUY_DONE,
+			USER_REVI,
+			M_USER_REVI,
+			
+			SYS_REG_IDX,
+			SYS_REG_DTM,
+			SYS_MOD_IDX,
+			SYS_MOD_DTM
+			
+		)
+			SELECT
+				*
+			FROM (
+				SELECT
+						'FN'
+						AS SERV_TYPE,
+							( SELECT COUNT(0) FROM PPM_USER_BUY WHERE BUY_STAT = '결제완료' AND BUY_PRDT_CD LIKE '%FN%' AND DATE_FORMAT(BUY_COMP_DTM, '%Y-%m-%d')  = DATE_FORMAT(NOW(), '%Y-%m-%d') )
+						AS BUY,
+							( SELECT COUNT(0) FROM PPM_USER_BUY WHERE BUY_STAT = '결제완료' AND BUY_PRDT_CD LIKE '%FN%' AND TIME_IDX != 0 AND DATE_FORMAT(SYS_MOD_DTM, '%Y-%m-%d')  = DATE_FORMAT(NOW(), '%Y-%m-%d') )
+						AS BUY_RSV,
+							( SELECT COUNT(0) FROM PPM_USER_BUY WHERE BUY_STAT = '결제완료' AND BUY_PRDT_CD LIKE '%FN%' AND TIME_IDX != 0 AND SANG_DAM_HWACK_JUNG_YN = 'Y' AND DATE_FORMAT(SYS_MOD_DTM, '%Y-%m-%d')  = DATE_FORMAT(NOW(), '%Y-%m-%d') )
+						AS BUY_CNFM,
+							( SELECT COUNT(0) FROM PPM_USER_BUY WHERE BUY_STAT = '결제완료' AND BUY_PRDT_CD LIKE '%FN%' AND TIME_IDX != 0 AND SANG_DAM_HWACK_JUNG_YN = 'N' AND DATE_FORMAT(SYS_MOD_DTM, '%Y-%m-%d')  = DATE_FORMAT(NOW(), '%Y-%m-%d') )
+						AS BUY_NOT_CNFM,
+							( SELECT COUNT(0) FROM PPM_USER_BUY PUB LEFT JOIN PPM_USER_BUY_CONS PUBC ON PUB.BUY_IDX = PUBC.BUY_IDX WHERE HIST_FLAG = 'T' AND PUB.BUY_STAT = '결제완료' AND PUB.BUY_PRDT_CD LIKE '%FN%' AND DATE_FORMAT(PUBC.SYS_MOD_DTM, '%Y-%m-%d')  = DATE_FORMAT(NOW(), '%Y-%m-%d') )
+						AS BUY_DONE,
+							( SELECT COUNT(0) FROM PPM_USER_BUY PUB LEFT JOIN PPM_USER_REVI PUR ON PUB.BUY_IDX = PUR.BUY_IDX WHERE PUB.BUY_STAT = '결제완료' AND PUB.BUY_PRDT_CD LIKE '%FN%' AND DATE_FORMAT(PUR.SYS_MOD_DTM, '%Y-%m-%d')  = DATE_FORMAT(NOW(), '%Y-%m-%d') )
+						AS USER_REVI,
+							( SELECT COUNT(0) FROM PPM_USER_BUY PUB LEFT JOIN PPM_USER_REVI_MAST PURM ON PUB.BUY_IDX = PURM.BUY_IDX WHERE PUB.BUY_STAT = '결제완료' AND PUB.BUY_PRDT_CD LIKE '%FN%' AND DATE_FORMAT(PURM.SYS_MOD_DTM, '%Y-%m-%d')  = DATE_FORMAT(NOW(), '%Y-%m-%d') )
+						AS M_USER_REVI,
+							
+				0 AS SYS_REG_IDX,
+				NOW() AS SYS_REG_DTM,	
+				0 AS SYS_MOD_IDX,
+				NOW() AS SYS_MOD_DTM
+					
+					UNION ALL
+					
+					SELECT 
+						'CN'
+						AS SERV_TYPE,
+							( SELECT COUNT(0) FROM PPM_USER_BUY WHERE BUY_STAT = '결제완료' AND BUY_PRDT_CD LIKE '%CN%' AND DATE_FORMAT(BUY_COMP_DTM, '%Y-%m-%d')  = DATE_FORMAT(NOW(), '%Y-%m-%d') )
+						AS BUY,
+							( SELECT COUNT(0) FROM PPM_USER_BUY WHERE BUY_STAT = '결제완료' AND BUY_PRDT_CD LIKE '%CN%' AND TIME_IDX != 0 AND DATE_FORMAT(SYS_MOD_DTM, '%Y-%m-%d')  = DATE_FORMAT(NOW(), '%Y-%m-%d') )
+						AS BUY_RSV,
+							( SELECT COUNT(0) FROM PPM_USER_BUY WHERE BUY_STAT = '결제완료' AND BUY_PRDT_CD LIKE '%CN%' AND TIME_IDX != 0 AND SANG_DAM_HWACK_JUNG_YN = 'Y' AND DATE_FORMAT(SYS_MOD_DTM, '%Y-%m-%d')  = DATE_FORMAT(NOW(), '%Y-%m-%d') )
+						AS BUY_CNFM,
+							( SELECT COUNT(0) FROM PPM_USER_BUY WHERE BUY_STAT = '결제완료' AND BUY_PRDT_CD LIKE '%CN%' AND TIME_IDX != 0 AND SANG_DAM_HWACK_JUNG_YN = 'N' AND DATE_FORMAT(SYS_MOD_DTM, '%Y-%m-%d')  = DATE_FORMAT(NOW(), '%Y-%m-%d') )
+						AS BUY_NOT_CNFM,
+							( SELECT COUNT(0) FROM PPM_USER_BUY PUB LEFT JOIN PPM_CHAT PC ON PUB.BUY_IDX = PC.CHAT_ROOM WHERE PUB.BUY_STAT = '결제완료' AND PUB.BUY_PRDT_CD LIKE '%CN%' AND DATE_FORMAT(PC.CHAT_DT, '%Y-%m-%d')  = DATE_FORMAT(NOW(), '%Y-%m-%d') )
+						AS BUY_DONE,
+							( SELECT COUNT(0) FROM PPM_USER_BUY PUB LEFT JOIN PPM_USER_REVI PUR ON PUB.BUY_IDX = PUR.BUY_IDX WHERE PUB.BUY_STAT = '결제완료' AND PUB.BUY_PRDT_CD LIKE '%CN%' AND DATE_FORMAT(PUR.SYS_MOD_DTM, '%Y-%m-%d')  = DATE_FORMAT(NOW(), '%Y-%m-%d') )
+						AS USER_REVI,
+							( SELECT COUNT(0) FROM PPM_USER_BUY PUB LEFT JOIN PPM_USER_REVI_MAST PURM ON PUB.BUY_IDX = PURM.BUY_IDX WHERE PUB.BUY_STAT = '결제완료' AND PUB.BUY_PRDT_CD LIKE '%CN%' AND DATE_FORMAT(PURM.SYS_MOD_DTM, '%Y-%m-%d')  = DATE_FORMAT(NOW(), '%Y-%m-%d') )
+						AS M_USER_REVI,
+							
+				0 AS SYS_REG_IDX,
+				NOW() AS SYS_REG_DTM,	
+				0 AS SYS_MOD_IDX,
+				NOW() AS SYS_MOD_DTM
+					
+					UNION ALL
+					
+					SELECT
+						'EN'
+						AS SERV_TYPE,
+							( SELECT COUNT(0) FROM PPM_USER_BUY WHERE BUY_STAT = '결제완료' AND BUY_PRDT_CD LIKE '%EN%' AND DATE_FORMAT(BUY_COMP_DTM, '%Y-%m-%d')  = DATE_FORMAT(NOW(), '%Y-%m-%d') )
+						AS BUY,
+							( SELECT COUNT(0)
+							FROM (SELECT PUB.BUY_IDX FROM PPM_USER_BUY PUB LEFT JOIN PPM_USER_BUY_MAIL PUBM ON PUB.BUY_IDX = PUBM.BUY_IDX WHERE BUY_STAT = '결제완료' AND BUY_PRDT_CD LIKE '%EN%' AND PUBM.BUY_IDX IS NOT NULL AND PUBM.SYS_REG_DTM  = DATE_FORMAT(NOW(), '%Y-%m-%d') GROUP BY PUB.BUY_IDX) MAIN )
+						AS BUY_RSV,
+							NULL
+						AS BUY_CNFM,
+							NULL
+						AS BUY_NOT_CNFM,
+							( SELECT COUNT(0) FROM PPM_USER_BUY PUB LEFT JOIN PPM_USER_BUY_MAIL PUBM ON PUB.BUY_IDX = PUBM.BUY_IDX LEFT JOIN PPM_PRDT_MAIL PPM ON PUB.BUY_PRDT_CD = PPM.MAIL_CD
+							WHERE PUB.BUY_STAT = '결제완료' AND PUB.BUY_PRDT_CD LIKE '%EN%' AND PUBM.SYS_MOD_DTM  = DATE_FORMAT(NOW(), '%Y-%m-%d') )
+						AS BUY_DONE,
+							( SELECT COUNT(0) FROM PPM_USER_BUY PUB LEFT JOIN PPM_USER_REVI PUR ON PUB.BUY_IDX = PUR.BUY_IDX WHERE PUB.BUY_STAT = '결제완료' AND PUB.BUY_PRDT_CD LIKE '%EN%' AND DATE_FORMAT(PUR.SYS_MOD_DTM, '%Y-%m-%d')  = DATE_FORMAT(NOW(), '%Y-%m-%d') )
+						AS USER_REVI,
+							( SELECT COUNT(0) FROM PPM_USER_BUY PUB LEFT JOIN PPM_USER_REVI_MAST PURM ON PUB.BUY_IDX = PURM.BUY_IDX WHERE PUB.BUY_STAT = '결제완료' AND PUB.BUY_PRDT_CD LIKE '%EN%' AND DATE_FORMAT(PURM.SYS_MOD_DTM, '%Y-%m-%d')  = DATE_FORMAT(NOW(), '%Y-%m-%d') )
+						AS M_USER_REVI,
+							
+				0 AS SYS_REG_IDX,
+				NOW() AS SYS_REG_DTM,	
+				0 AS SYS_MOD_IDX,
+				NOW() AS SYS_MOD_DTM
+					
+					UNION ALL
+					
+					SELECT
+						'VL'
+						AS SERV_TYPE,
+							( SELECT COUNT(0) FROM PPM_USER_BUY WHERE BUY_STAT = '결제완료' AND BUY_PRDT_CD LIKE '%VL%' AND BUY_REFU_DTM IS NULL AND DATE_FORMAT(BUY_COMP_DTM, '%Y-%m-%d')  = DATE_FORMAT(NOW(), '%Y-%m-%d') )
+						AS BUY,
+							( SELECT COUNT(0) FROM PPM_USER_BUY WHERE ( BUY_STAT = '취소완료' OR BUY_STAT = '환불완료' ) AND BUY_PRDT_CD LIKE '%VL%' AND DATE_FORMAT(BUY_REFU_DTM, '%Y-%m-%d')  = DATE_FORMAT(NOW(), '%Y-%m-%d') )
+						AS BUY_RSV,
+							NULL
+						AS BUY_CNFM,
+							NULL
+						AS BUY_NOT_CNFM,
+							NULL
+						AS BUY_DONE,
+							NULL
+						AS USER_REVI,
+							NULL
+						AS M_USER_REVI,
+							
+				0 AS SYS_REG_IDX,
+				NOW() AS SYS_REG_DTM,	
+				0 AS SYS_MOD_IDX,
+				NOW() AS SYS_MOD_DTM
+					
+					UNION ALL
+					
+					SELECT
+						'LN'
+						AS SERV_TYPE,
+							( SELECT COUNT(0) FROM PPM_USER_BUY PUB LEFT JOIN PPM_PRDT_LIVE PPL ON PUB.BUY_PRDT_CD = PPL.LIVE_CD  WHERE BUY_STAT = '결제완료' AND BUY_PRDT_CD LIKE '%LN%' AND LIVE_ACAD_YN = 'N' AND BUY_REFU_DTM IS NULL AND DATE_FORMAT(BUY_COMP_DTM, '%Y-%m-%d')  = DATE_FORMAT(NOW(), '%Y-%m-%d') )
+						AS BUY,
+							( SELECT COUNT(0) FROM PPM_USER_BUY PUB LEFT JOIN PPM_PRDT_LIVE PPL ON PUB.BUY_PRDT_CD = PPL.LIVE_CD  WHERE ( BUY_STAT = '취소완료' OR BUY_STAT = '환불완료' ) AND BUY_PRDT_CD LIKE '%LN%' AND LIVE_ACAD_YN = 'N' AND DATE_FORMAT(BUY_REFU_DTM, '%Y-%m-%d')  = DATE_FORMAT(NOW(), '%Y-%m-%d') )
+						AS BUY_RSV,
+							NULL
+						AS BUY_CNFM,
+							NULL
+						AS BUY_NOT_CNFM,
+							NULL
+						AS BUY_DONE,
+							NULL
+						AS USER_REVI,
+							NULL
+						AS M_USER_REVI,
+							
+				0 AS SYS_REG_IDX,
+				NOW() AS SYS_REG_DTM,	
+				0 AS SYS_MOD_IDX,
+				NOW() AS SYS_MOD_DTM
+					
+					UNION ALL
+					
+					SELECT
+						'LN_A'
+						AS SERV_TYPE,
+							( SELECT COUNT(0) FROM PPM_USER_BUY PUB LEFT JOIN PPM_PRDT_LIVE PPL ON PUB.BUY_PRDT_CD = PPL.LIVE_CD WHERE BUY_STAT = '결제완료' AND BUY_PRDT_CD LIKE '%LN%' AND LIVE_ACAD_YN = 'Y' AND BUY_REFU_DTM IS NULL AND DATE_FORMAT(BUY_COMP_DTM, '%Y-%m-%d')  = DATE_FORMAT(NOW(), '%Y-%m-%d') )
+						AS BUY,
+							( SELECT COUNT(0) FROM PPM_USER_BUY PUB LEFT JOIN PPM_PRDT_LIVE PPL ON PUB.BUY_PRDT_CD = PPL.LIVE_CD  WHERE ( BUY_STAT = '취소완료' OR BUY_STAT = '환불완료' ) AND BUY_PRDT_CD LIKE '%LN%' AND LIVE_ACAD_YN = 'Y' AND DATE_FORMAT(BUY_REFU_DTM, '%Y-%m-%d')  = DATE_FORMAT(NOW(), '%Y-%m-%d') )
+						AS BUY_RSV,
+							NULL
+						AS BUY_CNFM,
+							NULL
+						AS BUY_NOT_CNFM,
+							NULL
+						AS BUY_DONE,
+							NULL
+						AS USER_REVI,
+							NULL
+						AS M_USER_REVI,
+							
+				0 AS SYS_REG_IDX,
+				NOW() AS SYS_REG_DTM,	
+				0 AS SYS_MOD_IDX,
+				NOW() AS SYS_MOD_DTM
+			) MAIN
+		]]>
+	</update>
+	
+	<update id="deleteDashPlatform" parameterType="hashmap" >
+		<![CDATA[
+		DELETE
+			FROM PPM_DASH_PLATFORM
+		WHERE
+			DATE_FORMAT(SYS_REG_DTM, '%Y-%m-%d') = DATE_FORMAT(NOW(), '%Y-%m-%d')
+		]]>
+	</update>
+	
+	<update id="deleteDashService" parameterType="hashmap" >
+		<![CDATA[
+		DELETE
+			FROM PPM_DASH_SERVICE
+		WHERE
+			DATE_FORMAT(SYS_REG_DTM, '%Y-%m-%d') = DATE_FORMAT(NOW(), '%Y-%m-%d')
+		]]>
+	</update>
+	
+	<select id="selectMngMainConsult" parameterType="hashmap" resultType="hashmap">
+		<![CDATA[
+
+		SELECT
+			(
+			SELECT
+				COUNT(0) FROM PPM_USER_BUY PUB LEFT JOIN PPM_CATE PC ON PUB.CATE_IDX = PC.CATE_IDX
+			WHERE
+				BUY_STAT = '결제완료' AND ( BUY_PRDT_CD LIKE '%FN%' OR BUY_PRDT_CD LIKE '%CN%' OR BUY_PRDT_CD LIKE '%LN%' ) AND TIME_IDX != 0
+				AND SANG_DAM_HWACK_JUNG_YN = 'Y'
+				AND PC.USER_IDX = #{mngLoginIdx}
+			) AS CNFM_CNT,
+			(
+			SELECT
+				COUNT(0) FROM PPM_USER_BUY PUB LEFT JOIN PPM_CATE PC ON PUB.CATE_IDX = PC.CATE_IDX
+			WHERE
+				BUY_STAT = '결제완료' AND ( BUY_PRDT_CD LIKE '%FN%' OR BUY_PRDT_CD LIKE '%CN%' OR BUY_PRDT_CD LIKE '%LN%' ) AND TIME_IDX != 0
+			--	AND SANG_DAM_HWACK_JUNG_YN != 'Y'
+				AND SANG_DAM_HWACK_JUNG_DTM IS NULL
+				AND PC.USER_IDX = #{mngLoginIdx}
+			) AS NOT_CNFM_CNT,
+			(
+			SELECT
+				COUNT(0) FROM PPM_USER_BUY PUB LEFT JOIN PPM_CATE PC ON PUB.CATE_IDX = PC.CATE_IDX LEFT JOIN PPM_PRDT_TIME PPT ON PUB.TIME_IDX = PPT.TIME_IDX
+			WHERE
+				BUY_STAT = '결제완료' AND BUY_PRDT_CD LIKE '%FN%'
+				AND DATE_FORMAT(PPT.TIME_DTM, '%Y-%m-%d') = DATE_FORMAT(NOW(), '%Y-%m-%d')
+				AND PC.USER_IDX = #{mngLoginIdx}
+			) AS FN_CONS_TOTAL,
+			(
+			SELECT
+				COUNT(0) FROM PPM_USER_BUY PUB LEFT JOIN PPM_CATE PC ON PUB.CATE_IDX = PC.CATE_IDX LEFT JOIN PPM_PRDT_TIME PPT ON PUB.TIME_IDX = PPT.TIME_IDX
+			WHERE
+				BUY_STAT = '결제완료' AND BUY_PRDT_CD LIKE '%FN%'
+				AND DATE_FORMAT(PPT.TIME_DTM, '%Y-%m-%d') = DATE_FORMAT(NOW(), '%Y-%m-%d')
+				AND DATE_ADD(CONCAT(PPT.TIME_DTM,' ',PPT.TIME_STR), INTERVAL PPT.TIME_RUN MINUTE) <= DATE_FORMAT(NOW(), '%Y-%m-%d %H:%i:%s')
+				AND PC.USER_IDX = #{mngLoginIdx}
+			) AS FN_CONS_CNT,
+			(
+			SELECT
+				COUNT(0) FROM PPM_USER_BUY PUB LEFT JOIN PPM_CATE PC ON PUB.CATE_IDX = PC.CATE_IDX LEFT JOIN PPM_PRDT_TIME PPT ON PUB.TIME_IDX = PPT.TIME_IDX
+			WHERE
+				BUY_STAT = '결제완료' AND BUY_PRDT_CD LIKE '%CN%'
+				AND DATE_FORMAT(PPT.TIME_DTM, '%Y-%m-%d') = DATE_FORMAT(NOW(), '%Y-%m-%d')
+				AND PC.USER_IDX = #{mngLoginIdx}
+			) AS CN_CONS_TOTAL,
+			(
+			SELECT
+				COUNT(0) FROM PPM_USER_BUY PUB LEFT JOIN PPM_CATE PC ON PUB.CATE_IDX = PC.CATE_IDX LEFT JOIN PPM_PRDT_TIME PPT ON PUB.TIME_IDX = PPT.TIME_IDX
+			WHERE
+				BUY_STAT = '결제완료' AND BUY_PRDT_CD LIKE '%CN%'
+				AND DATE_FORMAT(PPT.TIME_DTM, '%Y-%m-%d') = DATE_FORMAT(NOW(), '%Y-%m-%d')
+				AND DATE_ADD(CONCAT(PPT.TIME_DTM,' ',PPT.TIME_STR), INTERVAL PPT.TIME_RUN MINUTE) <= DATE_FORMAT(NOW(), '%Y-%m-%d %H:%i:%s')
+				AND PC.USER_IDX = #{mngLoginIdx}
+			) AS CN_CONS_CNT,
+			(
+			SELECT
+				COUNT(0) FROM PPM_USER_BUY PUB LEFT JOIN PPM_CATE PC ON PUB.CATE_IDX = PC.CATE_IDX LEFT JOIN PPM_USER_BUY_MAIL PUBM ON PUB.BUY_IDX = PUBM.BUY_IDX
+			WHERE
+				BUY_STAT = '결제완료' AND BUY_PRDT_CD LIKE '%EN%' AND PUBM.MAIL_REPL IS NULL
+				AND PC.USER_IDX = #{mngLoginIdx}
+			) AS EN_CONS_CNT,
+			(
+			SELECT
+				COUNT(0) FROM PPM_USER_BUY PUB LEFT JOIN PPM_CATE PC ON PUB.CATE_IDX = PC.CATE_IDX LEFT JOIN PPM_PRDT_LIVE PPL ON PUB.BUY_PRDT_CD = PPL.LIVE_CD AND PPL.LIVE_ACAD_YN = 'N' LEFT JOIN PPM_PRDT_TIME PPT ON PUB.TIME_IDX = PPT.TIME_IDX
+			WHERE
+				BUY_STAT = '결제완료' AND BUY_PRDT_CD LIKE '%LN%'
+						AND DATE_FORMAT(PPT.TIME_DTM, '%Y-%m-%d') = DATE_FORMAT(NOW(), '%Y-%m-%d')
+				AND PC.USER_IDX = #{mngLoginIdx}
+			) AS LN_CONS_TOTAL,
+			(
+			SELECT
+				COUNT(0) FROM PPM_USER_BUY PUB LEFT JOIN PPM_CATE PC ON PUB.CATE_IDX = PC.CATE_IDX LEFT JOIN PPM_PRDT_LIVE PPL ON PUB.BUY_PRDT_CD = PPL.LIVE_CD AND PPL.LIVE_ACAD_YN = 'N' LEFT JOIN PPM_PRDT_TIME PPT ON PUB.TIME_IDX = PPT.TIME_IDX
+			WHERE
+				BUY_STAT = '결제완료' AND BUY_PRDT_CD LIKE '%LN%'
+				AND DATE_FORMAT(PPT.TIME_DTM, '%Y-%m-%d') = DATE_FORMAT(NOW(), '%Y-%m-%d')
+				AND DATE_ADD(CONCAT(PPT.TIME_DTM,' ',PPT.TIME_STR), INTERVAL PPT.TIME_RUN MINUTE) <= DATE_FORMAT(NOW(), '%Y-%m-%d %H:%i:%s')
+				AND PC.USER_IDX = #{mngLoginIdx}
+			) AS LN_CONS_CNT,
+			(
+			SELECT
+				COUNT(0) FROM PPM_USER_BUY PUB LEFT JOIN PPM_CATE PC ON PUB.CATE_IDX = PC.CATE_IDX LEFT JOIN PPM_PRDT_LIVE PPL ON PUB.BUY_PRDT_CD = PPL.LIVE_CD AND PPL.LIVE_ACAD_YN = 'Y' LEFT JOIN PPM_PRDT_TIME PPT ON PPL.LIVE_IDX = PPT.LIVE_IDX
+			WHERE
+				BUY_STAT = '결제완료' AND BUY_PRDT_CD LIKE '%LN%'
+				AND DATE_FORMAT(PPT.TIME_DTM, '%Y-%m-%d') = DATE_FORMAT(NOW(), '%Y-%m-%d')
+			 	AND PC.USER_IDX = #{mngLoginIdx}
+			) AS LN_A_CONS_TOTAL,
+			(
+			SELECT
+				COUNT(0) FROM PPM_USER_BUY PUB LEFT JOIN PPM_CATE PC ON PUB.CATE_IDX = PC.CATE_IDX LEFT JOIN PPM_PRDT_LIVE PPL ON PUB.BUY_PRDT_CD = PPL.LIVE_CD AND PPL.LIVE_ACAD_YN = 'Y' LEFT JOIN PPM_PRDT_TIME PPT ON PPL.LIVE_IDX = PPT.LIVE_IDX
+			WHERE
+				BUY_STAT = '결제완료' AND BUY_PRDT_CD LIKE '%LN%'
+				AND DATE_FORMAT(PPT.TIME_DTM, '%Y-%m-%d') = DATE_FORMAT(NOW(), '%Y-%m-%d')
+				AND DATE_ADD(CONCAT(PPT.TIME_DTM,' ',PPT.TIME_STR), INTERVAL PPT.TIME_RUN MINUTE) <= DATE_FORMAT(NOW(), '%Y-%m-%d %H:%i:%s')
+			 	AND PC.USER_IDX = #{mngLoginIdx}
+			) AS LN_A_CONS_CNT,
+			(
+			SELECT
+				COUNT( DISTINCT PUB.BUY_IDX ) FROM PPM_USER_BUY PUB LEFT JOIN PPM_CATE PC ON PUB.CATE_IDX = PC.CATE_IDX LEFT OUTER JOIN PPM_USER_REVI_MAST PURM ON PUB.BUY_IDX = PURM.BUY_IDX
+			WHERE
+				BUY_STAT = '결제완료' AND BUY_PRDT_CD NOT LIKE '%VL%' AND PURM.REVI_IDX IS NULL
+				AND PC.USER_IDX = #{mngLoginIdx}
+			) AS M_NOT_REVI_CNT,
+			(
+			SELECT
+				COUNT( DISTINCT PUB.BUY_IDX ) FROM PPM_USER_BUY PUB LEFT JOIN PPM_CATE PC ON PUB.CATE_IDX = PC.CATE_IDX LEFT OUTER JOIN PPM_USER_REVI PUR ON PUB.BUY_IDX = PUR.BUY_IDX
+			WHERE
+				BUY_STAT = '결제완료' AND BUY_PRDT_CD NOT LIKE '%VL%' AND PUR.REVI_CNTN IS NOT NULL
+				AND DATE_FORMAT(PUR.SYS_MOD_DTM, '%Y-%m-%d') = DATE_FORMAT(NOW(), '%Y-%m-%d')
+				AND PC.USER_IDX = #{mngLoginIdx}
+			) AS U_REVI_CNT
+		]]>
+	</select>
+	
+</mapper>

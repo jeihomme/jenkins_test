@@ -1,0 +1,71 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd"> 
+<mapper namespace="unitFile">
+
+	<!-- 파일 업로드 > 전체 리스트 -->
+	<select id="selectFileAll" parameterType="hashmap" resultType="hashmap">
+		<![CDATA[
+			SELECT * FROM UNIT_FILES WHERE UNIT_UUID = #{unitUuid} ORDER BY SYS_REG_DTM ASC
+		]]>
+	</select>
+	
+	<!-- 파일 업로드 > 필드 리스트 -->
+	<select id="selectFileField" parameterType="hashmap" resultType="hashmap">
+		<![CDATA[		
+			SELECT * FROM UNIT_FILES WHERE UNIT_UUID = #{unitUuid} AND FLD_NAME = #{fldName} ORDER BY SYS_REG_DTM ASC
+		]]>
+	</select>
+	
+	<!-- 파일 업로드 > 파일 상세보기 -->
+	<select id="selectFileDetail" parameterType="hashmap" resultType="hashmap">
+		<![CDATA[		
+			SELECT * FROM UNIT_FILES WHERE FILE_UUID = #{fileUuid}
+		]]>
+	</select>
+
+	<!-- 파일 업로드 > 등록하기 -->
+	<insert id="insertFileData" parameterType="hashmap">
+		<![CDATA[
+			INSERT INTO UNIT_FILES 
+			(
+				UNIT_UUID, 
+				FILE_UUID, 
+				FLD_NAME, 
+				FLD_ORDER, 
+				FILE_NAME, 
+				FILE_EXTENSION, 
+				FILE_TYPE, 
+				FILE_SIZE, 
+				FILE_SAFE_NAME, 
+				SYS_REG_DTM
+			) VALUES (
+				#{unitUuid}, 
+				#{fileUuid}, 
+				#{fldName}, 
+				#{fldOrder}, 
+				#{fileName}, 
+				#{fileExtension}, 
+				#{fileType}, 
+				#{fileSize}, 
+				#{fileSafeName}, 
+				#{sysRegDtm}
+			)
+		]]>
+	</insert>
+	
+	<!-- 파일 업로드 > 삭제하기 -->
+	<delete id="deleteFileData" parameterType="hashmap">
+		<![CDATA[	
+			DELETE FROM UNIT_FILES WHERE FILE_UUID = #{fileUuid}
+		]]>
+	</delete>
+	
+	<!-- 파일 업로드 > 전체 삭제하기 -->
+	<delete id="deleteFileAllData" parameterType="hashmap">
+		<![CDATA[
+			DELETE FROM UNIT_FILES WHERE UNIT_UUID = #{unitUuid}
+			]]>
+			<if test="fldName not in {null, ''}"><![CDATA[ AND FLD_NAME = '#{fldName}' ]]></if>
+	</delete>
+	
+</mapper>

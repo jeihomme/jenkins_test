@@ -1,0 +1,2029 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd"> 
+<mapper namespace="frontCron">
+
+	<!-- 접수내역 목록 조회 -->
+	<select id="selectFrontCronCnt" parameterType="hashmap" resultType="hashmap">
+		<![CDATA[
+			SELECT
+				COUNT(0) AS CNT
+			FROM (
+				SELECT	
+					USER_IDX
+				FROM
+					PPM_USER
+				WHERE
+					USER_USE_YN = 'Y'
+					AND USER_REST_YN = 'N'
+					AND USER_LONG_NON_CONN_YN = 'N'
+					AND DATEDIFF(DATE_FORMAT(NOW(), '%Y-%m-%d'), DATE_FORMAT(USER_LOGIN_DTM, '%Y-%m-%d')) > 365
+			) SUB
+		]]>
+	</select>
+	
+	
+	<update id="updateFrontUserData" parameterType="hashmap" >
+		<![CDATA[
+			UPDATE
+				PPM_USER
+			SET
+			  USER_REST_YN = 'Y',
+			  SYS_REST_DTM = DATE_FORMAT(NOW(), '%Y%m%d%H%i%S')
+			  SYS_MOD_DTM = DATE_FORMAT(NOW(), '%Y%m%d%H%i%S')
+			WHERE
+			  USER_IDX IN 	(
+								SELECT	
+									USER_IDX
+								FROM
+									PPM_USER
+								WHERE
+									USER_USE_YN = 'Y'
+									AND USER_REST_YN = 'N'
+									AND USER_LONG_NON_CONN_YN = 'N'
+									AND DATEDIFF(DATE_FORMAT(NOW(), '%Y-%m-%d'), DATE_FORMAT(USER_LOGIN_DTM, '%Y-%m-%d')) > 365
+							)
+		]]>
+	</update>
+
+	<select id="selectPaySmsList" parameterType="hashmap" resultType="hashmap">
+	<![CDATA[
+			SELECT
+				BUY_IDX,
+				M_USER_NM,
+				M_USER_PHONE,
+				USER_NM,
+				USER_PHONE,
+				
+				BUY_PRDT_CD,
+				PRDT_TYPE,
+				PRDT_TERM,
+				TIME_IDX,
+				TIME_DTM,
+				
+				TIME_DTM_NM,
+				TIME_STR,
+				PRDT_END_DTM,
+				TIME_DTM_DIFF,
+				TIME_STR_DIFF,
+
+				CONVERT( DATEDIFF( PRDT_END_DTM, NOW() ), CHAR ) AS MAIL_DTM_DIFF,
+				CONVERT( TIMEDIFF( PRDT_END_DTM, NOW() ), CHAR ) AS MAIL_STR_DIFF
+			FROM (
+				SELECT
+					PUB.BUY_IDX,
+					PU_M.USER_NM AS M_USER_NM,
+					PU_M.USER_PHONE AS M_USER_PHONE,
+					PU_U.USER_NM,
+					PU_U.USER_PHONE,
+					
+					PUB.BUY_PRDT_CD,
+					(
+						CASE
+							WHEN PUB.BUY_PRDT_CD LIKE '%VL%' THEN 'VOD'
+							WHEN PUB.BUY_PRDT_CD LIKE '%FN%' THEN '1:1화상코칭'
+							WHEN PUB.BUY_PRDT_CD LIKE '%CN%' THEN '1:1채팅코칭'
+							WHEN PUB.BUY_PRDT_CD LIKE '%LN%' THEN 'LIVE CLASS'
+							WHEN PUB.BUY_PRDT_CD LIKE '%EN%' THEN '1:1이메일코칭'
+						END
+					) AS PRDT_TYPE,
+					(
+						CASE
+							WHEN PUB.BUY_PRDT_CD LIKE '%EN%' THEN DATE_FORMAT( ( SELECT DATE_ADD(DATE_FORMAT( PUB.BUY_COMP_DTM, '%Y-%m-%d' ), INTERVAL MAIL_DTM_CNT DAY) FROM PPM_PRDT_MAIL WHERE MAIL_CD = PUB.BUY_PRDT_CD ), '%Y년 %m월 %d일' )
+							ELSE ''
+						END
+					) AS PRDT_TERM,
+					(
+						CASE
+							WHEN PUB.BUY_PRDT_CD LIKE '%EN%' THEN DATE_FORMAT( ( SELECT DATE_ADD(DATE_FORMAT( PUB.BUY_COMP_DTM, '%Y-%m-%d' ), INTERVAL MAIL_DTM_CNT DAY) FROM PPM_PRDT_MAIL WHERE MAIL_CD = PUB.BUY_PRDT_CD ), '%Y-%m-%d %H:%i:%S' )
+							ELSE ''
+						END
+					) AS PRDT_END_DTM,
+					PUB.TIME_IDX,
+					PPT.TIME_DTM,
+					DATE_FORMAT(PPT.TIME_DTM, '%Y년 %m월 %d일') TIME_DTM_NM,
+					PPT.TIME_STR,
+					DATEDIFF( TIME_DTM, NOW() ) AS TIME_DTM_DIFF,
+					TIMEDIFF( CONCAT(TIME_DTM, ' ', TIME_STR, ':00'), NOW() ) AS TIME_STR_DIFF
+					
+				FROM 
+					PPM_USER_BUY PUB
+						LEFT OUTER JOIN PPM_PRDT_TIME PPT ON PUB.TIME_IDX = PPT.TIME_IDX
+						LEFT JOIN PPM_CATE PC ON PUB.CATE_IDX = PC.CATE_IDX	
+						LEFT JOIN PPM_USER PU_M ON PC.USER_IDX = PU_M.USER_IDX				
+						LEFT JOIN PPM_USER PU_U ON PUB.USER_IDX = PU_U.USER_IDX
+				) MAIN
+			WHERE
+				( ( TIME_DTM_DIFF > -1 AND TIME_STR_DIFF BETWEEN TIME_FORMAT( '-00:00:01' , '%H:%i:%S' ) AND '25:00:00' ) OR ( DATEDIFF( PRDT_END_DTM, NOW() ) < 9 AND DATEDIFF( PRDT_END_DTM, NOW() ) > -1 ) )
+	
+		]]>
+	</select>
+	
+	<insert id="insertFrontStatJoinData" parameterType="hashmap">
+		<selectKey order="BEFORE" resultType="hashmap" keyProperty="JOIN_CNT,SECEDE_CNT,REST_CNT,JOIN_IDX">
+		<![CDATA[
+		SELECT
+			 (SELECT 
+				COUNT(0) CNT 
+					FROM 
+						PPM_USER PU 
+						WHERE 
+							PU.USER_USE_YN = 'Y'
+							AND DATE_FORMAT( SYS_REG_DTM , '%Y-%m-%d' ) = DATE_SUB( DATE_FORMAT( NOW(), '%Y-%m-%d' ), INTERVAL 1 DAY ) ) JOIN_CNT,
+			 (SELECT 
+				COUNT(0) CNT
+					FROM 
+						PPM_USER PU 
+							WHERE 
+								PU.USER_USE_YN = 'N'
+								AND DATE_FORMAT( SYS_MOD_DTM , '%Y-%m-%d' ) = DATE_SUB( DATE_FORMAT( NOW(), '%Y-%m-%d' ), INTERVAL 1 DAY ) ) SECEDE_CNT,
+			(SELECT 
+				COUNT(0) CNT
+					FROM 
+						PPM_USER PU 
+						WHERE 
+							PU.USER_REST_YN = 'Y'
+							AND DATE_FORMAT( SYS_REST_DTM , '%Y-%m-%d' ) = DATE_SUB( DATE_FORMAT( NOW(), '%Y-%m-%d' ), INTERVAL 1 DAY ) ) REST_CNT,
+			(SELECT 
+				JOIN_IDX
+					FROM 
+						PPM_SITE_STAT_JOIN PSSJ 
+						WHERE MAIN_DTM = DATE_SUB( DATE_FORMAT( NOW(), '%Y-%m-%d' ), INTERVAL 1 DAY ) LIMIT 1) JOIN_IDX
+	
+		]]>
+		</selectKey>
+		<![CDATA[
+		
+		INSERT INTO 
+			PPM_DEV.PPM_SITE_STAT_JOIN
+			(
+			JOIN_IDX,
+			MAIN_DTM, 
+			JOIN_CNT, 
+			JOIN_SLEE_CNT, 
+			JOIN_DEL_CNT,
+			JOIN_ISSU, 
+			SYS_REG_IDX,
+			SYS_REG_DTM, 
+			SYS_MOD_IDX, 
+			SYS_MOD_DTM
+			)
+			VALUES
+			(
+			#{JOIN_IDX},
+			DATE_SUB( DATE_FORMAT( NOW() , '%Y-%m-%d' ), INTERVAL 1 DAY ),
+			#{JOIN_CNT},
+			#{SECEDE_CNT},
+			#{REST_CNT},
+			'',
+			0,
+			DATE_FORMAT(NOW(), '%Y-%m-%d %H:%i:%S'),
+			0,
+			DATE_FORMAT(NOW(), '%Y-%m-%d %H:%i:%S')
+			)ON DUPLICATE KEY UPDATE
+			
+			JOIN_CNT = #{JOIN_CNT},
+			JOIN_SLEE_CNT = #{SECEDE_CNT}, 
+			JOIN_DEL_CNT = #{REST_CNT},
+			SYS_MOD_DTM = DATE_FORMAT(NOW(), '%Y-%m-%d %H:%i:%S')
+				
+		
+		]]>
+	</insert>
+	
+	<insert id="insertFrontStatSaleData" parameterType="hashmap">
+	
+		<selectKey order="BEFORE" resultType="hashmap" keyProperty="VOD_REAL_PRIC,VOD_REAL_CNT,VOD_PRIC,VOD_CNT,REFUND_VOD_PRIC,REFUND_VOD_CNT,CHAT_REAL_PRIC,CHAT_REAL_CNT,CHAT_PRIC,CHAT_CNT,REFUND_CHAT_PRIC,REFUND_CHAT_CNT,LIVE_REAL_PRIC,LIVE_REAL_CNT,LIVE_PRIC,LIVE_CNT,REFUND_LIVE_PRIC,REFUND_LIVE_CNT,LIVE_ACAD_REAL_PRIC,LIVE_ACAD_REAL_CNT,LIVE_ACAD_PRIC,LIVE_ACAD_CNT,REFUND_LIVE_ACAD_PRIC,REFUND_LIVE_ACAD_CNT,EMAIL_REAL_PRIC,EMAIL_REAL_CNT,EMAIL_PRIC,EMAIL_CNT,REFUND_EMAIL_PRIC,REFUND_EMAIL_CNT,FACE_REAL_PRIC,FACE_REAL_CNT,FACE_PRIC,FACE_CNT,REFUND_FACE_PRIC,REFUND_FACE_CNT,REAL_PAY_AMOUNT,REAL_PAY_CNT,REFUND_AMOUNT,REFUND_CNT,PAY_AMOUNT,PAY_CNT,SALE_IDX">
+		<![CDATA[
+SELECT
+			 IFNULL(  (SELECT 
+					BUY_PRIC
+					FROM(
+				SELECT 
+					IFNULL( CONVERT( SUM(PUB.REAL_PAY_PRIC) - SUM(PUB.REAL_DISC_PRIC), UNSIGNED ) , 0 ) BUY_PRIC,
+					CASE 
+							WHEN BUY_PRDT_CD LIKE '%VL%' THEN 'VOD'
+							WHEN BUY_PRDT_CD LIKE '%CN%' THEN 'CHAT'
+							WHEN BUY_PRDT_CD LIKE '%LN%' THEN 'LIVE'
+							WHEN BUY_PRDT_CD LIKE '%EN%' THEN 'EMAIL'
+							WHEN BUY_PRDT_CD LIKE '%FN%' THEN 'FACE'
+						ELSE '-' 
+						END PRDT,
+						COUNT(0) CNT
+					FROM 
+						PPM_USER_BUY PUB 
+							WHERE 
+								PUB.BUY_STAT IS NOT NULL
+								AND PUB.BUY_COMP_YN = 'Y'
+								AND ( PUB.BUY_REFU_YN = 'N' OR PUB.BUY_REFU_YN = 'R' )
+								AND CATE_IDX = #{CATE_IDX}
+								AND DATE_FORMAT( BUY_COMP_DTM, '%Y-%m-%d') =  DATE_SUB( DATE_FORMAT( NOW(), '%Y-%m-%d' ), INTERVAL 1 DAY )
+								GROUP BY PRDT
+								) A
+								WHERE PRDT = 'VOD' ),0) AS VOD_REAL_PRIC,
+			 IFNULL(  (SELECT 
+					CNT
+					FROM(
+				SELECT 
+					IFNULL( CONVERT( SUM(PUB.REAL_PAY_PRIC) - SUM(PUB.REAL_DISC_PRIC), UNSIGNED ) , 0 ) BUY_PRIC,
+					CASE 
+							WHEN BUY_PRDT_CD LIKE '%VL%' THEN 'VOD'
+							WHEN BUY_PRDT_CD LIKE '%CN%' THEN 'CHAT'
+							WHEN BUY_PRDT_CD LIKE '%LN%' THEN 'LIVE'
+							WHEN BUY_PRDT_CD LIKE '%EN%' THEN 'EMAIL'
+							WHEN BUY_PRDT_CD LIKE '%FN%' THEN 'FACE'
+						ELSE '-' 
+						END PRDT,
+						COUNT(0) CNT
+					FROM 
+						PPM_USER_BUY PUB 
+							WHERE 
+								PUB.BUY_STAT IS NOT NULL
+								AND PUB.BUY_COMP_YN = 'Y'
+								AND ( PUB.BUY_REFU_YN = 'N' OR PUB.BUY_REFU_YN = 'R' )
+								AND CATE_IDX = #{CATE_IDX}
+								AND DATE_FORMAT( BUY_COMP_DTM, '%Y-%m-%d') =  DATE_SUB( DATE_FORMAT( NOW(), '%Y-%m-%d' ), INTERVAL 1 DAY )
+								GROUP BY PRDT
+								) A
+								WHERE PRDT = 'VOD' ),0) AS VOD_REAL_CNT,
+			 IFNULL(  (SELECT 
+					BUY_PRIC
+					FROM(
+				SELECT 
+					IFNULL( CONVERT( SUM(PUB.REAL_PAY_PRIC) - SUM(PUB.REAL_DISC_PRIC), UNSIGNED ) , 0 ) BUY_PRIC,
+					CASE 
+							WHEN BUY_PRDT_CD LIKE '%VL%' THEN 'VOD'
+							WHEN BUY_PRDT_CD LIKE '%CN%' THEN 'CHAT'
+							WHEN BUY_PRDT_CD LIKE '%LN%' THEN 'LIVE'
+							WHEN BUY_PRDT_CD LIKE '%EN%' THEN 'EMAIL'
+							WHEN BUY_PRDT_CD LIKE '%FN%' THEN 'FACE'
+						ELSE '-' 
+						END PRDT,
+						COUNT(0) CNT
+					FROM 
+						PPM_USER_BUY PUB 
+							WHERE 
+								PUB.BUY_STAT IS NOT NULL
+								AND PUB.BUY_COMP_YN = 'Y'
+								AND CATE_IDX = #{CATE_IDX}
+								AND DATE_FORMAT( BUY_COMP_DTM, '%Y-%m-%d') =  DATE_SUB( DATE_FORMAT( NOW(), '%Y-%m-%d' ), INTERVAL 1 DAY )
+								GROUP BY PRDT
+								) A
+								WHERE PRDT = 'VOD' ),0) AS VOD_PRIC,
+			 IFNULL(  (SELECT 
+					CNT
+					FROM(
+				SELECT 
+					IFNULL( CONVERT( SUM(PUB.REAL_PAY_PRIC) - SUM(PUB.REAL_DISC_PRIC), UNSIGNED ) , 0 ) BUY_PRIC,
+					CASE 
+							WHEN BUY_PRDT_CD LIKE '%VL%' THEN 'VOD'
+							WHEN BUY_PRDT_CD LIKE '%CN%' THEN 'CHAT'
+							WHEN BUY_PRDT_CD LIKE '%LN%' THEN 'LIVE'
+							WHEN BUY_PRDT_CD LIKE '%EN%' THEN 'EMAIL'
+							WHEN BUY_PRDT_CD LIKE '%FN%' THEN 'FACE'
+						ELSE '-' 
+						END PRDT,
+						COUNT(0) CNT
+					FROM 
+						PPM_USER_BUY PUB 
+							WHERE 
+								PUB.BUY_STAT IS NOT NULL
+								AND PUB.BUY_COMP_YN = 'Y'
+								AND CATE_IDX = #{CATE_IDX}
+								AND DATE_FORMAT( BUY_COMP_DTM, '%Y-%m-%d') =  DATE_SUB( DATE_FORMAT( NOW(), '%Y-%m-%d' ), INTERVAL 1 DAY )
+								GROUP BY PRDT
+								) A
+								WHERE PRDT = 'VOD' ),0) AS VOD_CNT,
+			 IFNULL(  (SELECT 
+					BUY_PRIC
+					FROM(
+				SELECT 
+					IFNULL( CONVERT( SUM(PUB.REAL_PAY_PRIC) - SUM(PUB.REAL_DISC_PRIC), UNSIGNED ) , 0 ) BUY_PRIC,
+					CASE 
+							WHEN BUY_PRDT_CD LIKE '%VL%' THEN 'VOD'
+							WHEN BUY_PRDT_CD LIKE '%CN%' THEN 'CHAT'
+							WHEN BUY_PRDT_CD LIKE '%LN%' THEN 'LIVE'
+							WHEN BUY_PRDT_CD LIKE '%EN%' THEN 'EMAIL'
+							WHEN BUY_PRDT_CD LIKE '%FN%' THEN 'FACE'
+						ELSE '-' 
+						END PRDT,
+						COUNT(0) CNT
+					FROM 
+						PPM_USER_BUY PUB 
+							WHERE 
+								(PUB.BUY_STAT = '취소완료' OR PUB.BUY_STAT = '환불완료')
+								AND PUB.BUY_REFU_YN = 'Y'
+								AND CATE_IDX = #{CATE_IDX}
+								AND DATE_FORMAT( BUY_COMP_DTM, '%Y-%m-%d') =  DATE_SUB( DATE_FORMAT( NOW(), '%Y-%m-%d' ), INTERVAL 1 DAY )
+								GROUP BY PRDT
+								) A
+								WHERE PRDT = 'VOD' ),0) AS REFUND_VOD_PRIC,
+			 IFNULL(  (SELECT 
+					CNT
+					FROM(
+				SELECT 
+					IFNULL( CONVERT( SUM(PUB.REAL_PAY_PRIC) - SUM(PUB.REAL_DISC_PRIC), UNSIGNED ) , 0 ) BUY_PRIC,
+					CASE 
+							WHEN BUY_PRDT_CD LIKE '%VL%' THEN 'VOD'
+							WHEN BUY_PRDT_CD LIKE '%CN%' THEN 'CHAT'
+							WHEN BUY_PRDT_CD LIKE '%LN%' THEN 'LIVE'
+							WHEN BUY_PRDT_CD LIKE '%EN%' THEN 'EMAIL'
+							WHEN BUY_PRDT_CD LIKE '%FN%' THEN 'FACE'
+						ELSE '-' 
+						END PRDT,
+						COUNT(0) CNT
+					FROM 
+						PPM_USER_BUY PUB 
+							WHERE 
+								(PUB.BUY_STAT = '취소완료' OR PUB.BUY_STAT = '환불완료')
+								AND PUB.BUY_REFU_YN = 'Y'
+								AND CATE_IDX = #{CATE_IDX}
+								AND DATE_FORMAT( BUY_COMP_DTM, '%Y-%m-%d') =  DATE_SUB( DATE_FORMAT( NOW(), '%Y-%m-%d' ), INTERVAL 1 DAY )
+								GROUP BY PRDT
+								) A
+								WHERE PRDT = 'VOD' ),0) AS REFUND_VOD_CNT,
+			 IFNULL(  (SELECT 
+					BUY_PRIC
+					FROM(
+				SELECT 
+					IFNULL( CONVERT( SUM(PUB.REAL_PAY_PRIC) - SUM(PUB.REAL_DISC_PRIC), UNSIGNED ) , 0 ) BUY_PRIC,
+					CASE 
+							WHEN BUY_PRDT_CD LIKE '%VL%' THEN 'VOD'
+							WHEN BUY_PRDT_CD LIKE '%CN%' THEN 'CHAT'
+							WHEN BUY_PRDT_CD LIKE '%LN%' THEN 'LIVE'
+							WHEN BUY_PRDT_CD LIKE '%EN%' THEN 'EMAIL'
+							WHEN BUY_PRDT_CD LIKE '%FN%' THEN 'FACE'
+						ELSE '-' 
+						END PRDT,
+						COUNT(0) CNT
+					FROM 
+						PPM_USER_BUY PUB 
+							WHERE 
+								PUB.BUY_STAT IS NOT NULL
+								AND PUB.BUY_COMP_YN = 'Y'
+								AND ( PUB.BUY_REFU_YN = 'N' OR PUB.BUY_REFU_YN = 'R' )
+								AND CATE_IDX = #{CATE_IDX}
+								AND DATE_FORMAT( BUY_COMP_DTM, '%Y-%m-%d') =  DATE_SUB( DATE_FORMAT( NOW(), '%Y-%m-%d' ), INTERVAL 1 DAY )
+								GROUP BY PRDT
+								) A
+								WHERE PRDT = 'CHAT' ),0) AS CHAT_REAL_PRIC,
+				 IFNULL(  (SELECT 
+						CNT
+						FROM(
+					SELECT 
+						IFNULL( CONVERT( SUM(PUB.REAL_PAY_PRIC) - SUM(PUB.REAL_DISC_PRIC), UNSIGNED ) , 0 ) BUY_PRIC,
+						CASE 
+								WHEN BUY_PRDT_CD LIKE '%VL%' THEN 'VOD'
+								WHEN BUY_PRDT_CD LIKE '%CN%' THEN 'CHAT'
+								WHEN BUY_PRDT_CD LIKE '%LN%' THEN 'LIVE'
+								WHEN BUY_PRDT_CD LIKE '%EN%' THEN 'EMAIL'
+								WHEN BUY_PRDT_CD LIKE '%FN%' THEN 'FACE'
+							ELSE '-' 
+							END PRDT,
+							COUNT(0) CNT
+						FROM 
+							PPM_USER_BUY PUB 
+								WHERE 
+									PUB.BUY_STAT IS NOT NULL
+									AND PUB.BUY_COMP_YN = 'Y'
+									AND ( PUB.BUY_REFU_YN = 'N' OR PUB.BUY_REFU_YN = 'R' )
+									AND CATE_IDX = #{CATE_IDX}
+									AND DATE_FORMAT( BUY_COMP_DTM, '%Y-%m-%d') =  DATE_SUB( DATE_FORMAT( NOW(), '%Y-%m-%d' ), INTERVAL 1 DAY )
+									GROUP BY PRDT
+									) A
+									WHERE PRDT = 'CHAT' ),0) AS CHAT_REAL_CNT,
+			 IFNULL(  (SELECT 
+					BUY_PRIC
+					FROM(
+				SELECT 
+					IFNULL( CONVERT( SUM(PUB.REAL_PAY_PRIC) - SUM(PUB.REAL_DISC_PRIC), UNSIGNED ) , 0 ) BUY_PRIC,
+					CASE 
+							WHEN BUY_PRDT_CD LIKE '%VL%' THEN 'VOD'
+							WHEN BUY_PRDT_CD LIKE '%CN%' THEN 'CHAT'
+							WHEN BUY_PRDT_CD LIKE '%LN%' THEN 'LIVE'
+							WHEN BUY_PRDT_CD LIKE '%EN%' THEN 'EMAIL'
+							WHEN BUY_PRDT_CD LIKE '%FN%' THEN 'FACE'
+						ELSE '-' 
+						END PRDT,
+						COUNT(0) CNT
+					FROM 
+						PPM_USER_BUY PUB 
+							WHERE 
+								PUB.BUY_STAT IS NOT NULL
+								AND PUB.BUY_COMP_YN = 'Y'
+								AND CATE_IDX = #{CATE_IDX}
+								AND DATE_FORMAT( BUY_COMP_DTM, '%Y-%m-%d') =  DATE_SUB( DATE_FORMAT( NOW(), '%Y-%m-%d' ), INTERVAL 1 DAY )
+								GROUP BY PRDT
+								) A
+								WHERE PRDT = 'CHAT' ),0) AS CHAT_PRIC,
+				 IFNULL(  (SELECT 
+						CNT
+						FROM(
+					SELECT 
+						IFNULL( CONVERT( SUM(PUB.REAL_PAY_PRIC) - SUM(PUB.REAL_DISC_PRIC), UNSIGNED ) , 0 ) BUY_PRIC,
+						CASE 
+								WHEN BUY_PRDT_CD LIKE '%VL%' THEN 'VOD'
+								WHEN BUY_PRDT_CD LIKE '%CN%' THEN 'CHAT'
+								WHEN BUY_PRDT_CD LIKE '%LN%' THEN 'LIVE'
+								WHEN BUY_PRDT_CD LIKE '%EN%' THEN 'EMAIL'
+								WHEN BUY_PRDT_CD LIKE '%FN%' THEN 'FACE'
+							ELSE '-' 
+							END PRDT,
+							COUNT(0) CNT
+						FROM 
+							PPM_USER_BUY PUB 
+								WHERE 
+									PUB.BUY_STAT IS NOT NULL
+									AND PUB.BUY_COMP_YN = 'Y'
+									AND CATE_IDX = #{CATE_IDX}
+									AND DATE_FORMAT( BUY_COMP_DTM, '%Y-%m-%d') =  DATE_SUB( DATE_FORMAT( NOW(), '%Y-%m-%d' ), INTERVAL 1 DAY )
+									GROUP BY PRDT
+									) A
+									WHERE PRDT = 'CHAT' ),0) AS CHAT_CNT,
+		 IFNULL(  (SELECT 
+					BUY_PRIC
+					FROM(
+				SELECT 
+					IFNULL( CONVERT( SUM(PUB.REAL_PAY_PRIC) - SUM(PUB.REAL_DISC_PRIC), UNSIGNED ) , 0 ) BUY_PRIC,
+					CASE 
+							WHEN BUY_PRDT_CD LIKE '%VL%' THEN 'VOD'
+							WHEN BUY_PRDT_CD LIKE '%CN%' THEN 'CHAT'
+							WHEN BUY_PRDT_CD LIKE '%LN%' THEN 'LIVE'
+							WHEN BUY_PRDT_CD LIKE '%EN%' THEN 'EMAIL'
+							WHEN BUY_PRDT_CD LIKE '%FN%' THEN 'FACE'
+						ELSE '-' 
+						END PRDT,
+						COUNT(0) CNT
+					FROM 
+						PPM_USER_BUY PUB 
+							WHERE 
+								(PUB.BUY_STAT = '취소완료' OR PUB.BUY_STAT = '환불완료')
+								AND PUB.BUY_REFU_YN = 'Y'
+								AND CATE_IDX = #{CATE_IDX}
+								AND DATE_FORMAT( BUY_COMP_DTM, '%Y-%m-%d') =  DATE_SUB( DATE_FORMAT( NOW(), '%Y-%m-%d' ), INTERVAL 1 DAY )
+								GROUP BY PRDT
+								) A
+								WHERE PRDT = 'CHAT' ),0) AS REFUND_CHAT_PRIC,
+			 IFNULL(  (SELECT 
+					CNT
+					FROM(
+				SELECT 
+					IFNULL( CONVERT( SUM(PUB.REAL_PAY_PRIC) - SUM(PUB.REAL_DISC_PRIC), UNSIGNED ) , 0 ) BUY_PRIC,
+					CASE 
+							WHEN BUY_PRDT_CD LIKE '%VL%' THEN 'VOD'
+							WHEN BUY_PRDT_CD LIKE '%CN%' THEN 'CHAT'
+							WHEN BUY_PRDT_CD LIKE '%LN%' THEN 'LIVE'
+							WHEN BUY_PRDT_CD LIKE '%EN%' THEN 'EMAIL'
+							WHEN BUY_PRDT_CD LIKE '%FN%' THEN 'FACE'
+						ELSE '-' 
+						END PRDT,
+						COUNT(0) CNT
+					FROM 
+						PPM_USER_BUY PUB 
+							WHERE 
+								(PUB.BUY_STAT = '취소완료' OR PUB.BUY_STAT = '환불완료')
+								AND PUB.BUY_REFU_YN = 'Y'
+								AND CATE_IDX = #{CATE_IDX}
+								AND DATE_FORMAT( BUY_COMP_DTM, '%Y-%m-%d') =  DATE_SUB( DATE_FORMAT( NOW(), '%Y-%m-%d' ), INTERVAL 1 DAY )
+								GROUP BY PRDT
+								) A
+								WHERE PRDT = 'CHAT' ),0) AS REFUND_CHAT_CNT,					
+								
+								
+								
+								
+								
+								
+								
+								
+								
+								
+								
+								
+									
+			IFNULL(   (SELECT 
+					BUY_PRIC
+					FROM(
+				SELECT 
+					IFNULL( CONVERT( SUM(PUB.REAL_PAY_PRIC) - SUM(PUB.REAL_DISC_PRIC), UNSIGNED ) , 0 ) BUY_PRIC,
+					CASE 
+							WHEN BUY_PRDT_CD LIKE '%VL%' THEN 'VOD'
+							WHEN BUY_PRDT_CD LIKE '%CN%' THEN 'CHAT'
+							WHEN BUY_PRDT_CD LIKE '%LN%' THEN 'LIVE'
+							WHEN BUY_PRDT_CD LIKE '%EN%' THEN 'EMAIL'
+							WHEN BUY_PRDT_CD LIKE '%FN%' THEN 'FACE'
+						ELSE '-' 
+						END PRDT,
+						COUNT(0) CNT
+					FROM 
+						PPM_USER_BUY PUB LEFT JOIN PPM_PRDT_LIVE PPL ON PUB.BUY_PRDT_CD = PPL.LIVE_CD
+							WHERE 
+								PUB.BUY_STAT IS NOT NULL
+								AND PUB.BUY_COMP_YN = 'Y'
+								AND ( PUB.BUY_REFU_YN = 'N' OR PUB.BUY_REFU_YN = 'R' )
+								AND PUB.CATE_IDX = #{CATE_IDX}
+								AND PPL.LIVE_ACAD_YN = 'N'
+								AND DATE_FORMAT( BUY_COMP_DTM, '%Y-%m-%d') =  DATE_SUB( DATE_FORMAT( NOW(), '%Y-%m-%d' ), INTERVAL 1 DAY )
+								GROUP BY PRDT
+								) A
+								WHERE PRDT = 'LIVE' ),0) AS LIVE_REAL_PRIC,
+				IFNULL(   (SELECT 
+						CNT
+						FROM(
+					SELECT 
+						IFNULL( CONVERT( SUM(PUB.REAL_PAY_PRIC) - SUM(PUB.REAL_DISC_PRIC), UNSIGNED ) , 0 ) BUY_PRIC,
+						CASE 
+								WHEN BUY_PRDT_CD LIKE '%VL%' THEN 'VOD'
+								WHEN BUY_PRDT_CD LIKE '%CN%' THEN 'CHAT'
+								WHEN BUY_PRDT_CD LIKE '%LN%' THEN 'LIVE'
+								WHEN BUY_PRDT_CD LIKE '%EN%' THEN 'EMAIL'
+								WHEN BUY_PRDT_CD LIKE '%FN%' THEN 'FACE'
+							ELSE '-' 
+							END PRDT,
+							COUNT(0) CNT
+						FROM 
+							PPM_USER_BUY PUB LEFT JOIN PPM_PRDT_LIVE PPL ON PUB.BUY_PRDT_CD = PPL.LIVE_CD
+								WHERE 
+									PUB.BUY_STAT IS NOT NULL
+									AND PUB.BUY_COMP_YN = 'Y'
+									AND ( PUB.BUY_REFU_YN = 'N' OR PUB.BUY_REFU_YN = 'R' )
+									AND PUB.CATE_IDX = #{CATE_IDX}
+									AND PPL.LIVE_ACAD_YN = 'N'
+									AND DATE_FORMAT( BUY_COMP_DTM, '%Y-%m-%d') =  DATE_SUB( DATE_FORMAT( NOW(), '%Y-%m-%d' ), INTERVAL 1 DAY )
+									GROUP BY PRDT
+									) A
+									WHERE PRDT = 'LIVE' ),0) AS LIVE_REAL_CNT,		
+			IFNULL(   (SELECT 
+					BUY_PRIC
+					FROM(
+				SELECT 
+					IFNULL( CONVERT( SUM(PUB.REAL_PAY_PRIC) - SUM(PUB.REAL_DISC_PRIC), UNSIGNED ) , 0 ) BUY_PRIC,
+					CASE 
+							WHEN BUY_PRDT_CD LIKE '%VL%' THEN 'VOD'
+							WHEN BUY_PRDT_CD LIKE '%CN%' THEN 'CHAT'
+							WHEN BUY_PRDT_CD LIKE '%LN%' THEN 'LIVE'
+							WHEN BUY_PRDT_CD LIKE '%EN%' THEN 'EMAIL'
+							WHEN BUY_PRDT_CD LIKE '%FN%' THEN 'FACE'
+						ELSE '-' 
+						END PRDT,
+						COUNT(0) CNT
+					FROM 
+						PPM_USER_BUY PUB LEFT JOIN PPM_PRDT_LIVE PPL ON PUB.BUY_PRDT_CD = PPL.LIVE_CD
+							WHERE 
+								PUB.BUY_STAT IS NOT NULL
+								AND PUB.BUY_COMP_YN = 'Y'
+								AND PUB.CATE_IDX = #{CATE_IDX}
+								AND PPL.LIVE_ACAD_YN = 'N'
+								AND DATE_FORMAT( BUY_COMP_DTM, '%Y-%m-%d') =  DATE_SUB( DATE_FORMAT( NOW(), '%Y-%m-%d' ), INTERVAL 1 DAY )
+								GROUP BY PRDT
+								) A
+								WHERE PRDT = 'LIVE' ),0) AS LIVE_PRIC,
+				IFNULL(   (SELECT 
+						CNT
+						FROM(
+					SELECT 
+						IFNULL( CONVERT( SUM(PUB.REAL_PAY_PRIC) - SUM(PUB.REAL_DISC_PRIC), UNSIGNED ) , 0 ) BUY_PRIC,
+						CASE 
+								WHEN BUY_PRDT_CD LIKE '%VL%' THEN 'VOD'
+								WHEN BUY_PRDT_CD LIKE '%CN%' THEN 'CHAT'
+								WHEN BUY_PRDT_CD LIKE '%LN%' THEN 'LIVE'
+								WHEN BUY_PRDT_CD LIKE '%EN%' THEN 'EMAIL'
+								WHEN BUY_PRDT_CD LIKE '%FN%' THEN 'FACE'
+							ELSE '-' 
+							END PRDT,
+							COUNT(0) CNT
+						FROM 
+							PPM_USER_BUY PUB LEFT JOIN PPM_PRDT_LIVE PPL ON PUB.BUY_PRDT_CD = PPL.LIVE_CD
+								WHERE 
+									PUB.BUY_STAT IS NOT NULL
+									AND PUB.BUY_COMP_YN = 'Y'
+									AND PUB.CATE_IDX = #{CATE_IDX}
+									AND PPL.LIVE_ACAD_YN = 'N'
+									AND DATE_FORMAT( BUY_COMP_DTM, '%Y-%m-%d') =  DATE_SUB( DATE_FORMAT( NOW(), '%Y-%m-%d' ), INTERVAL 1 DAY )
+									GROUP BY PRDT
+									) A
+									WHERE PRDT = 'LIVE' ),0) AS LIVE_CNT,		
+		 IFNULL(  (SELECT 
+					BUY_PRIC
+					FROM(
+				SELECT 
+					IFNULL( CONVERT( SUM(PUB.REAL_PAY_PRIC) - SUM(PUB.REAL_DISC_PRIC), UNSIGNED ) , 0 ) BUY_PRIC,
+					CASE 
+							WHEN BUY_PRDT_CD LIKE '%VL%' THEN 'VOD'
+							WHEN BUY_PRDT_CD LIKE '%CN%' THEN 'CHAT'
+							WHEN BUY_PRDT_CD LIKE '%LN%' THEN 'LIVE'
+							WHEN BUY_PRDT_CD LIKE '%EN%' THEN 'EMAIL'
+							WHEN BUY_PRDT_CD LIKE '%FN%' THEN 'FACE'
+						ELSE '-' 
+						END PRDT,
+						COUNT(0) CNT
+					FROM 
+						PPM_USER_BUY PUB LEFT JOIN PPM_PRDT_LIVE PPL ON PUB.BUY_PRDT_CD = PPL.LIVE_CD
+							WHERE 
+								(PUB.BUY_STAT = '취소완료' OR PUB.BUY_STAT = '환불완료')
+								AND PUB.BUY_REFU_YN = 'Y'
+								AND PUB.CATE_IDX = #{CATE_IDX}
+								AND PPL.LIVE_ACAD_YN = 'N'
+								AND DATE_FORMAT( BUY_COMP_DTM, '%Y-%m-%d') =  DATE_SUB( DATE_FORMAT( NOW(), '%Y-%m-%d' ), INTERVAL 1 DAY )
+								GROUP BY PRDT
+								) A
+								WHERE PRDT = 'LIVE' ),0) AS REFUND_LIVE_PRIC,
+			 IFNULL(  (SELECT 
+					CNT
+					FROM(
+				SELECT 
+					IFNULL( CONVERT( SUM(PUB.REAL_PAY_PRIC) - SUM(PUB.REAL_DISC_PRIC), UNSIGNED ) , 0 ) BUY_PRIC,
+					CASE 
+							WHEN BUY_PRDT_CD LIKE '%VL%' THEN 'VOD'
+							WHEN BUY_PRDT_CD LIKE '%CN%' THEN 'CHAT'
+							WHEN BUY_PRDT_CD LIKE '%LN%' THEN 'LIVE'
+							WHEN BUY_PRDT_CD LIKE '%EN%' THEN 'EMAIL'
+							WHEN BUY_PRDT_CD LIKE '%FN%' THEN 'FACE'
+						ELSE '-' 
+						END PRDT,
+						COUNT(0) CNT
+					FROM 
+						PPM_USER_BUY PUB LEFT JOIN PPM_PRDT_LIVE PPL ON PUB.BUY_PRDT_CD = PPL.LIVE_CD
+							WHERE 
+								(PUB.BUY_STAT = '취소완료' OR PUB.BUY_STAT = '환불완료')
+								AND PUB.BUY_REFU_YN = 'Y'
+								AND PUB.CATE_IDX = #{CATE_IDX}
+								AND PPL.LIVE_ACAD_YN = 'N'
+								AND DATE_FORMAT( BUY_COMP_DTM, '%Y-%m-%d') =  DATE_SUB( DATE_FORMAT( NOW(), '%Y-%m-%d' ), INTERVAL 1 DAY )
+								GROUP BY PRDT
+								) A
+								WHERE PRDT = 'LIVE' ),0) AS REFUND_LIVE_CNT,
+								
+								
+								
+								
+								
+								
+								
+								
+								
+								
+								
+								
+								
+								
+								
+								
+										
+			IFNULL(   (SELECT 
+					BUY_PRIC
+					FROM(
+				SELECT 
+					IFNULL( CONVERT( SUM(PUB.REAL_PAY_PRIC) - SUM(PUB.REAL_DISC_PRIC), UNSIGNED ) , 0 ) BUY_PRIC,
+					CASE 
+							WHEN BUY_PRDT_CD LIKE '%VL%' THEN 'VOD'
+							WHEN BUY_PRDT_CD LIKE '%CN%' THEN 'CHAT'
+							WHEN BUY_PRDT_CD LIKE '%LN%' THEN 'LIVE'
+							WHEN BUY_PRDT_CD LIKE '%EN%' THEN 'EMAIL'
+							WHEN BUY_PRDT_CD LIKE '%FN%' THEN 'FACE'
+						ELSE '-' 
+						END PRDT,
+						COUNT(0) CNT
+					FROM 
+						PPM_USER_BUY PUB LEFT JOIN PPM_PRDT_LIVE PPL ON PUB.BUY_PRDT_CD = PPL.LIVE_CD
+							WHERE 
+								PUB.BUY_STAT IS NOT NULL
+								AND PUB.BUY_COMP_YN = 'Y'
+								AND ( PUB.BUY_REFU_YN = 'N' OR PUB.BUY_REFU_YN = 'R' )
+								AND PUB.CATE_IDX = #{CATE_IDX}
+								AND PPL.LIVE_ACAD_YN = 'Y'
+								AND DATE_FORMAT( BUY_COMP_DTM, '%Y-%m-%d') =  DATE_SUB( DATE_FORMAT( NOW(), '%Y-%m-%d' ), INTERVAL 1 DAY )
+								GROUP BY PRDT
+								) A
+								WHERE PRDT = 'LIVE' ),0) AS LIVE_ACAD_REAL_PRIC,
+				IFNULL(   (SELECT 
+						CNT
+						FROM(
+					SELECT 
+						IFNULL( CONVERT( SUM(PUB.REAL_PAY_PRIC) - SUM(PUB.REAL_DISC_PRIC), UNSIGNED ) , 0 ) BUY_PRIC,
+						CASE 
+								WHEN BUY_PRDT_CD LIKE '%VL%' THEN 'VOD'
+								WHEN BUY_PRDT_CD LIKE '%CN%' THEN 'CHAT'
+								WHEN BUY_PRDT_CD LIKE '%LN%' THEN 'LIVE'
+								WHEN BUY_PRDT_CD LIKE '%EN%' THEN 'EMAIL'
+								WHEN BUY_PRDT_CD LIKE '%FN%' THEN 'FACE'
+							ELSE '-' 
+							END PRDT,
+							COUNT(0) CNT
+						FROM 
+							PPM_USER_BUY PUB LEFT JOIN PPM_PRDT_LIVE PPL ON PUB.BUY_PRDT_CD = PPL.LIVE_CD
+								WHERE 
+									PUB.BUY_STAT IS NOT NULL
+									AND PUB.BUY_COMP_YN = 'Y'
+									AND ( PUB.BUY_REFU_YN = 'N' OR PUB.BUY_REFU_YN = 'R' )
+									AND PUB.CATE_IDX = #{CATE_IDX}
+									AND PPL.LIVE_ACAD_YN = 'Y'
+									AND DATE_FORMAT( BUY_COMP_DTM, '%Y-%m-%d') =  DATE_SUB( DATE_FORMAT( NOW(), '%Y-%m-%d' ), INTERVAL 1 DAY )
+									GROUP BY PRDT
+									) A
+									WHERE PRDT = 'LIVE' ),0) AS LIVE_ACAD_REAL_CNT,		
+			IFNULL(   (SELECT 
+					BUY_PRIC
+					FROM(
+				SELECT 
+					IFNULL( CONVERT( SUM(PUB.REAL_PAY_PRIC) - SUM(PUB.REAL_DISC_PRIC), UNSIGNED ) , 0 ) BUY_PRIC,
+					CASE 
+							WHEN BUY_PRDT_CD LIKE '%VL%' THEN 'VOD'
+							WHEN BUY_PRDT_CD LIKE '%CN%' THEN 'CHAT'
+							WHEN BUY_PRDT_CD LIKE '%LN%' THEN 'LIVE'
+							WHEN BUY_PRDT_CD LIKE '%EN%' THEN 'EMAIL'
+							WHEN BUY_PRDT_CD LIKE '%FN%' THEN 'FACE'
+						ELSE '-' 
+						END PRDT,
+						COUNT(0) CNT
+					FROM 
+						PPM_USER_BUY PUB LEFT JOIN PPM_PRDT_LIVE PPL ON PUB.BUY_PRDT_CD = PPL.LIVE_CD
+							WHERE 
+								PUB.BUY_STAT IS NOT NULL
+								AND PUB.BUY_COMP_YN = 'Y'
+								AND PUB.CATE_IDX = #{CATE_IDX}
+								AND PPL.LIVE_ACAD_YN = 'Y'
+								AND DATE_FORMAT( BUY_COMP_DTM, '%Y-%m-%d') =  DATE_SUB( DATE_FORMAT( NOW(), '%Y-%m-%d' ), INTERVAL 1 DAY )
+								GROUP BY PRDT
+								) A
+								WHERE PRDT = 'LIVE' ),0) AS LIVE_ACAD_PRIC,
+				IFNULL(   (SELECT 
+						CNT
+						FROM(
+					SELECT 
+						IFNULL( CONVERT( SUM(PUB.REAL_PAY_PRIC) - SUM(PUB.REAL_DISC_PRIC), UNSIGNED ) , 0 ) BUY_PRIC,
+						CASE 
+								WHEN BUY_PRDT_CD LIKE '%VL%' THEN 'VOD'
+								WHEN BUY_PRDT_CD LIKE '%CN%' THEN 'CHAT'
+								WHEN BUY_PRDT_CD LIKE '%LN%' THEN 'LIVE'
+								WHEN BUY_PRDT_CD LIKE '%EN%' THEN 'EMAIL'
+								WHEN BUY_PRDT_CD LIKE '%FN%' THEN 'FACE'
+							ELSE '-' 
+							END PRDT,
+							COUNT(0) CNT
+						FROM 
+							PPM_USER_BUY PUB LEFT JOIN PPM_PRDT_LIVE PPL ON PUB.BUY_PRDT_CD = PPL.LIVE_CD
+								WHERE 
+									PUB.BUY_STAT IS NOT NULL
+									AND PUB.BUY_COMP_YN = 'Y'
+									AND PUB.CATE_IDX = #{CATE_IDX}
+									AND PPL.LIVE_ACAD_YN = 'Y'
+									AND DATE_FORMAT( BUY_COMP_DTM, '%Y-%m-%d') =  DATE_SUB( DATE_FORMAT( NOW(), '%Y-%m-%d' ), INTERVAL 1 DAY )
+									GROUP BY PRDT
+									) A
+									WHERE PRDT = 'LIVE' ),0) AS LIVE_ACAD_CNT,		
+		 IFNULL(  (SELECT 
+					BUY_PRIC
+					FROM(
+				SELECT 
+					IFNULL( CONVERT( SUM(PUB.REAL_PAY_PRIC) - SUM(PUB.REAL_DISC_PRIC), UNSIGNED ) , 0 ) BUY_PRIC,
+					CASE 
+							WHEN BUY_PRDT_CD LIKE '%VL%' THEN 'VOD'
+							WHEN BUY_PRDT_CD LIKE '%CN%' THEN 'CHAT'
+							WHEN BUY_PRDT_CD LIKE '%LN%' THEN 'LIVE'
+							WHEN BUY_PRDT_CD LIKE '%EN%' THEN 'EMAIL'
+							WHEN BUY_PRDT_CD LIKE '%FN%' THEN 'FACE'
+						ELSE '-' 
+						END PRDT,
+						COUNT(0) CNT
+					FROM 
+						PPM_USER_BUY PUB LEFT JOIN PPM_PRDT_LIVE PPL ON PUB.BUY_PRDT_CD = PPL.LIVE_CD
+							WHERE 
+								(PUB.BUY_STAT = '취소완료' OR PUB.BUY_STAT = '환불완료')
+								AND PUB.BUY_REFU_YN = 'Y'
+								AND PUB.CATE_IDX = #{CATE_IDX}
+								AND PPL.LIVE_ACAD_YN = 'Y'
+								AND DATE_FORMAT( BUY_COMP_DTM, '%Y-%m-%d') =  DATE_SUB( DATE_FORMAT( NOW(), '%Y-%m-%d' ), INTERVAL 1 DAY )
+								GROUP BY PRDT
+								) A
+								WHERE PRDT = 'LIVE' ),0) AS REFUND_LIVE_ACAD_PRIC,
+			 IFNULL(  (SELECT 
+					CNT
+					FROM(
+				SELECT 
+					IFNULL( CONVERT( SUM(PUB.REAL_PAY_PRIC) - SUM(PUB.REAL_DISC_PRIC), UNSIGNED ) , 0 ) BUY_PRIC,
+					CASE 
+							WHEN BUY_PRDT_CD LIKE '%VL%' THEN 'VOD'
+							WHEN BUY_PRDT_CD LIKE '%CN%' THEN 'CHAT'
+							WHEN BUY_PRDT_CD LIKE '%LN%' THEN 'LIVE'
+							WHEN BUY_PRDT_CD LIKE '%EN%' THEN 'EMAIL'
+							WHEN BUY_PRDT_CD LIKE '%FN%' THEN 'FACE'
+						ELSE '-' 
+						END PRDT,
+						COUNT(0) CNT
+					FROM 
+						PPM_USER_BUY PUB LEFT JOIN PPM_PRDT_LIVE PPL ON PUB.BUY_PRDT_CD = PPL.LIVE_CD
+							WHERE 
+								(PUB.BUY_STAT = '취소완료' OR PUB.BUY_STAT = '환불완료')
+								AND PUB.BUY_REFU_YN = 'Y'
+								AND PUB.CATE_IDX = #{CATE_IDX}
+								AND PPL.LIVE_ACAD_YN = 'Y'
+								AND DATE_FORMAT( BUY_COMP_DTM, '%Y-%m-%d') =  DATE_SUB( DATE_FORMAT( NOW(), '%Y-%m-%d' ), INTERVAL 1 DAY )
+								GROUP BY PRDT
+								) A
+								WHERE PRDT = 'LIVE' ),0) AS REFUND_LIVE_ACAD_CNT,
+								
+								
+								
+								
+								
+								
+								
+								
+								
+								
+								
+								
+								
+								
+								
+								
+								
+								
+								
+								
+								
+			IFNULL(   (SELECT 
+					BUY_PRIC
+					FROM(
+				SELECT 
+					IFNULL( CONVERT( SUM(PUB.REAL_PAY_PRIC) - SUM(PUB.REAL_DISC_PRIC), UNSIGNED ) , 0 ) BUY_PRIC,
+					CASE 
+							WHEN BUY_PRDT_CD LIKE '%VL%' THEN 'VOD'
+							WHEN BUY_PRDT_CD LIKE '%CN%' THEN 'CHAT'
+							WHEN BUY_PRDT_CD LIKE '%LN%' THEN 'LIVE'
+							WHEN BUY_PRDT_CD LIKE '%EN%' THEN 'EMAIL'
+							WHEN BUY_PRDT_CD LIKE '%FN%' THEN 'FACE'
+						ELSE '-' 
+						END PRDT,
+						COUNT(0) CNT
+					FROM 
+						PPM_USER_BUY PUB 
+							WHERE 
+								PUB.BUY_STAT IS NOT NULL
+								AND PUB.BUY_COMP_YN = 'Y'
+								AND ( PUB.BUY_REFU_YN = 'N' OR PUB.BUY_REFU_YN = 'R' )
+								AND CATE_IDX = #{CATE_IDX}
+								AND DATE_FORMAT( BUY_COMP_DTM, '%Y-%m-%d') =  DATE_SUB( DATE_FORMAT( NOW(), '%Y-%m-%d' ), INTERVAL 1 DAY )
+								GROUP BY PRDT
+								) A
+								WHERE PRDT = 'EMAIL' ),0) AS EMAIL_REAL_PRIC,
+			IFNULL(   (SELECT 
+					CNT
+					FROM(
+				SELECT 
+					IFNULL( CONVERT( SUM(PUB.REAL_PAY_PRIC) - SUM(PUB.REAL_DISC_PRIC), UNSIGNED ) , 0 ) BUY_PRIC,
+					CASE 
+							WHEN BUY_PRDT_CD LIKE '%VL%' THEN 'VOD'
+							WHEN BUY_PRDT_CD LIKE '%CN%' THEN 'CHAT'
+							WHEN BUY_PRDT_CD LIKE '%LN%' THEN 'LIVE'
+							WHEN BUY_PRDT_CD LIKE '%EN%' THEN 'EMAIL'
+							WHEN BUY_PRDT_CD LIKE '%FN%' THEN 'FACE'
+						ELSE '-' 
+						END PRDT,
+						COUNT(0) CNT
+					FROM 
+						PPM_USER_BUY PUB 
+							WHERE 
+								PUB.BUY_STAT IS NOT NULL
+								AND PUB.BUY_COMP_YN = 'Y'
+								AND ( PUB.BUY_REFU_YN = 'N' OR PUB.BUY_REFU_YN = 'R' )
+								AND CATE_IDX = #{CATE_IDX}
+								AND DATE_FORMAT( BUY_COMP_DTM, '%Y-%m-%d') =  DATE_SUB( DATE_FORMAT( NOW(), '%Y-%m-%d' ), INTERVAL 1 DAY )
+								GROUP BY PRDT
+								) A
+								WHERE PRDT = 'EMAIL' ),0) AS EMAIL_REAL_CNT,
+			IFNULL(   (SELECT 
+					BUY_PRIC
+					FROM(
+				SELECT 
+					IFNULL( CONVERT( SUM(PUB.REAL_PAY_PRIC) - SUM(PUB.REAL_DISC_PRIC), UNSIGNED ) , 0 ) BUY_PRIC,
+					CASE 
+							WHEN BUY_PRDT_CD LIKE '%VL%' THEN 'VOD'
+							WHEN BUY_PRDT_CD LIKE '%CN%' THEN 'CHAT'
+							WHEN BUY_PRDT_CD LIKE '%LN%' THEN 'LIVE'
+							WHEN BUY_PRDT_CD LIKE '%EN%' THEN 'EMAIL'
+							WHEN BUY_PRDT_CD LIKE '%FN%' THEN 'FACE'
+						ELSE '-' 
+						END PRDT,
+						COUNT(0) CNT
+					FROM 
+						PPM_USER_BUY PUB 
+							WHERE 
+								PUB.BUY_STAT IS NOT NULL
+								AND PUB.BUY_COMP_YN = 'Y'
+								AND CATE_IDX = #{CATE_IDX}
+								AND DATE_FORMAT( BUY_COMP_DTM, '%Y-%m-%d') =  DATE_SUB( DATE_FORMAT( NOW(), '%Y-%m-%d' ), INTERVAL 1 DAY )
+								GROUP BY PRDT
+								) A
+								WHERE PRDT = 'EMAIL' ),0) AS EMAIL_PRIC,
+			IFNULL(   (SELECT 
+					CNT
+					FROM(
+				SELECT 
+					IFNULL( CONVERT( SUM(PUB.REAL_PAY_PRIC) - SUM(PUB.REAL_DISC_PRIC), UNSIGNED ) , 0 ) BUY_PRIC,
+					CASE 
+							WHEN BUY_PRDT_CD LIKE '%VL%' THEN 'VOD'
+							WHEN BUY_PRDT_CD LIKE '%CN%' THEN 'CHAT'
+							WHEN BUY_PRDT_CD LIKE '%LN%' THEN 'LIVE'
+							WHEN BUY_PRDT_CD LIKE '%EN%' THEN 'EMAIL'
+							WHEN BUY_PRDT_CD LIKE '%FN%' THEN 'FACE'
+						ELSE '-' 
+						END PRDT,
+						COUNT(0) CNT
+					FROM 
+						PPM_USER_BUY PUB 
+							WHERE 
+								PUB.BUY_STAT IS NOT NULL
+								AND PUB.BUY_COMP_YN = 'Y'
+								AND CATE_IDX = #{CATE_IDX}
+								AND DATE_FORMAT( BUY_COMP_DTM, '%Y-%m-%d') =  DATE_SUB( DATE_FORMAT( NOW(), '%Y-%m-%d' ), INTERVAL 1 DAY )
+								GROUP BY PRDT
+								) A
+								WHERE PRDT = 'EMAIL' ),0) AS EMAIL_CNT,
+		 IFNULL(  (SELECT 
+					BUY_PRIC
+					FROM(
+				SELECT 
+					IFNULL( CONVERT( SUM(PUB.REAL_PAY_PRIC) - SUM(PUB.REAL_DISC_PRIC), UNSIGNED ) , 0 ) BUY_PRIC,
+					CASE 
+							WHEN BUY_PRDT_CD LIKE '%VL%' THEN 'VOD'
+							WHEN BUY_PRDT_CD LIKE '%CN%' THEN 'CHAT'
+							WHEN BUY_PRDT_CD LIKE '%LN%' THEN 'LIVE'
+							WHEN BUY_PRDT_CD LIKE '%EN%' THEN 'EMAIL'
+							WHEN BUY_PRDT_CD LIKE '%FN%' THEN 'FACE'
+						ELSE '-' 
+						END PRDT,
+						COUNT(0) CNT
+					FROM 
+						PPM_USER_BUY PUB 
+							WHERE 
+								(PUB.BUY_STAT = '취소완료' OR PUB.BUY_STAT = '환불완료')
+								AND PUB.BUY_REFU_YN = 'Y'
+								AND CATE_IDX = #{CATE_IDX}
+								AND DATE_FORMAT( BUY_COMP_DTM, '%Y-%m-%d') =  DATE_SUB( DATE_FORMAT( NOW(), '%Y-%m-%d' ), INTERVAL 1 DAY )
+								GROUP BY PRDT
+								) A
+								WHERE PRDT = 'EMAIL' ),0) AS REFUND_EMAIL_PRIC,
+			 IFNULL(  (SELECT 
+					CNT
+					FROM(
+				SELECT 
+					IFNULL( CONVERT( SUM(PUB.REAL_PAY_PRIC) - SUM(PUB.REAL_DISC_PRIC), UNSIGNED ) , 0 ) BUY_PRIC,
+					CASE 
+							WHEN BUY_PRDT_CD LIKE '%VL%' THEN 'VOD'
+							WHEN BUY_PRDT_CD LIKE '%CN%' THEN 'CHAT'
+							WHEN BUY_PRDT_CD LIKE '%LN%' THEN 'LIVE'
+							WHEN BUY_PRDT_CD LIKE '%EN%' THEN 'EMAIL'
+							WHEN BUY_PRDT_CD LIKE '%FN%' THEN 'FACE'
+						ELSE '-' 
+						END PRDT,
+						COUNT(0) CNT
+					FROM 
+						PPM_USER_BUY PUB 
+							WHERE 
+								(PUB.BUY_STAT = '취소완료' OR PUB.BUY_STAT = '환불완료')
+								AND PUB.BUY_REFU_YN = 'Y'
+								AND CATE_IDX = #{CATE_IDX}
+								AND DATE_FORMAT( BUY_COMP_DTM, '%Y-%m-%d') =  DATE_SUB( DATE_FORMAT( NOW(), '%Y-%m-%d' ), INTERVAL 1 DAY )
+								GROUP BY PRDT
+								) A
+								WHERE PRDT = 'EMAIL' ),0) AS REFUND_EMAIL_CNT,
+			IFNULL(   (SELECT 
+					BUY_PRIC
+					FROM(
+				SELECT 
+					IFNULL( CONVERT( SUM(PUB.REAL_PAY_PRIC) - SUM(PUB.REAL_DISC_PRIC), UNSIGNED ) , 0 ) BUY_PRIC,
+					CASE 
+							WHEN BUY_PRDT_CD LIKE '%VL%' THEN 'VOD'
+							WHEN BUY_PRDT_CD LIKE '%CN%' THEN 'CHAT'
+							WHEN BUY_PRDT_CD LIKE '%LN%' THEN 'LIVE'
+							WHEN BUY_PRDT_CD LIKE '%EN%' THEN 'EMAIL'
+							WHEN BUY_PRDT_CD LIKE '%FN%' THEN 'FACE'
+						ELSE '-' 
+						END PRDT,
+						COUNT(0) CNT
+					FROM 
+						PPM_USER_BUY PUB 
+							WHERE 
+								PUB.BUY_STAT IS NOT NULL
+								AND PUB.BUY_COMP_YN = 'Y'
+								AND ( PUB.BUY_REFU_YN = 'N' OR PUB.BUY_REFU_YN = 'R' )
+								AND CATE_IDX = #{CATE_IDX}
+								AND DATE_FORMAT( BUY_COMP_DTM, '%Y-%m-%d') =  DATE_SUB( DATE_FORMAT( NOW(), '%Y-%m-%d' ), INTERVAL 1 DAY )
+								GROUP BY PRDT
+								) A
+								WHERE PRDT = 'FACE' ),0) AS FACE_REAL_PRIC,
+			IFNULL(   (SELECT 
+					CNT
+					FROM(
+				SELECT 
+					IFNULL( CONVERT( SUM(PUB.REAL_PAY_PRIC) - SUM(PUB.REAL_DISC_PRIC), UNSIGNED ) , 0 ) BUY_PRIC,
+					CASE 
+							WHEN BUY_PRDT_CD LIKE '%VL%' THEN 'VOD'
+							WHEN BUY_PRDT_CD LIKE '%CN%' THEN 'CHAT'
+							WHEN BUY_PRDT_CD LIKE '%LN%' THEN 'LIVE'
+							WHEN BUY_PRDT_CD LIKE '%EN%' THEN 'EMAIL'
+							WHEN BUY_PRDT_CD LIKE '%FN%' THEN 'FACE'
+						ELSE '-' 
+						END PRDT,
+						COUNT(0) CNT
+					FROM 
+						PPM_USER_BUY PUB 
+							WHERE 
+								PUB.BUY_STAT IS NOT NULL
+								AND PUB.BUY_COMP_YN = 'Y'
+								AND ( PUB.BUY_REFU_YN = 'N' OR PUB.BUY_REFU_YN = 'R' )
+								AND CATE_IDX = #{CATE_IDX}
+								AND DATE_FORMAT( BUY_COMP_DTM, '%Y-%m-%d') =  DATE_SUB( DATE_FORMAT( NOW(), '%Y-%m-%d' ), INTERVAL 1 DAY )
+								GROUP BY PRDT
+								) A
+								WHERE PRDT = 'FACE' ),0) AS FACE_REAL_CNT,
+			IFNULL(   (SELECT 
+					BUY_PRIC
+					FROM(
+				SELECT 
+					IFNULL( CONVERT( SUM(PUB.REAL_PAY_PRIC) - SUM(PUB.REAL_DISC_PRIC), UNSIGNED ) , 0 ) BUY_PRIC,
+					CASE 
+							WHEN BUY_PRDT_CD LIKE '%VL%' THEN 'VOD'
+							WHEN BUY_PRDT_CD LIKE '%CN%' THEN 'CHAT'
+							WHEN BUY_PRDT_CD LIKE '%LN%' THEN 'LIVE'
+							WHEN BUY_PRDT_CD LIKE '%EN%' THEN 'EMAIL'
+							WHEN BUY_PRDT_CD LIKE '%FN%' THEN 'FACE'
+						ELSE '-' 
+						END PRDT,
+						COUNT(0) CNT
+					FROM 
+						PPM_USER_BUY PUB 
+							WHERE 
+								PUB.BUY_STAT IS NOT NULL
+								AND PUB.BUY_COMP_YN = 'Y'
+								AND CATE_IDX = #{CATE_IDX}
+								AND DATE_FORMAT( BUY_COMP_DTM, '%Y-%m-%d') =  DATE_SUB( DATE_FORMAT( NOW(), '%Y-%m-%d' ), INTERVAL 1 DAY )
+								GROUP BY PRDT
+								) A
+								WHERE PRDT = 'FACE' ),0) AS FACE_PRIC,
+			IFNULL(   (SELECT 
+					CNT
+					FROM(
+				SELECT 
+					IFNULL( CONVERT( SUM(PUB.REAL_PAY_PRIC) - SUM(PUB.REAL_DISC_PRIC), UNSIGNED ) , 0 ) BUY_PRIC,
+					CASE 
+							WHEN BUY_PRDT_CD LIKE '%VL%' THEN 'VOD'
+							WHEN BUY_PRDT_CD LIKE '%CN%' THEN 'CHAT'
+							WHEN BUY_PRDT_CD LIKE '%LN%' THEN 'LIVE'
+							WHEN BUY_PRDT_CD LIKE '%EN%' THEN 'EMAIL'
+							WHEN BUY_PRDT_CD LIKE '%FN%' THEN 'FACE'
+						ELSE '-' 
+						END PRDT,
+						COUNT(0) CNT
+					FROM 
+						PPM_USER_BUY PUB 
+							WHERE 
+								PUB.BUY_STAT IS NOT NULL
+								AND PUB.BUY_COMP_YN = 'Y'
+								AND CATE_IDX = #{CATE_IDX}
+								AND DATE_FORMAT( BUY_COMP_DTM, '%Y-%m-%d') =  DATE_SUB( DATE_FORMAT( NOW(), '%Y-%m-%d' ), INTERVAL 1 DAY )
+								GROUP BY PRDT
+								) A
+								WHERE PRDT = 'FACE' ),0) AS FACE_CNT,
+		 IFNULL(  (SELECT 
+					BUY_PRIC
+					FROM(
+				SELECT 
+					IFNULL( CONVERT( SUM(PUB.REAL_PAY_PRIC) - SUM(PUB.REAL_DISC_PRIC), UNSIGNED ) , 0 ) BUY_PRIC,
+					CASE 
+							WHEN BUY_PRDT_CD LIKE '%VL%' THEN 'VOD'
+							WHEN BUY_PRDT_CD LIKE '%CN%' THEN 'CHAT'
+							WHEN BUY_PRDT_CD LIKE '%LN%' THEN 'LIVE'
+							WHEN BUY_PRDT_CD LIKE '%EN%' THEN 'EMAIL'
+							WHEN BUY_PRDT_CD LIKE '%FN%' THEN 'FACE'
+						ELSE '-' 
+						END PRDT,
+						COUNT(0) CNT
+					FROM 
+						PPM_USER_BUY PUB 
+							WHERE 
+								(PUB.BUY_STAT = '취소완료' OR PUB.BUY_STAT = '환불완료')
+								AND PUB.BUY_REFU_YN = 'Y'
+								AND CATE_IDX = #{CATE_IDX}
+								AND DATE_FORMAT( BUY_COMP_DTM, '%Y-%m-%d') =  DATE_SUB( DATE_FORMAT( NOW(), '%Y-%m-%d' ), INTERVAL 1 DAY )
+								GROUP BY PRDT
+								) A
+								WHERE PRDT = 'FACE' ),0) AS REFUND_FACE_PRIC,
+			 IFNULL(  (SELECT 
+					CNT
+					FROM(
+				SELECT 
+					IFNULL( CONVERT( SUM(PUB.REAL_PAY_PRIC) - SUM(PUB.REAL_DISC_PRIC), UNSIGNED ) , 0 ) BUY_PRIC,
+					CASE 
+							WHEN BUY_PRDT_CD LIKE '%VL%' THEN 'VOD'
+							WHEN BUY_PRDT_CD LIKE '%CN%' THEN 'CHAT'
+							WHEN BUY_PRDT_CD LIKE '%LN%' THEN 'LIVE'
+							WHEN BUY_PRDT_CD LIKE '%EN%' THEN 'EMAIL'
+							WHEN BUY_PRDT_CD LIKE '%FN%' THEN 'FACE'
+						ELSE '-' 
+						END PRDT,
+						COUNT(0) CNT
+					FROM 
+						PPM_USER_BUY PUB 
+							WHERE 
+								(PUB.BUY_STAT = '취소완료' OR PUB.BUY_STAT = '환불완료')
+								AND PUB.BUY_REFU_YN = 'Y'
+								AND CATE_IDX = #{CATE_IDX}
+								AND DATE_FORMAT( BUY_COMP_DTM, '%Y-%m-%d') =  DATE_SUB( DATE_FORMAT( NOW(), '%Y-%m-%d' ), INTERVAL 1 DAY )
+								GROUP BY PRDT
+								) A
+								WHERE PRDT = 'FACE' ),0) AS REFUND_FACE_CNT,
+				(SELECT 
+					BUY_PRIC
+					FROM(
+				SELECT 
+					IFNULL( CONVERT( SUM(PUB.REAL_PAY_PRIC) - SUM(PUB.REAL_DISC_PRIC), UNSIGNED ) , 0 ) BUY_PRIC,
+						COUNT(0) CNT
+					FROM 
+						PPM_USER_BUY PUB 
+							WHERE 
+								PUB.BUY_STAT IS NOT NULL
+								AND PUB.BUY_COMP_YN = 'Y'
+								AND ( PUB.BUY_REFU_YN = 'N' OR PUB.BUY_REFU_YN = 'R' )
+								and CATE_IDX = #{CATE_IDX}
+								AND DATE_FORMAT( BUY_COMP_DTM, '%Y-%m-%d') =  DATE_SUB( DATE_FORMAT( NOW(), '%Y-%m-%d' ), INTERVAL 1 DAY )
+								) A ) AS REAL_PAY_AMOUNT,
+				(SELECT 
+					CNT
+					FROM(
+				SELECT 
+					IFNULL( CONVERT( SUM(PUB.REAL_PAY_PRIC) - SUM(PUB.REAL_DISC_PRIC), UNSIGNED ) , 0 ) BUY_PRIC,
+						COUNT(0) CNT
+					FROM 
+						PPM_USER_BUY PUB 
+							WHERE 
+								PUB.BUY_STAT IS NOT NULL
+								AND PUB.BUY_COMP_YN = 'Y'
+								AND ( PUB.BUY_REFU_YN = 'N' OR PUB.BUY_REFU_YN = 'R' )
+								and CATE_IDX = #{CATE_IDX}
+								AND DATE_FORMAT( BUY_COMP_DTM, '%Y-%m-%d') =  DATE_SUB( DATE_FORMAT( NOW(), '%Y-%m-%d' ), INTERVAL 1 DAY )
+								) A ) AS REAL_PAY_CNT,
+				(SELECT 
+					BUY_PRIC
+					FROM(
+				SELECT 
+					IFNULL( CONVERT( SUM(PUB.REAL_PAY_PRIC) - SUM(PUB.REAL_DISC_PRIC), UNSIGNED ) , 0 ) BUY_PRIC,
+						COUNT(0) CNT
+					FROM 
+						PPM_USER_BUY PUB 
+							WHERE 
+								(PUB.BUY_STAT = '취소완료' OR PUB.BUY_STAT = '환불완료')
+								AND PUB.BUY_REFU_YN = 'Y'
+								and CATE_IDX = #{CATE_IDX}
+								AND DATE_FORMAT( BUY_COMP_DTM, '%Y-%m-%d') =  DATE_SUB( DATE_FORMAT( NOW(), '%Y-%m-%d' ), INTERVAL 1 DAY )
+								) A ) AS REFUND_AMOUNT,
+				(SELECT 
+					CNT
+					FROM(
+				SELECT 
+					IFNULL( CONVERT( SUM(PUB.REAL_PAY_PRIC) - SUM(PUB.REAL_DISC_PRIC), UNSIGNED ) , 0 ) BUY_PRIC,
+						COUNT(0) CNT
+					FROM 
+						PPM_USER_BUY PUB 
+							WHERE 
+								(PUB.BUY_STAT = '취소완료' OR PUB.BUY_STAT = '환불완료')
+								AND PUB.BUY_REFU_YN = 'Y'
+								and CATE_IDX = #{CATE_IDX}
+								AND DATE_FORMAT( BUY_COMP_DTM, '%Y-%m-%d') =  DATE_SUB( DATE_FORMAT( NOW(), '%Y-%m-%d' ), INTERVAL 1 DAY )
+								) A ) AS REFUND_CNT,
+			(SELECT 
+					BUY_PRIC
+					FROM(
+				SELECT 
+					IFNULL( CONVERT( SUM(PUB.REAL_PAY_PRIC) - SUM(PUB.REAL_DISC_PRIC), UNSIGNED ) , 0 ) BUY_PRIC,
+						COUNT(0) CNT
+					FROM 
+						PPM_USER_BUY PUB 
+							WHERE 
+								PUB.BUY_STAT IS NOT NULL
+								AND PUB.BUY_COMP_YN = 'Y'
+								AND CATE_IDX = #{CATE_IDX}
+								AND DATE_FORMAT( BUY_COMP_DTM, '%Y-%m-%d') =  DATE_SUB( DATE_FORMAT( NOW(), '%Y-%m-%d' ), INTERVAL 1 DAY )
+								) A ) AS PAY_AMOUNT,
+				(SELECT 
+					CNT
+					FROM(
+				SELECT 
+					IFNULL( CONVERT( SUM(PUB.REAL_PAY_PRIC) - SUM(PUB.REAL_DISC_PRIC), UNSIGNED ) , 0 ) BUY_PRIC,
+						COUNT(0) CNT
+					FROM 
+						PPM_USER_BUY PUB 
+							WHERE 
+								PUB.BUY_STAT IS NOT NULL
+								AND PUB.BUY_COMP_YN = 'Y'
+								AND CATE_IDX = #{CATE_IDX}
+								AND DATE_FORMAT( BUY_COMP_DTM, '%Y-%m-%d') =  DATE_SUB( DATE_FORMAT( NOW(), '%Y-%m-%d' ), INTERVAL 1 DAY )
+								) A ) AS PAY_CNT,
+				(SELECT 
+					SALE_IDX
+					FROM(
+				SELECT 
+					SALE_IDX
+					FROM 
+						PPM_SITE_STAT_SALE PUB 
+							WHERE 
+								CATE_IDX = #{CATE_IDX}
+								AND DATE_FORMAT( SALE_DTM, '%Y-%m-%d') =  DATE_SUB( DATE_FORMAT( NOW(), '%Y-%m-%d' ), INTERVAL 1 DAY )
+								) A ) AS SALE_IDX
+							
+		]]>
+		</selectKey>
+		<![CDATA[
+		
+		INSERT INTO PPM_DEV.PPM_SITE_STAT_SALE
+			(
+			SALE_IDX,
+			CATE_IDX,
+			SALE_DTM, 
+			SALE_REAL_PAY_CNT, 
+			SALE_REAL_PAY,
+			
+			SALE_PAY_CNT,
+			SALE_PAY,
+			SALE_REFU_REFL, 
+			SALE_REFU_CNT, 
+			SALE_REFU_MONE,
+			
+			SALE_VOD, 
+			SALE_VOD_CNT,
+			SALE_REAL_VOD, 
+			SALE_REAL_VOD_CNT,
+			SALE_REFU_VOD,
+			SALE_REFU_VOD_CNT,
+			
+			
+			
+			SALE_LIVE,
+			SALE_LIVE_CNT, 
+			SALE_REAL_LIVE,
+			SALE_REAL_LIVE_CNT,
+			SALE_REFU_LIVE, 
+			SALE_REFU_LIVE_CNT,
+			
+			SALE_LIVE_ACAD,
+			SALE_LIVE_ACAD_CNT, 
+			SALE_REAL_LIVE_ACAD,
+			SALE_REAL_LIVE_ACAD_CNT,
+			SALE_REFU_LIVE_ACAD, 
+			SALE_REFU_LIVE_ACAD_CNT,
+						
+			SALE_FACE, 
+			SALE_FACE_CNT,
+			SALE_REAL_FACE,
+			SALE_REAL_FACE_CNT,
+			SALE_REFU_FACE, 
+			SALE_REFU_FACE_CNT,
+			
+			
+			SALE_CHAT, 
+			SALE_CHAT_CNT,
+			SALE_REAL_CHAT, 
+			SALE_REAL_CHAT_CNT,
+			SALE_REFU_CHAT,
+			SALE_REFU_CHAT_CNT,
+
+			SALE_MAIL, 
+			SALE_MAIL_CNT,
+			SALE_REAL_MAIL, 
+			SALE_REAL_MAIL_CNT,
+			SALE_REFU_MAIL, 
+			SALE_REFU_MAIL_CNT,
+			
+			SYS_REG_IDX,
+			SYS_REG_DTM,
+			SYS_MOD_IDX,
+			SYS_MOD_DTM
+			)
+			VALUES
+			(
+			#{SALE_IDX},
+			#{CATE_IDX}, 
+			DATE_SUB( DATE_FORMAT( NOW(), '%Y-%m-%d' ), INTERVAL 1 DAY ),
+			#{REAL_PAY_CNT},
+			#{REAL_PAY_AMOUNT},
+			
+			#{PAY_CNT},
+			#{PAY_AMOUNT},
+			'',
+			#{REFUND_CNT},
+			#{REFUND_AMOUNT},
+
+			#{VOD_PRIC},
+			#{VOD_CNT},
+			#{VOD_REAL_PRIC},
+			#{VOD_REAL_CNT},
+			#{REFUND_VOD_PRIC},
+			#{REFUND_VOD_CNT},
+			
+			#{LIVE_PRIC},
+			#{LIVE_CNT},
+			#{LIVE_REAL_PRIC},
+			#{LIVE_REAL_CNT},
+			#{REFUND_LIVE_PRIC},
+			#{REFUND_LIVE_CNT},
+			
+			#{LIVE_ACAD_PRIC},
+			#{LIVE_ACAD_CNT},
+			#{LIVE_ACAD_REAL_PRIC},
+			#{LIVE_ACAD_REAL_CNT},
+			#{REFUND_LIVE_ACAD_PRIC},
+			#{REFUND_LIVE_ACAD_CNT},
+			
+			#{FACE_PRIC},
+			#{FACE_CNT},
+			#{FACE_REAL_PRIC},
+			#{FACE_REAL_CNT},
+			#{REFUND_FACE_PRIC},
+			#{REFUND_FACE_CNT},
+			
+			#{CHAT_PRIC},
+			#{CHAT_CNT},
+			#{CHAT_REAL_PRIC},
+			#{CHAT_REAL_CNT},
+			#{REFUND_CHAT_PRIC},
+			#{REFUND_CHAT_CNT},
+			
+			#{EMAIL_PRIC},
+			#{EMAIL_CNT},
+			#{EMAIL_REAL_PRIC},
+			#{EMAIL_REAL_CNT},
+			#{REFUND_EMAIL_PRIC},
+			#{REFUND_EMAIL_CNT},
+			
+			
+			0,
+			DATE_FORMAT( NOW(),'%Y-%m-%d %H:%i:%s'),
+			0,
+			DATE_FORMAT( NOW(),'%Y-%m-%d %H:%i:%s')
+			
+			)ON DUPLICATE KEY UPDATE
+			
+			SALE_REAL_PAY_CNT = #{REAL_PAY_CNT},
+			SALE_REAL_PAY = 	#{REAL_PAY_AMOUNT},
+			
+			SALE_PAY_CNT = #{PAY_CNT},
+			SALE_PAY = #{PAY_AMOUNT},
+			SALE_REFU_CNT = #{REFUND_CNT},
+			SALE_REFU_MONE = #{REFUND_AMOUNT},
+			
+			SALE_VOD = #{VOD_PRIC},
+			SALE_VOD_CNT = 	#{VOD_CNT},
+			SALE_REAL_VOD = #{VOD_REAL_PRIC}, 
+			SALE_REAL_VOD_CNT = #{VOD_REAL_CNT},
+			SALE_REFU_VOD = #{REFUND_VOD_PRIC},
+			SALE_REFU_VOD_CNT = #{REFUND_VOD_CNT},
+			
+			SALE_LIVE = #{LIVE_PRIC},
+			SALE_LIVE_CNT = #{LIVE_CNT},
+			SALE_REAL_LIVE = #{LIVE_REAL_PRIC},
+			SALE_REAL_LIVE_CNT = #{LIVE_REAL_CNT},
+			SALE_REFU_LIVE = #{REFUND_LIVE_PRIC},
+			SALE_REFU_LIVE_CNT = #{REFUND_LIVE_CNT},
+			
+			SALE_LIVE_ACAD = #{LIVE_ACAD_PRIC},
+			SALE_LIVE_ACAD_CNT = #{LIVE_ACAD_CNT},
+			SALE_REAL_LIVE_ACAD = #{LIVE_ACAD_REAL_PRIC},
+			SALE_REAL_LIVE_ACAD_CNT = #{LIVE_ACAD_REAL_CNT},
+			SALE_REFU_LIVE_ACAD = #{REFUND_LIVE_ACAD_PRIC},
+			SALE_REFU_LIVE_ACAD_CNT = #{REFUND_LIVE_ACAD_CNT},
+						
+			SALE_FACE = #{FACE_PRIC},
+			SALE_FACE_CNT = #{FACE_CNT},
+			SALE_REAL_FACE = #{FACE_REAL_PRIC},
+			SALE_REAL_FACE_CNT = #{FACE_REAL_CNT},
+			SALE_REFU_FACE = #{REFUND_FACE_PRIC},
+			SALE_REFU_FACE_CNT = #{REFUND_FACE_CNT},
+			
+			
+			SALE_CHAT = #{CHAT_PRIC},
+			SALE_CHAT_CNT = #{CHAT_CNT},
+			SALE_REAL_CHAT = #{CHAT_REAL_PRIC},
+			SALE_REAL_CHAT_CNT = #{CHAT_REAL_CNT},
+			SALE_REFU_CHAT = #{REFUND_CHAT_PRIC},
+			SALE_REFU_CHAT_CNT = #{REFUND_CHAT_CNT},
+
+			SALE_MAIL = #{EMAIL_PRIC},
+			SALE_MAIL_CNT = #{EMAIL_CNT},
+			SALE_REAL_MAIL = #{EMAIL_REAL_PRIC},
+			SALE_REAL_MAIL_CNT = #{EMAIL_REAL_CNT},
+			SALE_REFU_MAIL = #{REFUND_EMAIL_PRIC},
+			SALE_REFU_MAIL_CNT = #{REFUND_EMAIL_CNT},
+			
+			SYS_MOD_IDX = 0,
+			SYS_MOD_DTM = DATE_FORMAT( NOW(),'%Y-%m-%d %H:%i:%s')
+
+		
+		]]>
+	</insert>
+	
+	<select id="selectCateList" resultType="hashmap" parameterType="hashmap">
+	<![CDATA[	
+		SELECT 
+			CATE_IDX 
+				FROM PPM_CATE
+		]]>
+	</select>
+	
+	<update id="insertDashPlatform" parameterType="hashmap" >
+		<![CDATA[
+		INSERT INTO PPM_DASH_PLATFORM (
+			USER_JOIN,
+			USER_LEAV,
+			USER_REST,
+			M_USER_APPL,
+			M_USER_CHK,
+			
+			M_USER_RJT,
+			M_USER_DONE,
+			USER_BUY,
+			USER_REFU,
+			USER_DONE,
+			
+			QNA_DONE,
+			QNA_WAIT,
+			
+			SYS_REG_IDX,
+			SYS_REG_DTM,
+			SYS_MOD_IDX,
+			SYS_MOD_DTM
+			
+		)
+			SELECT
+				*
+			FROM (
+				SELECT
+							( SELECT COUNT(0) FROM PPM_USER WHERE USER_TYPE = 'U' AND USER_USE_YN = 'Y' AND USER_REST_YN = 'N' AND DATE_FORMAT(SYS_REG_DTM, '%Y-%m-%d') = DATE_FORMAT(NOW() - INTERVAL 1 DAY, '%Y-%m-%d') ) AS USER_JOIN,
+							( SELECT COUNT(0) FROM PPM_USER WHERE USER_TYPE = 'U' AND USER_USE_YN = 'N' AND DATE_FORMAT(SYS_REG_DTM, '%Y-%m-%d') = DATE_FORMAT(NOW() - INTERVAL 1 DAY, '%Y-%m-%d') ) AS USER_LEAV,
+							( SELECT COUNT(0) FROM PPM_USER WHERE USER_TYPE = 'U' AND USER_USE_YN = 'Y' AND USER_REST_YN = 'Y' AND DATE_FORMAT(SYS_REG_DTM, '%Y-%m-%d') = DATE_FORMAT(NOW() - INTERVAL 1 DAY, '%Y-%m-%d') ) AS USER_REST,
+							
+							( SELECT COUNT(0) FROM PPM_USER_MAST_APPL WHERE APPL_USE_YN = 'Y' AND ( APPL_CD IS NULL OR APPL_CD = 'MAC01' ) AND DATE_FORMAT(SYS_REG_DTM, '%Y-%m-%d') = DATE_FORMAT(NOW() - INTERVAL 1 DAY, '%Y-%m-%d') ) AS M_USER_APPL,
+							( SELECT COUNT(0) FROM PPM_USER_MAST_APPL WHERE APPL_USE_YN = 'Y' AND APPL_CD = 'MAC02' AND DATE_FORMAT(SYS_REG_DTM, '%Y-%m-%d') = DATE_FORMAT(NOW() - INTERVAL 1 DAY, '%Y-%m-%d') ) AS M_USER_CHK,
+							( SELECT COUNT(0) FROM PPM_USER_MAST_APPL WHERE APPL_USE_YN = 'Y' AND APPL_CD = 'MAC04' AND DATE_FORMAT(SYS_REG_DTM, '%Y-%m-%d') = DATE_FORMAT(NOW() - INTERVAL 1 DAY, '%Y-%m-%d') ) AS M_USER_RJT,
+							( SELECT COUNT(0) FROM PPM_USER_MAST_APPL WHERE APPL_USE_YN = 'Y' AND APPL_CD = 'MAC03' AND DATE_FORMAT(SYS_REG_DTM, '%Y-%m-%d') = DATE_FORMAT(NOW() - INTERVAL 1 DAY, '%Y-%m-%d') ) AS M_USER_DONE,
+							
+							( SELECT COUNT(0) FROM PPM_USER_BUY WHERE BUY_NO IS NOT NULL AND (  BUY_STAT = '결제완료' OR BUY_STAT = '취소완료' OR BUY_STAT = '환불완료' ) AND DATE_FORMAT(BUY_COMP_DTM, '%Y-%m-%d') = DATE_FORMAT(NOW() - INTERVAL 1 DAY, '%Y-%m-%d') ) AS USER_BUY,
+							( SELECT IFNULL(SUM(REAL_PAY_PRIC),0) FROM PPM_USER_BUY WHERE BUY_NO IS NOT NULL AND ( BUY_STAT = '취소완료' OR BUY_STAT = '환불완료' ) AND DATE_FORMAT(BUY_REFU_DTM, '%Y-%m-%d') = DATE_FORMAT(NOW() - INTERVAL 1 DAY, '%Y-%m-%d') ) AS USER_REFU,
+							( SELECT IFNULL(SUM(REAL_PAY_PRIC),0) FROM PPM_USER_BUY WHERE BUY_NO IS NOT NULL AND ( BUY_STAT = '결제완료' ) AND DATE_FORMAT(BUY_COMP_DTM, '%Y-%m-%d') = DATE_FORMAT(NOW() - INTERVAL 1 DAY, '%Y-%m-%d') ) AS USER_DONE,
+							
+							( SELECT COUNT(0) FROM PPM_SITE_QNA WHERE QNA_REPL IS NOT NULL AND DATE_FORMAT(SYS_REG_DTM, '%Y-%m-%d') = DATE_FORMAT(NOW() - INTERVAL 1 DAY, '%Y-%m-%d') ) AS QNA_DONE,
+							( SELECT COUNT(0) FROM PPM_SITE_QNA WHERE QNA_REPL IS NULL AND DATE_FORMAT(SYS_REG_DTM, '%Y-%m-%d') = DATE_FORMAT(NOW() - INTERVAL 1 DAY, '%Y-%m-%d') ) AS QNA_WAIT,
+							
+				0 AS SYS_REG_IDX,
+				NOW() - INTERVAL 1 DAY AS SYS_REG_DTM,	
+				0 AS SYS_MOD_IDX,
+				NOW() - INTERVAL 1 DAY AS SYS_MOD_DTM
+			) MAIN
+		]]>
+	</update>
+	
+	
+	<update id="insertDashService" parameterType="hashmap" >
+		<![CDATA[
+		INSERT INTO PPM_DASH_SERVICE (
+			SERV_TYPE,
+			BUY,
+			BUY_RSV,
+			BUY_CNFM,
+			BUY_NOT_CNFM,
+			
+			BUY_DONE,
+			USER_REVI,
+			M_USER_REVI,
+			
+			SYS_REG_IDX,
+			SYS_REG_DTM,
+			SYS_MOD_IDX,
+			SYS_MOD_DTM
+			
+		)
+			SELECT
+				*
+			FROM (
+				SELECT
+						'FN'
+						AS SERV_TYPE,
+							( SELECT COUNT(0) FROM PPM_USER_BUY WHERE BUY_STAT = '결제완료' AND BUY_PRDT_CD LIKE '%FN%' AND DATE_FORMAT(BUY_COMP_DTM, '%Y-%m-%d')  = DATE_FORMAT(NOW() - INTERVAL 1 DAY, '%Y-%m-%d') )
+						AS BUY,
+							( SELECT COUNT(0) FROM PPM_USER_BUY WHERE BUY_STAT = '결제완료' AND BUY_PRDT_CD LIKE '%FN%' AND TIME_IDX != 0 AND DATE_FORMAT(SYS_MOD_DTM, '%Y-%m-%d')  = DATE_FORMAT(NOW() - INTERVAL 1 DAY, '%Y-%m-%d') )
+						AS BUY_RSV,
+							( SELECT COUNT(0) FROM PPM_USER_BUY WHERE BUY_STAT = '결제완료' AND BUY_PRDT_CD LIKE '%FN%' AND TIME_IDX != 0 AND SANG_DAM_HWACK_JUNG_YN = 'Y' AND DATE_FORMAT(SYS_MOD_DTM, '%Y-%m-%d')  = DATE_FORMAT(NOW() - INTERVAL 1 DAY, '%Y-%m-%d') )
+						AS BUY_CNFM,
+							( SELECT COUNT(0) FROM PPM_USER_BUY WHERE BUY_STAT = '결제완료' AND BUY_PRDT_CD LIKE '%FN%' AND TIME_IDX != 0 AND SANG_DAM_HWACK_JUNG_YN = 'N' AND DATE_FORMAT(SYS_MOD_DTM, '%Y-%m-%d')  = DATE_FORMAT(NOW() - INTERVAL 1 DAY, '%Y-%m-%d') )
+						AS BUY_NOT_CNFM,
+							( SELECT COUNT(0) FROM PPM_USER_BUY PUB LEFT JOIN PPM_USER_BUY_CONS PUBC ON PUB.BUY_IDX = PUBC.BUY_IDX WHERE HIST_FLAG = 'T' AND PUB.BUY_STAT = '결제완료' AND PUB.BUY_PRDT_CD LIKE '%FN%' AND DATE_FORMAT(PUBC.SYS_MOD_DTM, '%Y-%m-%d')  = DATE_FORMAT(NOW() - INTERVAL 1 DAY, '%Y-%m-%d') )
+						AS BUY_DONE,
+							( SELECT COUNT(0) FROM PPM_USER_BUY PUB LEFT JOIN PPM_USER_REVI PUR ON PUB.BUY_IDX = PUR.BUY_IDX WHERE PUB.BUY_STAT = '결제완료' AND PUB.BUY_PRDT_CD LIKE '%FN%' AND DATE_FORMAT(PUR.SYS_MOD_DTM, '%Y-%m-%d')  = DATE_FORMAT(NOW() - INTERVAL 1 DAY, '%Y-%m-%d') )
+						AS USER_REVI,
+							( SELECT COUNT(0) FROM PPM_USER_BUY PUB LEFT JOIN PPM_USER_REVI_MAST PURM ON PUB.BUY_IDX = PURM.BUY_IDX WHERE PUB.BUY_STAT = '결제완료' AND PUB.BUY_PRDT_CD LIKE '%FN%' AND DATE_FORMAT(PURM.SYS_MOD_DTM, '%Y-%m-%d')  = DATE_FORMAT(NOW() - INTERVAL 1 DAY, '%Y-%m-%d') )
+						AS M_USER_REVI,
+							
+				0 AS SYS_REG_IDX,
+				NOW() - INTERVAL 1 DAY AS SYS_REG_DTM,	
+				0 AS SYS_MOD_IDX,
+				NOW() - INTERVAL 1 DAY AS SYS_MOD_DTM
+					
+					UNION ALL
+					
+					SELECT 
+						'CN'
+						AS SERV_TYPE,
+							( SELECT COUNT(0) FROM PPM_USER_BUY WHERE BUY_STAT = '결제완료' AND BUY_PRDT_CD LIKE '%CN%' AND DATE_FORMAT(BUY_COMP_DTM, '%Y-%m-%d')  = DATE_FORMAT(NOW() - INTERVAL 1 DAY, '%Y-%m-%d') )
+						AS BUY,
+							( SELECT COUNT(0) FROM PPM_USER_BUY WHERE BUY_STAT = '결제완료' AND BUY_PRDT_CD LIKE '%CN%' AND TIME_IDX != 0 AND DATE_FORMAT(SYS_MOD_DTM, '%Y-%m-%d')  = DATE_FORMAT(NOW() - INTERVAL 1 DAY, '%Y-%m-%d') )
+						AS BUY_RSV,
+							( SELECT COUNT(0) FROM PPM_USER_BUY WHERE BUY_STAT = '결제완료' AND BUY_PRDT_CD LIKE '%CN%' AND TIME_IDX != 0 AND SANG_DAM_HWACK_JUNG_YN = 'Y' AND DATE_FORMAT(SYS_MOD_DTM, '%Y-%m-%d')  = DATE_FORMAT(NOW() - INTERVAL 1 DAY, '%Y-%m-%d') )
+						AS BUY_CNFM,
+							( SELECT COUNT(0) FROM PPM_USER_BUY WHERE BUY_STAT = '결제완료' AND BUY_PRDT_CD LIKE '%CN%' AND TIME_IDX != 0 AND SANG_DAM_HWACK_JUNG_YN = 'N' AND DATE_FORMAT(SYS_MOD_DTM, '%Y-%m-%d')  = DATE_FORMAT(NOW() - INTERVAL 1 DAY, '%Y-%m-%d') )
+						AS BUY_NOT_CNFM,
+							( SELECT COUNT(0) FROM PPM_USER_BUY PUB LEFT JOIN PPM_CHAT PC ON PUB.BUY_IDX = PC.CHAT_ROOM WHERE PUB.BUY_STAT = '결제완료' AND PUB.BUY_PRDT_CD LIKE '%CN%' AND DATE_FORMAT(PC.CHAT_DT, '%Y-%m-%d')  = DATE_FORMAT(NOW() - INTERVAL 1 DAY, '%Y-%m-%d') )
+						AS BUY_DONE,
+							( SELECT COUNT(0) FROM PPM_USER_BUY PUB LEFT JOIN PPM_USER_REVI PUR ON PUB.BUY_IDX = PUR.BUY_IDX WHERE PUB.BUY_STAT = '결제완료' AND PUB.BUY_PRDT_CD LIKE '%CN%' AND DATE_FORMAT(PUR.SYS_MOD_DTM, '%Y-%m-%d')  = DATE_FORMAT(NOW() - INTERVAL 1 DAY, '%Y-%m-%d') )
+						AS USER_REVI,
+							( SELECT COUNT(0) FROM PPM_USER_BUY PUB LEFT JOIN PPM_USER_REVI_MAST PURM ON PUB.BUY_IDX = PURM.BUY_IDX WHERE PUB.BUY_STAT = '결제완료' AND PUB.BUY_PRDT_CD LIKE '%CN%' AND DATE_FORMAT(PURM.SYS_MOD_DTM, '%Y-%m-%d')  = DATE_FORMAT(NOW() - INTERVAL 1 DAY, '%Y-%m-%d') )
+						AS M_USER_REVI,
+							
+				0 AS SYS_REG_IDX,
+				NOW() - INTERVAL 1 DAY AS SYS_REG_DTM,	
+				0 AS SYS_MOD_IDX,
+				NOW() - INTERVAL 1 DAY AS SYS_MOD_DTM
+					
+					UNION ALL
+					
+					SELECT
+						'EN'
+						AS SERV_TYPE,
+							( SELECT COUNT(0) FROM PPM_USER_BUY WHERE BUY_STAT = '결제완료' AND BUY_PRDT_CD LIKE '%EN%' AND DATE_FORMAT(BUY_COMP_DTM, '%Y-%m-%d')  = DATE_FORMAT(NOW() - INTERVAL 1 DAY, '%Y-%m-%d') )
+						AS BUY,
+							( SELECT COUNT(0)
+							FROM (SELECT PUB.BUY_IDX FROM PPM_USER_BUY PUB LEFT JOIN PPM_USER_BUY_MAIL PUBM ON PUB.BUY_IDX = PUBM.BUY_IDX WHERE BUY_STAT = '결제완료' AND BUY_PRDT_CD LIKE '%EN%' AND PUBM.BUY_IDX IS NOT NULL AND PUBM.SYS_REG_DTM  = DATE_FORMAT(NOW() - INTERVAL 1 DAY, '%Y-%m-%d') GROUP BY PUB.BUY_IDX) MAIN )
+						AS BUY_RSV,
+							NULL
+						AS BUY_CNFM,
+							NULL
+						AS BUY_NOT_CNFM,
+							( SELECT COUNT(0) FROM PPM_USER_BUY PUB LEFT JOIN PPM_USER_BUY_MAIL PUBM ON PUB.BUY_IDX = PUBM.BUY_IDX LEFT JOIN PPM_PRDT_MAIL PPM ON PUB.BUY_PRDT_CD = PPM.MAIL_CD
+							WHERE PUB.BUY_STAT = '결제완료' AND PUB.BUY_PRDT_CD LIKE '%EN%' AND PUBM.SYS_MOD_DTM  = DATE_FORMAT(NOW() - INTERVAL 1 DAY, '%Y-%m-%d') )
+						AS BUY_DONE,
+							( SELECT COUNT(0) FROM PPM_USER_BUY PUB LEFT JOIN PPM_USER_REVI PUR ON PUB.BUY_IDX = PUR.BUY_IDX WHERE PUB.BUY_STAT = '결제완료' AND PUB.BUY_PRDT_CD LIKE '%EN%' AND DATE_FORMAT(PUR.SYS_MOD_DTM, '%Y-%m-%d')  = DATE_FORMAT(NOW() - INTERVAL 1 DAY, '%Y-%m-%d') )
+						AS USER_REVI,
+							( SELECT COUNT(0) FROM PPM_USER_BUY PUB LEFT JOIN PPM_USER_REVI_MAST PURM ON PUB.BUY_IDX = PURM.BUY_IDX WHERE PUB.BUY_STAT = '결제완료' AND PUB.BUY_PRDT_CD LIKE '%EN%' AND DATE_FORMAT(PURM.SYS_MOD_DTM, '%Y-%m-%d')  = DATE_FORMAT(NOW() - INTERVAL 1 DAY, '%Y-%m-%d') )
+						AS M_USER_REVI,
+							
+				0 AS SYS_REG_IDX,
+				NOW() - INTERVAL 1 DAY AS SYS_REG_DTM,	
+				0 AS SYS_MOD_IDX,
+				NOW() - INTERVAL 1 DAY AS SYS_MOD_DTM
+					
+					UNION ALL
+					
+					SELECT
+						'VL'
+						AS SERV_TYPE,
+							( SELECT COUNT(0) FROM PPM_USER_BUY WHERE BUY_STAT = '결제완료' AND BUY_PRDT_CD LIKE '%VL%' AND BUY_REFU_DTM IS NULL AND DATE_FORMAT(BUY_COMP_DTM, '%Y-%m-%d')  = DATE_FORMAT(NOW() - INTERVAL 1 DAY, '%Y-%m-%d') )
+						AS BUY,
+							( SELECT COUNT(0) FROM PPM_USER_BUY WHERE ( BUY_STAT = '취소완료' OR BUY_STAT = '환불완료' ) AND BUY_PRDT_CD LIKE '%VL%' AND DATE_FORMAT(BUY_REFU_DTM, '%Y-%m-%d')  = DATE_FORMAT(NOW() - INTERVAL 1 DAY, '%Y-%m-%d') )
+						AS BUY_RSV,
+							NULL
+						AS BUY_CNFM,
+							NULL
+						AS BUY_NOT_CNFM,
+							NULL
+						AS BUY_DONE,
+							NULL
+						AS USER_REVI,
+							NULL
+						AS M_USER_REVI,
+							
+				0 AS SYS_REG_IDX,
+				NOW() - INTERVAL 1 DAY AS SYS_REG_DTM,	
+				0 AS SYS_MOD_IDX,
+				NOW() - INTERVAL 1 DAY AS SYS_MOD_DTM
+					
+					UNION ALL
+					
+					SELECT
+						'LN'
+						AS SERV_TYPE,
+							( SELECT COUNT(0) FROM PPM_USER_BUY PUB LEFT JOIN PPM_PRDT_LIVE PPL ON PUB.BUY_PRDT_CD = PPL.LIVE_CD  WHERE BUY_STAT = '결제완료' AND BUY_PRDT_CD LIKE '%LN%' AND LIVE_ACAD_YN = 'N' AND BUY_REFU_DTM IS NULL AND DATE_FORMAT(BUY_COMP_DTM, '%Y-%m-%d')  = DATE_FORMAT(NOW() - INTERVAL 1 DAY, '%Y-%m-%d') )
+						AS BUY,
+							( SELECT COUNT(0) FROM PPM_USER_BUY PUB LEFT JOIN PPM_PRDT_LIVE PPL ON PUB.BUY_PRDT_CD = PPL.LIVE_CD  WHERE ( BUY_STAT = '취소완료' OR BUY_STAT = '환불완료' ) AND BUY_PRDT_CD LIKE '%LN%' AND LIVE_ACAD_YN = 'N' AND DATE_FORMAT(BUY_REFU_DTM, '%Y-%m-%d')  = DATE_FORMAT(NOW() - INTERVAL 1 DAY, '%Y-%m-%d') )
+						AS BUY_RSV,
+							NULL
+						AS BUY_CNFM,
+							NULL
+						AS BUY_NOT_CNFM,
+							NULL
+						AS BUY_DONE,
+							NULL
+						AS USER_REVI,
+							NULL
+						AS M_USER_REVI,
+							
+				0 AS SYS_REG_IDX,
+				NOW() - INTERVAL 1 DAY AS SYS_REG_DTM,	
+				0 AS SYS_MOD_IDX,
+				NOW() - INTERVAL 1 DAY AS SYS_MOD_DTM
+					
+					UNION ALL
+					
+					SELECT
+						'LN_A'
+						AS SERV_TYPE,
+							( SELECT COUNT(0) FROM PPM_USER_BUY PUB LEFT JOIN PPM_PRDT_LIVE PPL ON PUB.BUY_PRDT_CD = PPL.LIVE_CD WHERE BUY_STAT = '결제완료' AND BUY_PRDT_CD LIKE '%LN%' AND LIVE_ACAD_YN = 'Y' AND BUY_REFU_DTM IS NULL AND DATE_FORMAT(BUY_COMP_DTM, '%Y-%m-%d')  = DATE_FORMAT(NOW() - INTERVAL 1 DAY, '%Y-%m-%d') )
+						AS BUY,
+							( SELECT COUNT(0) FROM PPM_USER_BUY PUB LEFT JOIN PPM_PRDT_LIVE PPL ON PUB.BUY_PRDT_CD = PPL.LIVE_CD  WHERE ( BUY_STAT = '취소완료' OR BUY_STAT = '환불완료' ) AND BUY_PRDT_CD LIKE '%LN%' AND LIVE_ACAD_YN = 'Y' AND DATE_FORMAT(BUY_REFU_DTM, '%Y-%m-%d')  = DATE_FORMAT(NOW() - INTERVAL 1 DAY, '%Y-%m-%d') )
+						AS BUY_RSV,
+							NULL
+						AS BUY_CNFM,
+							NULL
+						AS BUY_NOT_CNFM,
+							NULL
+						AS BUY_DONE,
+							NULL
+						AS USER_REVI,
+							NULL
+						AS M_USER_REVI,
+							
+				0 AS SYS_REG_IDX,
+				NOW() - INTERVAL 1 DAY AS SYS_REG_DTM,	
+				0 AS SYS_MOD_IDX,
+				NOW() - INTERVAL 1 DAY AS SYS_MOD_DTM
+			) MAIN
+		]]>
+	</update>
+	
+	
+	<update id="deleteDashPlatform" parameterType="hashmap" >
+		<![CDATA[
+		DELETE
+			FROM PPM_DASH_PLATFORM
+		WHERE
+			DATE_FORMAT(SYS_REG_DTM, '%Y-%m-%d') = DATE_FORMAT(NOW() - INTERVAL 1 DAY, '%Y-%m-%d')
+		]]>
+	</update>
+	
+	<update id="deleteDashService" parameterType="hashmap" >
+		<![CDATA[
+		DELETE
+			FROM PPM_DASH_SERVICE
+		WHERE
+			DATE_FORMAT(SYS_REG_DTM, '%Y-%m-%d') = DATE_FORMAT(NOW() - INTERVAL 1 DAY, '%Y-%m-%d')
+		]]>
+	</update>
+	
+	
+	<insert id="insertMngPrdtDATA" parameterType="hashmap">
+		<selectKey order="BEFORE" resultType="hashmap" keyProperty="PRDT_IDX">
+		<![CDATA[
+		SELECT (
+			SELECT 
+				PRDT_IDX
+				FROM PPM_SITE_STAT_PRDT PSSP 
+						WHERE
+						BUY_IDX = #{buyIdx}
+						AND DATE_FORMAT( PRDT_DTM, '%Y-%m-%d') =  DATE_FORMAT( NOW() - INTERVAL 1 DAY, '%Y-%m-%d' ) LIMIT 1
+						) PRDT_IDX
+		]]>
+			
+		</selectKey>
+		<![CDATA[
+		INSERT INTO PPM_SITE_STAT_PRDT
+			(
+			PRDT_IDX,
+			
+			BUY_IDX, 
+			CATE_IDX, 
+			PRDT_DTM, 
+			PRDT_WEEK, 
+			PRDT_TYPE, 
+			
+			PRDT_CD, 
+			PRDT_NM, 
+			PRDT_USER_IDX, 
+			PRDT_TERM, 
+			
+			PRDT_PAY_TYPE, 
+			PRDT_REAL_PAY, 
+			PRDT_PAY, 
+			PRDT_REFU, 
+			
+			PRDT_RESERVE_PREV, 
+			PRDT_CONS_WAIT, 
+			PRDT_CONS_CONF, 
+			PRDT_CONS_COMP, 
+			
+			PRDT_CONS_TIME, 
+			PRDT_REVI_CNT, 
+			PRDT_GRAD, 
+			BUY_NO,
+			
+			SYS_REG_IDX, 
+			SYS_REG_DTM, 
+			SYS_MOD_IDX, 
+			SYS_MOD_DTM
+			)
+			VALUES(
+			#{PRDT_IDX},
+			
+			#{buyIdx}, 
+			#{cateIdx}, 
+			#{sysRegDtm},
+			#{wday}, 
+			#{prdtType}, 
+			
+			#{buyPrdtCd}, 
+			#{prdtNm}, 
+			#{userIdx}, 
+			#{prdtUseDtm},
+			
+			#{buyType}, 
+			#{realPayPric}, 
+			#{buyPric}, 
+			#{buyRefu}, 
+			
+			#{prdtReservePrev}, 
+			#{prdtConsultWait}, 
+			#{sangDamHwackJung}, 
+			#{sangDamComp}, 
+			
+			#{consultTime},
+			#{reviCnt}, 
+			#{reviScor}, 
+			#{buyNo}, 
+			
+			
+			0, 
+			DATE_FORMAT(NOW(), '%Y%m%d%H%i%S'), 
+			0, 
+			DATE_FORMAT(NOW(), '%Y%m%d%H%i%S')
+			)ON DUPLICATE KEY UPDATE
+			
+			PRDT_REFU = #{buyRefu}, 
+			
+			PRDT_RESERVE_PREV = #{prdtReservePrev}, 
+			PRDT_CONS_WAIT = #{prdtConsultWait}, 
+			PRDT_CONS_CONF = #{sangDamHwackJung}, 
+			PRDT_CONS_COMP = #{sangDamComp}, 
+			
+			PRDT_CONS_TIME = #{consultTime}, 
+			PRDT_REVI_CNT = #{reviCnt}, 
+			PRDT_GRAD = #{reviScor}, 
+			
+			SYS_MOD_DTM = DATE_FORMAT(NOW(), '%Y%m%d%H%i%S')
+		
+		]]>
+	</insert>
+	
+	<select id="selectMngPrdtDATA" parameterType="hashmap" resultType="hashmap">
+		<![CDATA[
+			
+			 SELECT
+				BUY_COMP_DTM,
+				(
+						SELECT
+							DATE_FORMAT( DATE_ADD( DATE_FORMAT( CONCAT(PPT.TIME_DTM, ' ', PPT.TIME_STR), '%Y-%m-%d %H:%i:%S' ) , INTERVAL PPT.TIME_RUN MINUTE ), '%Y-%m-%d %H:%i:%S' )
+						FROM
+							PPM_PRDT_TIME PPT WHERE PPT.TIME_USE_YN = 'Y' AND TIME_IDX = MAIN.TIME_IDX ORDER BY PPT.TIME_RUN
+				) AS BUY_END_TIME,
+				PRDT_USE_DTM,
+				BUY_ORDER_NUMBER, 
+				BUY_NO, 
+				BUY_IDX,
+				BUY_NO_CNT, 
+				PRDT_TYPE, 
+				BUY_PRDT_CD, 
+				PRDT_NM, 
+				MASTER_NM, 
+				USER_NM, 
+				BUY_TYPE, 
+				BUY_PRIC, 
+				REAL_PAY_PRIC, 
+				REAL_DISC_PRIC, 
+				COUP_DISC, 
+				COUP_DISC_NM, 
+				BUY_STAT, 
+				BUY_CARD_NO,
+				
+				
+				BUY_COMP_YN, 
+				BUY_CD, 
+				REFUND_TAKE,
+				
+				CASE DAYOFWEEK( SYS_REG_DTM )
+					WHEN 1 THEN '일'
+					WHEN 2 THEN '월'
+					WHEN 3 THEN '화'
+					WHEN 4 THEN '수'
+					WHEN 5 THEN '목'
+					WHEN 6 THEN '금'
+					WHEN 7 THEN '토'
+				END	WDAY,
+				PRDT_RESERVE_PREV,
+				PRDT_CONSULT_WAIT,
+				SANG_DAM_HWACK_JUNG,
+				SANG_DAM_COMP,
+				CONSULT_TIME,
+				REVI_CNT,
+				REVI_SCOR,
+				SYS_REG_DATE,
+				SYS_REG_DTM,
+				USER_IDX,
+				BUY_REFU,
+				CATE_IDX
+				
+				
+				
+				
+			FROM (
+			
+				SELECT
+					PUB.TIME_IDX,
+					PUB.CATE_IDX,
+					DATE_FORMAT(PUB.BUY_COMP_DTM, '%Y-%m-%d') AS BUY_COMP_DTM,
+					DATE_FORMAT(PUB.BUY_COMP_DTM, '%Y-%m-%d %H:$i:%S') AS BUY_COMP_DTM_ALL,
+					PUB.BUY_NO,
+					PUB.BUY_IDX,
+					PUB.BUY_ORDER_NUMBER,
+					( SELECT COUNT(0) FROM PPM_USER_BUY WHERE BUY_NO = PUB.BUY_NO ) AS BUY_NO_CNT,
+					(
+						CASE
+							WHEN PUB.BUY_PRDT_CD LIKE '%VL%' THEN 'VOD'
+							WHEN PUB.BUY_PRDT_CD LIKE '%FN%' THEN '1:1화상'
+							WHEN PUB.BUY_PRDT_CD LIKE '%CN%' THEN '1:1채팅'
+							WHEN PUB.BUY_PRDT_CD LIKE '%EN%' THEN '1:1이메일'
+							WHEN PUB.BUY_PRDT_CD LIKE '%LN%' THEN case when PRDT.LIVE_ACAD_YN = 'Y' then 'LIVE ACADEMY' else 'LIVE CLASS' end
+						END
+					) AS PRDT_TYPE,
+					PUB.BUY_PRDT_CD,
+					PRDT_TIME,
+					(
+						CASE
+							WHEN PUB.BUY_PRDT_CD LIKE '%VL%' THEN PRDT.PRDT_TIME + (SELECT IFNULL(SUM(PUBE.EXTE_DATE),0 )  FROM PPM_USER_BUY_EXTE PUBE WHERE PUBE.BUY_IDX = PUB.BUY_IDX )
+							WHEN PUB.BUY_PRDT_CD LIKE '%EN%' THEN CONCAT( SUBSTRING_INDEX( SUBSTRING_INDEX( PRDT.PRDT_TIME, ',', 2),',' , -1 ), '회' ) 
+							WHEN PUB.BUY_PRDT_CD LIKE '%CN%' THEN IFNULL(
+									(select CONCAT(PPT.TIME_RUN,'분') FROM	PPM_PRDT_TIME PPT WHERE PPT.TIME_USE_YN = 'Y' AND PPT.TIME_IDX = PUB.TIME_IDX ORDER BY PPT.TIME_RUN),
+									(select CONCAT(PPT.TIME_RUN,'분') FROM	PPM_PRDT_TIME PPT WHERE PPT.TIME_USE_YN = 'Y' AND PPT.CHAT_IDX = PRDT.PRDT_IDX ORDER BY PPT.TIME_IDX desc limit 1 )
+								 )
+							WHEN PUB.BUY_PRDT_CD LIKE '%FN%' THEN IFNULL(
+									(select CONCAT(PPT.TIME_RUN,'분') FROM	PPM_PRDT_TIME PPT WHERE PPT.TIME_USE_YN = 'Y' AND PPT.TIME_IDX = PUB.TIME_IDX ORDER BY PPT.TIME_RUN),
+									(select CONCAT(PPT.TIME_RUN,'분') FROM	PPM_PRDT_TIME PPT WHERE PPT.TIME_USE_YN = 'Y' AND PPT.FACE_IDX = PRDT.PRDT_IDX ORDER BY PPT.TIME_IDX desc limit 1 )
+								 )
+							ELSE 
+								CASE 
+									WHEN PRDT.LIVE_ACAD_YN = 'Y' THEN ( SELECT CONCAT( COUNT(0), '회') FROM PPM_PRDT_TIME PPT WHERE PPT.TIME_USE_YN = 'Y' AND PPT.LIVE_IDX = PRDT.PRDT_IDX )
+									ELSE							
+									IFNULL(
+										(SELECT CONCAT(PPT.TIME_RUN,'분') FROM	PPM_PRDT_TIME PPT WHERE PPT.TIME_USE_YN = 'Y' AND PPT.TIME_IDX = PUB.TIME_IDX ORDER BY PPT.TIME_RUN),
+										(SELECT CONCAT(PPT.TIME_RUN,'분') FROM	PPM_PRDT_TIME PPT WHERE PPT.TIME_USE_YN = 'Y' AND PPT.LIVE_IDX = PRDT.PRDT_IDX ORDER BY PPT.TIME_IDX DESC LIMIT 1 )
+									 )
+								END
+						END 
+					) AS PRDT_USE_DTM,
+					
+					CONCAT( PRDT.PRDT_NM1, ' ',PRDT.PRDT_NM2 )  AS PRDT_NM, 
+					
+					PU.USER_NM AS MASTER_NM,
+					
+					PU_U.USER_NM, 
+					PU_U.USER_IDX, 
+					
+					PUB.BUY_TYPE, 
+					PUB.BUY_PRIC,
+					
+					CASE 
+						WHEN PUB.BUY_STAT = '환불완료' OR PUB.BUY_STAT = '취소완료' THEN 0
+						ELSE PUB.REAL_PAY_PRIC 
+					END REAL_PAY_PRIC,
+					
+					PUB.REAL_DISC_PRIC REAL_DISC_PRIC,
+					
+					CASE 
+						WHEN PUB.BUY_STAT = '환불완료' OR PUB.BUY_STAT = '취소완료' THEN PUB.REAL_PAY_PRIC
+						ELSE 0
+					END BUY_REFU,
+					
+					P_COUP.COUP_DISC,
+					PUB_CODE.CODE_NM AS COUP_DISC_NM,
+					
+					
+					BUY_STAT,
+					IF( PUB.BUY_CARD_NO ='' OR PUB.BUY_CARD_NO IS NULL , 'NOCARD', PUB.BUY_CARD_NO ) BUY_CARD_NO,
+					
+				
+					
+					BUY_ACCO_NO,
+					BUY_COMP_YN,
+					BUY_CD,
+					
+					
+					
+					
+					CASE PRDT.PRDT_TYPE
+						WHEN 'VOD' THEN 
+							CASE 
+								WHEN (SELECT COUNT(0) FROM PPM_USER_BUY_PROG PUBP WHERE PUBP.BUY_IDX = PUB.BUY_IDX) < 2  
+										AND IFNULL((SELECT DATEDIFF( PUBP.SYS_REG_DTM, NOW() )   FROM PPM_USER_BUY_PROG PUBP WHERE PUBP.BUY_IDX = PUB.BUY_IDX ORDER BY SYS_REG_DTM ASC LIMIT 1 ),'0') > -3
+								THEN 'Y'
+								ELSE 'N'
+								END
+						WHEN '1:1이메일상담' THEN (SELECT IF( COUNT(0) > 0, 'N', 'Y'  ) FROM PPM_USER_BUY_MAIL PUBM WHERE PUBM.BUY_IDX = PUB.BUY_IDX )
+						ELSE NULL						
+					END REFUND_TAKE,
+					PUB.SYS_REG_DTM,
+					DATE_FORMAT( PUB.SYS_REG_DTM, '%Y-%m-%d' ) SYS_REG_DATE,
+					
+					CASE 
+						when PUB.BUY_PRDT_CD like '%CN%' THEN (SELECT CASE WHEN COUNT(0) > 0 THEN '1' ELSE '0' END FROM PPM_USER_BUY PUB2 WHERE PUB2.BUY_IDX = PUB.BUY_IDX AND PUB2.TIME_IDX = 0 and PUB.BUY_PRDT_CD = PUB2.BUY_PRDT_CD )
+						when PUB.BUY_PRDT_CD like '%FN%' THEN (SELECT CASE WHEN COUNT(0) > 0 THEN '1' ELSE '0' END FROM PPM_USER_BUY PUB2 WHERE PUB2.BUY_IDX = PUB.BUY_IDX AND PUB2.TIME_IDX = 0 and PUB.BUY_PRDT_CD = PUB2.BUY_PRDT_CD )
+						when PUB.BUY_PRDT_CD like '%LN%' THEN (SELECT CASE WHEN COUNT(0) > 0 THEN '1' ELSE '0' END FROM PPM_USER_BUY PUB2 WHERE PUB2.BUY_IDX = PUB.BUY_IDX AND PUB2.TIME_IDX = 0 and PUB.BUY_PRDT_CD = PUB2.BUY_PRDT_CD )
+						ELSE '-'
+					END	PRDT_RESERVE_PREV,
+					CASE 
+						when PUB.BUY_PRDT_CD like '%CN%' THEN (SELECT CASE WHEN COUNT(0) > 0 THEN '1' ELSE '0' END FROM PPM_USER_BUY PUB2 WHERE PUB2.BUY_IDX = PUB.BUY_IDX AND PUB2.TIME_IDX != 0 AND PUB2.SANG_DAM_HWACK_JUNG_YN != 'Y' and PUB.BUY_PRDT_CD = PUB2.BUY_PRDT_CD )
+						when PUB.BUY_PRDT_CD like '%FN%' THEN (SELECT CASE WHEN COUNT(0) > 0 THEN '1' ELSE '0' END FROM PPM_USER_BUY PUB2 WHERE PUB2.BUY_IDX = PUB.BUY_IDX AND PUB2.TIME_IDX != 0 AND PUB2.SANG_DAM_HWACK_JUNG_YN != 'Y' and PUB.BUY_PRDT_CD = PUB2.BUY_PRDT_CD )
+						when PUB.BUY_PRDT_CD like '%LN%' THEN (SELECT CASE WHEN COUNT(0) > 0 THEN '1' ELSE '0' END FROM PPM_USER_BUY PUB2 WHERE PUB2.BUY_IDX = PUB.BUY_IDX AND PUB2.TIME_IDX != 0 AND PUB2.SANG_DAM_HWACK_JUNG_YN != 'Y' and PUB.BUY_PRDT_CD = PUB2.BUY_PRDT_CD )
+						ELSE '-'
+					END	PRDT_CONSULT_WAIT,
+					CASE 
+						when PUB.BUY_PRDT_CD like '%CN%' THEN (SELECT CASE WHEN COUNT(0) > 0 THEN '1' ELSE '0' END FROM PPM_USER_BUY PUB2 WHERE PUB2.BUY_IDX = PUB.BUY_IDX AND PUB2.TIME_IDX != 0 AND PUB2.SANG_DAM_HWACK_JUNG_YN = 'Y' and PUB.BUY_PRDT_CD = PUB2.BUY_PRDT_CD )
+						when PUB.BUY_PRDT_CD like '%FN%' THEN (SELECT CASE WHEN COUNT(0) > 0 THEN '1' ELSE '0' END FROM PPM_USER_BUY PUB2 WHERE PUB2.BUY_IDX = PUB.BUY_IDX AND PUB2.TIME_IDX != 0 AND PUB2.SANG_DAM_HWACK_JUNG_YN = 'Y' and PUB.BUY_PRDT_CD = PUB2.BUY_PRDT_CD )
+						when PUB.BUY_PRDT_CD like '%LN%' THEN (SELECT CASE WHEN COUNT(0) > 0 THEN '1' ELSE '0' END FROM PPM_USER_BUY PUB2 WHERE PUB2.BUY_IDX = PUB.BUY_IDX AND PUB2.TIME_IDX != 0 AND PUB2.SANG_DAM_HWACK_JUNG_YN = 'Y' and PUB.BUY_PRDT_CD = PUB2.BUY_PRDT_CD )
+						ELSE '-'
+					END	SANG_DAM_HWACK_JUNG,
+					CASE 
+						WHEN PUB.BUY_PRDT_CD LIKE '%CN%' THEN (SELECT CASE WHEN COUNT(0) > 0 THEN '1' ELSE '0' END FROM PPM_CHAT PCHAT WHERE PCHAT.CHAT_ROOM = PUB.BUY_IDX AND PCHAT.CHAT_TYPE = 'E' )
+						WHEN PUB.BUY_PRDT_CD LIKE '%FN%' THEN (SELECT CASE WHEN COUNT(0) > 0 THEN '1' ELSE '0' END FROM PPM_USER_BUY_CONS PUBC, PPM_USER_BUY PUB2 WHERE PUBC.BUY_IDX IN (PUB2.BUY_IDX) AND PUB2.BUY_PRDT_CD = PUB.BUY_PRDT_CD AND PUBC.HIST_FLAG ='T' )
+						WHEN PUB.BUY_PRDT_CD LIKE '%LN%' THEN (SELECT CASE WHEN COUNT(0) > 0 THEN '1' ELSE '0' END FROM PPM_USER_BUY_CONS PUBC, PPM_USER_BUY PUB2 WHERE PUBC.BUY_IDX IN (PUB2.BUY_IDX) AND PUB2.BUY_PRDT_CD = PUB.BUY_PRDT_CD AND PUBC.HIST_FLAG ='T' )
+						ELSE '-'
+					END	SANG_DAM_COMP,
+					CASE 	
+						WHEN PUB.BUY_PRDT_CD LIKE '%CN%' THEN TIMEDIFF( ( SELECT date_format(PCHAT.CHAT_DT, '%Y-%m-%d %H:%i:%s') FROM PPM_CHAT PCHAT WHERE PCHAT.CHAT_ROOM = PUB.BUY_IDX and PCHAT.USER_TYPE = 'U' order by CHAT_DT DESC limit 1 ),
+						( SELECT date_format(PCHAT.CHAT_DT, '%Y-%m-%d %H:%i:%s') FROM PPM_CHAT PCHAT WHERE PCHAT.CHAT_ROOM = PUB.BUY_IDX and PCHAT.USER_TYPE = 'U' order by CHAT_DT  limit 1 ) )
+						WHEN PUB.BUY_PRDT_CD LIKE '%FN%' THEN TIMEDIFF( (SELECT PUBC.HIST_END_TIME FROM PPM_USER_BUY_CONS PUBC, PPM_USER_BUY PUB2 WHERE PUBC.BUY_IDX IN (PUB2.BUY_IDX) AND PUB2.BUY_PRDT_CD = PUB.BUY_PRDT_CD AND PUBC.HIST_FLAG ='T' ORDER BY PUBC.SYS_REG_DTM DESC LIMIT 1) ,
+						(SELECT PUBC.SYS_REG_DTM FROM PPM_USER_BUY_CONS PUBC WHERE PUBC.BUY_IDX = PUB.BUY_IDX AND PUB.USER_IDX = PUBC.USER_IDX AND PUBC.HIST_FLAG ='S' LIMIT 1) )
+						WHEN PUB.BUY_PRDT_CD LIKE '%LN%' THEN TIMEDIFF( (SELECT PUBC.HIST_END_TIME FROM PPM_USER_BUY_CONS PUBC, PPM_USER_BUY PUB2 WHERE PUBC.BUY_IDX IN (PUB2.BUY_IDX) AND PUB2.BUY_PRDT_CD = PUB.BUY_PRDT_CD AND PUBC.HIST_FLAG ='T' ORDER BY PUBC.SYS_REG_DTM DESC LIMIT 1) ,
+						(SELECT PUBC.SYS_REG_DTM FROM PPM_USER_BUY_CONS PUBC WHERE PUBC.BUY_IDX = PUB.BUY_IDX AND PUB.USER_IDX = PUBC.USER_IDX AND PUBC.HIST_FLAG ='S' LIMIT 1) )
+						ELSE '-'
+					END	CONSULT_TIME,
+					(SELECT count(0) FROM PPM_USER_REVI PUR  WHERE PUR.BUY_IDX  = PUB.BUY_IDX ) REVI_CNT,
+					IFNULL( (SELECT REVI_SCOR FROM PPM_USER_REVI PUR  WHERE PUR.BUY_IDX  = PUB.BUY_IDX ), '-') REVI_SCOR
+					
+					
+					
+				FROM
+					PPM_USER_BUY PUB
+						LEFT JOIN PPM_USER_COUP PUC ON PUB.COUP_IDX = PUC.COUP_IDX 
+						LEFT JOIN PPM_COUP_DATA PCD ON PUC.DATA_IDX  = PCD.DATA_IDX 
+						LEFT JOIN PPM_COUP P_COUP ON PCD.COUP_IDX  = P_COUP.COUP_IDX
+						LEFT JOIN PPM_CODE PUB_CODE ON P_COUP.COUP_DISC_CD  = PUB_CODE.CODE_ID ,
+						-- LEFT JOIN PPM_USER_REVI PUR ON PUR.BUY_IDX = PUB.BUY_IDX,
+					PPM_CATE PC,
+					PPM_USER PU,
+					PPM_USER PU_U,
+					(
+				      SELECT '1:1화상상담' AS PRDT_TYPE, PSF.CATE_IDX, 'N' AS LIVE_ACAD_YN, PSF.FACE_IDX AS PRDT_IDX, 'FN' AS PRDT_TIME, PPF.FACE_CD AS PRDT_CD, (SELECT PIP.INFO_PRDT_TITL1 FROM PPM_INFO_PRDT PIP  WHERE  PIP.PRDT_CD = CONCAT( 'COACHING', PPF.CATE_IDX ) AND PIP.INFO_ORDE = 0 AND PIP.INFO_USE_YN = 'Y') AS PRDT_NM1, (SELECT PIP.INFO_PRDT_TITL2 FROM PPM_INFO_PRDT PIP  WHERE  PIP.PRDT_CD = CONCAT( 'COACHING', PPF.CATE_IDX ) AND PIP.INFO_ORDE = 0 AND PIP.INFO_USE_YN = 'Y') AS PRDT_NM2, FACE_PRIC_REAL AS PRDT_PRIC_REAL, FACE_PRIC AS PRDT_PRIC , FACE_IMG_UUID AS PRDT_UUID, 'FACE_IMG_UUID' AS PRDT_UUID_NM
+				        FROM PPM_SALE_FACE PSF, PPM_PRDT_FACE PPF WHERE PSF.FACE_IDX = PPF.FACE_IDX 
+				      UNION ALL
+				        SELECT 'VOD' AS PRDT_TYPE, PSLE.CATE_IDX, 'N' AS LIVE_ACAD_YN, PSLE.LECT_IDX AS PRDT_IDX, PPLE.LECT_DTM AS PRDT_TIME, PPLE.LECT_CD AS PRDT_CD,(SELECT PIP.INFO_PRDT_TITL1 FROM PPM_INFO_PRDT PIP  WHERE  PIP.PRDT_CD = PPLE.LECT_CD AND PIP.INFO_ORDE = 0 AND PIP.INFO_USE_YN = 'Y') AS PRDT_NM1, (SELECT PIP.INFO_PRDT_TITL2 FROM PPM_INFO_PRDT PIP  WHERE  PIP.PRDT_CD = PPLE.LECT_CD AND PIP.INFO_ORDE = 0 AND PIP.INFO_USE_YN = 'Y') AS PRDT_NM2, LECT_PRIC_REAL AS PRDT_PRIC_REAL, LECT_PRIC AS PRDT_PRIC, LECT_UUID AS PRDT_UUID, 'LECT_UUID' AS PRDT_UUID_NM
+				        FROM PPM_SALE_LECT PSLE, PPM_PRDT_LECT PPLE WHERE PSLE.LECT_IDX = PPLE.LECT_IDX 
+				      UNION ALL
+				        SELECT '1:1채팅상담' AS PRDT_TYPE, PSC.CATE_IDX, 'N' AS LIVE_ACAD_YN, PSC.CHAT_IDX AS PRDT_IDX, 'CN' AS PRDT_TIME, PPC.CHAT_CD AS PRDT_CD, (SELECT PIP.INFO_PRDT_TITL1 FROM PPM_INFO_PRDT PIP  WHERE  PIP.PRDT_CD = CONCAT( 'COACHING', PPC.CATE_IDX ) AND PIP.INFO_ORDE = 0 AND PIP.INFO_USE_YN = 'Y') AS PRDT_NM1, (SELECT PIP.INFO_PRDT_TITL2 FROM PPM_INFO_PRDT PIP  WHERE  PIP.PRDT_CD = CONCAT( 'COACHING', PPC.CATE_IDX ) AND PIP.INFO_ORDE = 0 AND PIP.INFO_USE_YN = 'Y') AS PRDT_NM2,  CHAT_PRIC_REAL AS PRDT_PRIC_REAL, CHAT_PRIC AS PRDT_PRIC, CHAT_IMG_UUID AS PRDT_UUID, 'CHAT_IMG_UUID' AS PRDT_UUID_NM
+				        FROM PPM_SALE_CHAT PSC, PPM_PRDT_CHAT PPC WHERE  PSC.CHAT_IDX = PPC.CHAT_IDX 
+				      UNION ALL
+				        SELECT '1:1이메일상담' AS PRDT_TYPE, PSM.CATE_IDX, 'N' AS LIVE_ACAD_YN, PSM.MAIL_IDX AS PRDT_IDX, CONCAT( PPM.MAIL_DTM_CNT, ',' , PPM.MAIL_CNT ) AS PRDT_TIME, PPM.MAIL_CD AS PRDT_CD, (SELECT PIP.INFO_PRDT_TITL1 FROM PPM_INFO_PRDT PIP  WHERE  PIP.PRDT_CD = CONCAT( 'COACHING', PPM.CATE_IDX ) AND PIP.INFO_ORDE = 0 AND PIP.INFO_USE_YN = 'Y') AS PRDT_NM1, (SELECT PIP.INFO_PRDT_TITL2 FROM PPM_INFO_PRDT PIP  WHERE  PIP.PRDT_CD = CONCAT( 'COACHING', PPM.CATE_IDX ) AND PIP.INFO_ORDE = 0 AND PIP.INFO_USE_YN = 'Y') AS PRDT_NM2, MAIL_PRIC_REAL AS PRDT_PRIC_REAL, MAIL_PRIC AS PRDT_PRIC, MAIL_IMG_UUID AS PRDT_UUID, 'MAIL_IMG_UUID' AS PRDT_UUID_NM
+				        FROM PPM_SALE_MAIL PSM, PPM_PRDT_MAIL PPM WHERE  PSM.MAIL_IDX = PPM.MAIL_IDX 
+				      UNION ALL
+				        SELECT 'LIVE CLASS' AS PRDT_TYPE, PSLI.CATE_IDX, PPLI.LIVE_ACAD_YN AS LIVE_ACAD_YN, PSLI.LIVE_IDX AS PRDT_IDX, 'LN' AS PRDT_TIME, PPLI.LIVE_CD AS PRDT_CD, (SELECT PIP.INFO_PRDT_TITL1 FROM PPM_INFO_PRDT PIP  WHERE  PIP.PRDT_CD = PPLI.LIVE_CD AND PIP.INFO_ORDE = 0 AND PIP.INFO_USE_YN = 'Y') AS PRDT_NM1, (SELECT PIP.INFO_PRDT_TITL2 FROM PPM_INFO_PRDT PIP  WHERE  PIP.PRDT_CD = PPLI.LIVE_CD AND PIP.INFO_ORDE = 0 AND PIP.INFO_USE_YN = 'Y') AS PRDT_NM2, LIVE_PRIC_REAL AS PRDT_PRIC_REAL, LIVE_PRIC AS PRDT_PRIC, LIVE_IMG_UUID AS PRDT_UUID, 'LIVE_IMG_UUID' AS PRDT_UUID_NM
+				        FROM PPM_SALE_LIVE PSLI, PPM_PRDT_LIVE PPLI WHERE  PSLI.LIVE_IDX = PPLI.LIVE_IDX 
+				    ) PRDT
+				WHERE
+					(PUB.BUY_STAT NOT LIKE '%입금대기%' && PUB.BUY_STAT IS NOT NULL)
+					AND PUB.BUY_NO IS NOT NULL
+					AND PUB.BUY_TYPE IS NOT NULL
+					
+					AND PUB.CATE_IDX = PC.CATE_IDX
+					AND PC.USER_IDX = PU.USER_IDX
+					AND PU_U.USER_IDX = PUB.USER_IDX
+					
+					AND PRDT.CATE_IDX = PUB.CATE_IDX
+					AND PRDT.CATE_IDX = PC.CATE_IDX
+					AND PUB.BUY_PRDT_CD = PRDT.PRDT_CD
+					
+					
+					GROUP BY BUY_IDX
+					
+					
+			) MAIN
+				 WHERE
+					 SYS_REG_DATE = DATE_FORMAT(NOW() - INTERVAL 1 DAY, '%Y-%m-%d')
+				
+				]]>
+	</select>
+	
+</mapper>

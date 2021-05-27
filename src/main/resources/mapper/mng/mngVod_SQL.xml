@@ -1,0 +1,642 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd"> 
+<mapper namespace="mngVod">
+
+	<!-- 로그인 체크 -->
+	<select id="selectMngVodList" parameterType="hashmap" resultType="hashmap">
+		<![CDATA[
+				]]>
+			<if test="status not in {'LIST'}">
+				<![CDATA[
+SELECT C.*, REPLACE(CONVERT(C.NUM_DESC, CHAR),'.0','') AS NUM_DESC_ORDER FROM (
+  SELECT B.*, (@rownumB:=@rownumB+1) as NUM_ASC FROM(  
+    SELECT A.*, (@rownumA:=@rownumA+1) as NUM_DESC FROM (
+				]]>
+			</if>
+		<![CDATA[
+			
+			    SELECT 
+			    	VOD_IDX, 
+			    	PPV.CATE_IDX,
+			    	(SELECT PU.USER_NM FROM PPM_USER PU WHERE PU.USER_IDX IN (SELECT PC.USER_IDX FROM PPM_CATE PC WHERE PC.CATE_IDX = PPV.CATE_IDX) ) MASTER_NM,
+			    	VOD_CD, 
+			    	VOD_NM, 
+			    	P_CODE.CODE_NM AS P_CODE_NM,
+			    	M_CODE.CODE_NM AS M_CODE_NM,
+			    	VOD_PROG_CD, 
+			    	IFNULL( (SELECT CODE_NM FROM PPM_CODE PC WHERE PC.CODE_ID = VOD_PROG_CD), '확인중' ) VOD_PROG, 
+			    	VOD_STAT_CD, 
+			    	IFNULL( (SELECT CODE_NM FROM PPM_CODE PC WHERE PC.CODE_ID = VOD_STAT_CD), '확인중' ) VOD_STAT, 
+			    	VOD_CNT, 
+			    	(SELECT COUNT(*) FROM PPM_PRDT_VOD_DATA PPVD  WHERE PPVD.VOD_IDX = PPV.VOD_IDX AND PPVD.DATA_USE_YN = 'Y') VOD_CNT_REAL,
+			    	
+			    	PPV.SYS_REG_IDX, 
+			    	DATE_FORMAT(PPV.SYS_REG_DTM, '%Y-%m-%d') SYS_REG_DTM,
+			    	PPV.SYS_MOD_IDX, 
+			    	DATE_FORMAT(PPV.SYS_MOD_DTM, '%Y-%m-%d %H:%i:%S') SYS_MOD_DTM
+			    	
+				FROM 
+					PPM_PRDT_VOD PPV
+						LEFT JOIN PPM_CATE PC ON PPV.CATE_IDX = PC.CATE_IDX
+						LEFT JOIN PPM_CODE P_CODE ON SUBSTR(PC.CODE_ID,1,5) = P_CODE.CODE_ID
+						LEFT JOIN PPM_CODE M_CODE ON PC.CODE_ID = M_CODE.CODE_ID
+				WHERE
+					VOD_USE_YN = 'Y'
+		]]>
+			<if test='mngLoginType not in {"A"}'>
+				<![CDATA[
+					AND PPV.SYS_REG_IDX = #{mngLoginIdx }
+				]]>
+			</if>
+				<if test="vodSelectStat not in {null, ''}">
+					<![CDATA[
+					AND VOD_PROG_CD LIKE '%${vodSelectStat}%'	
+					]]>
+				</if>
+				<if test="vodSelectNm not in {null, ''}">
+					<![CDATA[
+					AND VOD_IDX = #{vodSelectNm}  
+					]]>
+				</if>
+				<if test="vodTitl not in {null, ''}">
+					<![CDATA[
+					AND (VOD_NM LIKE '%${vodTitl}%' || VOD_CD LIKE '%${vodTitl}%' || PPV.CATE_IDX IN (SELECT CATE_IDX
+																FROM PPM_CATE PC 
+																	WHERE PC.USER_IDX 
+																		IN 
+																		
+																		(SELECT PU.USER_IDX 
+																			FROM PPM_USER PU 
+																				WHERE USER_NM LIKE '%${vodTitl}%' 
+																					AND USER_TYPE = 'M' 
+																					AND USER_USE_YN = 'Y') ) )
+					]]>
+				</if>
+			<if test="status not in {'LIST'}">
+				<![CDATA[
+						) A JOIN (SELECT @rownumA:=0) rownumA
+  ) B JOIN (SELECT @rownumB:=0) rownumB ORDER BY VOD_IDX DESC
+) C WHERE NUM_ASC BETWEEN '${startRow }' AND '${endRow }'
+				]]>
+			</if>
+		<![CDATA[
+		]]>
+	</select>
+	
+	<!-- 로그인 체크 -->
+	<select id="selectMngVodListCnt" parameterType="hashmap" resultType="java.lang.Integer">
+		<![CDATA[
+			    SELECT
+					COUNT(*) CNT
+				FROM 
+					PPM_PRDT_VOD PPV
+						LEFT JOIN PPM_CATE PC ON PPV.CATE_IDX = PC.CATE_IDX
+						LEFT JOIN PPM_CODE P_CODE ON SUBSTR(PC.CODE_ID,1,5) = P_CODE.CODE_ID
+						LEFT JOIN PPM_CODE M_CODE ON PC.CODE_ID = M_CODE.CODE_ID
+				WHERE
+					VOD_USE_YN = 'Y'
+		]]>
+			<if test='mngLoginType not in {"A"}'>
+				<![CDATA[
+					AND PPV.SYS_REG_IDX = #{mngLoginIdx }
+				]]>
+			</if>
+				<if test="vodSelectStat not in {null, ''}">
+					<![CDATA[
+					AND VOD_PROG_CD LIKE '%${vodSelectStat}%'	
+					]]>
+				</if>
+				<if test="vodSelectNm not in {null, ''}">
+					<![CDATA[
+					AND VOD_IDX = #{vodSelectNm}  
+					]]>
+				</if>
+				<if test="vodTitl not in {null, ''}">
+					<![CDATA[
+					AND (VOD_NM LIKE '%${vodTitl}%' || VOD_CD LIKE '%${vodTitl}%' || PPV.CATE_IDX IN (SELECT CATE_IDX
+																FROM PPM_CATE PC 
+																	WHERE PC.USER_IDX 
+																		IN 
+																		
+																		(SELECT PU.USER_IDX 
+																			FROM PPM_USER PU 
+																				WHERE USER_NM LIKE '%${vodTitl}%' 
+																					AND USER_TYPE = 'M' 
+																					AND USER_USE_YN = 'Y') ) )
+					]]>
+				</if>
+	</select>
+	
+	<select id="selectMngVodDetail" parameterType="hashmap" resultType="hashmap">
+		<![CDATA[
+			    
+		     SELECT 
+			    	VOD_IDX, 
+			    	CATE_IDX,
+			    	(SELECT PU.USER_NM FROM PPM_USER PU WHERE PU.USER_IDX IN (SELECT PC.USER_IDX FROM PPM_CATE PC WHERE PC.CATE_IDX = PPV.CATE_IDX) ) MASTER_NM,
+			    	(SELECT CODE_ID FROM PPM_CATE PC WHERE PC.CATE_IDX = PPV.CATE_IDX) CODE_ID,
+			    	VOD_CD, 
+			    	VOD_NM, 
+			    	
+			    	VOD_PROG_CD , 
+			    	VOD_STAT_CD , 
+			    	VOD_CNT, 
+			    	(SELECT COUNT(*) FROM PPM_PRDT_VOD PPV WHERE VOD_IDX = PPV.VOD_IDX ) VOD_CNT_REAL,
+			    	
+			    	SYS_REG_IDX, 
+			    	DATE_FORMAT(SYS_REG_DTM, '%Y%m%d%H%i%S') AS SYS_REG_DTM,
+			    	SYS_MOD_IDX, 
+			    	DATE_FORMAT(SYS_MOD_DTM, '%Y%m%d%H%i%S') AS SYS_MOD_DTM
+				FROM 
+					PPM_PRDT_VOD PPV
+				WHERE
+					VOD_IDX = #{vodIdx}
+					AND VOD_USE_YN = 'Y'
+		]]>
+	</select>
+	
+	<select id="selectMngVodDetailList" parameterType="hashmap" resultType="hashmap">
+		<![CDATA[
+			 
+			 SELECT
+			 	DATA_IDX,
+			 	VOD_IDX,
+			 	DATA_CD,
+			 	DATA_TITL,
+			 	DATA_PC_URL,
+			 	DATA_UUID,
+			 	DATA_RUNN,
+			 	DATA_ORDE,
+			 	IFNULL( DATA_PART_NM ,'') DATA_PART_NM,
+			 	IFNULL( DATA_PART_IDX, '' ) DATA_PART_IDX,
+			 	DATA_FREE_YN
+			 FROM
+			 	PPM_PRDT_VOD_DATA
+			 WHERE
+			 	VOD_IDX = #{vodIdx}
+			 	AND DATA_USE_YN = 'Y'
+			 	ORDER BY DATA_IDX
+		]]>
+	</select>
+
+	<select id="selectMngVodDetailPartList" parameterType="hashmap" resultType="hashmap">
+		<![CDATA[
+			 
+			 SELECT
+			 	IFNULL( DATA_PART_NM , '' ) DATA_PART_NM,
+			 	IFNULL( DATA_PART_IDX , '' ) DATA_PART_IDX
+			 FROM
+			 	PPM_PRDT_VOD_DATA
+			 WHERE
+			 	VOD_IDX = #{vodIdx}
+			 	AND DATA_USE_YN = 'Y'
+			 	GROUP BY DATA_PART_IDX
+			 	ORDER BY DATA_PART_IDX
+		]]>
+	</select>
+	
+	
+	
+	
+	
+	
+	<!-- 현재 가장 최신의 VOD_IDX를 가져옴 -->
+	<select id="selectMngVodIdx" parameterType="hashmap" resultType="hashmap">
+		<![CDATA[
+			     
+		     	SELECT 
+		     		VOD_IDX 
+		     			FROM 
+		     				PPM_PRDT_VOD PPV 
+		     					
+		     					WHERE VOD_CD = #{vodCd}
+		]]>
+	</select>
+	
+	<!-- 현재 가장 최신의 VOD, VOD_DATA 코드 번호를 가져옴 -->
+	<select id="selectMngLatestVodCodeDetail" parameterType="hashmap" resultType="hashmap">
+		<![CDATA[
+			    
+		     SELECT 
+		     	(SELECT VOD_CD FROM PPM_PRDT_VOD PPV ORDER BY SYS_REG_DTM DESC, VOD_IDX DESC LIMIT 1) VOD_CD, 
+		     	
+				(SELECT DATA_CD FROM PPM_PRDT_VOD_DATA PPVD ORDER BY SYS_REG_DTM DESC, DATA_IDX DESC LIMIT 1) DATA_CD
+		]]>
+	</select>
+	
+
+	<update id="deleteMngVodData" parameterType="hashmap" >
+		<![CDATA[
+			    
+		    UPDATE
+		    	PPM_PRDT_VOD 
+    		SET
+    			VOD_USE_YN = 'N',
+    			SYS_MOD_IDX=#{mngLoginIdx}, 
+				SYS_MOD_DTM=DATE_FORMAT(NOW(), '%Y%m%d%H%i%S')
+	    	WHERE 
+	    		VOD_IDX = #{vodIdx}
+		]]>
+	</update>
+	
+	<insert id="insertMngVodData" parameterType="hashmap">
+		<![CDATA[
+			INSERT 
+				INTO PPM_PRDT_VOD
+					(
+					VOD_IDX,
+					CATE_IDX,
+					VOD_CD,
+					VOD_USE_YN,
+					VOD_NM,
+					VOD_PROG_CD,
+					VOD_STAT_CD,
+					VOD_CNT,
+					
+					SYS_REG_IDX, 
+					SYS_REG_DTM, 
+					SYS_MOD_IDX, 
+					SYS_MOD_DTM
+					)
+					VALUES(
+						#{vodIdx},
+						#{cateIdx},
+						(
+							SELECT
+									CONCAT(
+										CONCAT(
+											'${vodCd}',
+											(
+												CASE
+													WHEN COUNT(PPF.VOD_IDX) BETWEEN 0 AND 9999 THEN 'A'
+													WHEN COUNT(PPF.VOD_IDX) > 9999 THEN CHAR(ASCII('A') + FLOOR(COUNT(PPF.VOD_IDX)/10000))
+													WHEN COUNT(PPF.VOD_IDX) = 0 THEN 'A'
+												END
+											)
+										),
+										(
+											CASE 
+												WHEN COUNT(PPF.VOD_IDX) BETWEEN 0 AND 9999 THEN LPAD( COUNT(PPF.VOD_IDX)+1 , 4 , 0)
+												WHEN COUNT(PPF.VOD_IDX) > 9999 THEN LPAD( COUNT(PPF.VOD_IDX)+1 - 9999 , 4 , 0)
+												WHEN COUNT(PPF.VOD_IDX) = 0 THEN '0001'
+											END
+										)
+									)
+							FROM
+								PPM_PRDT_VOD PPF
+							WHERE
+								VOD_CD LIKE '%${vodCd}%'
+						),
+						'Y', 
+						#{vodNm},
+						#{vodProgCd},
+						#{vodStatCd},
+						#{vodCnt},
+						
+						#{mngLoginIdx}, 
+						DATE_FORMAT(NOW(), '%Y%m%d%H%i%S'), 
+						#{mngLoginIdx}, 
+						DATE_FORMAT(NOW(), '%Y%m%d%H%i%S')
+					)
+					ON DUPLICATE KEY UPDATE 
+					
+					CATE_IDX=#{cateIdx},
+					VOD_NM=#{vodNm},
+					VOD_PROG_CD=#{vodProgCd},
+					VOD_STAT_CD=#{vodStatCd},
+					VOD_CNT=#{vodCnt},
+					SYS_MOD_IDX = #{mngLoginIdx}, 
+					SYS_MOD_DTM = DATE_FORMAT(NOW(), '%Y%m%d%H%i%S')
+		]]>
+	</insert>
+	
+	<insert id="insertMngVodDataData" parameterType="hashmap">
+		<![CDATA[
+			INSERT INTO 
+				PPM_PRDT_VOD_DATA
+					(
+					VOD_IDX, 
+					DATA_CD, 
+					DATA_TITL, 
+					DATA_PC_URL,
+					DATA_RUNN, 
+					DATA_ORDE, 
+					DATA_FREE_YN,
+					DATA_USE_YN, 
+					DATA_UUID, 
+					
+					DATA_PART_NM,
+					DATA_PART_IDX,
+					
+					SYS_REG_IDX, 
+					SYS_REG_DTM, 
+					SYS_MOD_IDX, 
+					SYS_MOD_DTM
+					)
+				
+				VALUES
+					(
+					#{vodIdx}, 
+					#{dataCd}, 
+					#{dataTitl}, 
+					#{dataPcUrl}, 
+					#{dataRunn},
+					#{dataOrde},
+					#{dataFreeYn},
+					'Y', 
+					#{dataUuid},
+
+					#{dataPartNm},
+					#{dataPartIdx},
+					
+					#{mngLoginIdx}, 
+					DATE_FORMAT(NOW(), '%Y%m%d%H%i%S'), 
+					#{mngLoginIdx}, 
+					DATE_FORMAT(NOW(), '%Y%m%d%H%i%S')
+					)
+
+		]]>
+	</insert>
+	
+	<update id="updateMngVodDataDataOnDuplicate" parameterType="hashmap">
+		<![CDATA[
+			INSERT INTO 
+				PPM_PRDT_VOD_DATA
+					(
+					DATA_IDX,
+					VOD_IDX, 
+					DATA_CD, 
+					DATA_TITL, 
+					DATA_PC_URL,
+					DATA_RUNN, 
+					DATA_ORDE, 
+					DATA_FREE_YN,
+					DATA_USE_YN, 
+					DATA_UUID, 
+					DATA_UUID_IDX,
+					
+					DATA_PART_NM,
+					DATA_PART_IDX,
+					
+					
+					SYS_REG_IDX, 
+					SYS_REG_DTM, 
+					SYS_MOD_IDX, 
+					SYS_MOD_DTM
+					)
+				
+				VALUES
+					(
+					#{dataIdx},
+					#{vodIdx}, 
+					(
+							SELECT
+									CONCAT(
+										CONCAT(
+											'${dataCd}',
+											(
+												CASE
+													WHEN COUNT(PPF.DATA_IDX) BETWEEN 0 AND 9999 THEN 'A'
+													WHEN COUNT(PPF.DATA_IDX) > 9999 THEN CHAR(ASCII('A') + FLOOR(COUNT(PPF.DATA_IDX)/10000))
+													WHEN COUNT(PPF.DATA_IDX) = 0 THEN 'A'
+												END
+											)
+										),
+										(
+											CASE 
+												WHEN COUNT(PPF.DATA_IDX) BETWEEN 0 AND 9999 THEN LPAD( COUNT(PPF.DATA_IDX)+1 , 4 , 0)
+												WHEN COUNT(PPF.DATA_IDX) > 9999 THEN LPAD( COUNT(PPF.DATA_IDX)+1 - 9999 , 4 , 0)
+												WHEN COUNT(PPF.DATA_IDX) = 0 THEN '0001'
+											END
+										)
+									)
+							FROM
+								PPM_PRDT_VOD_DATA PPF
+							WHERE
+								DATA_CD LIKE '%${dataCd}%'
+						),
+					#{dataTitl}, 
+					#{dataPcUrl}, 
+					#{dataRunn},
+					#{dataOrde},
+					#{dataFreeYn},
+					'Y', 
+					#{dataUuid},
+					#{dataUuidIdx},
+					
+					#{dataPartNm},
+					#{dataPartIdx},
+					
+					#{mngLoginIdx}, 
+					DATE_FORMAT(NOW(), '%Y%m%d%H%i%S'), 
+					#{mngLoginIdx}, 
+					DATE_FORMAT(NOW(), '%Y%m%d%H%i%S')
+					)
+				
+				ON DUPLICATE KEY UPDATE 
+					
+					VOD_IDX = #{vodIdx},
+					DATA_TITL = #{dataTitl}, 
+					DATA_PC_URL = #{dataPcUrl}, 
+					DATA_ORDE = #{dataOrde},
+					DATA_FREE_YN = #{dataFreeYn},
+					
+					DATA_UUID = #{dataUuid},
+					DATA_RUNN = #{dataRunn},
+					DATA_PART_NM = #{dataPartNm},
+					DATA_PART_IDX = #{dataPartIdx},
+					
+					SYS_MOD_IDX = #{mngLoginIdx}, 
+					SYS_MOD_DTM = DATE_FORMAT(NOW(), '%Y%m%d%H%i%S')
+					
+		]]>
+	</update>
+	
+	<update id="updateMngVodData" parameterType="hashmap">
+		<![CDATA[
+			UPDATE 
+				PPM_PRDT_VOD
+				
+					SET
+						CATE_IDX=#{cateIdx},
+						VOD_NM=#{vodNm},
+						VOD_PROG_CD=#{vodProgCd},
+						VOD_STAT_CD=#{vodStatCd},
+						VOD_CNT=#{vodCnt},
+						VOD_USE_YN = 'Y',
+						SYS_MOD_IDX = #{mngLoginIdx}, 
+						SYS_MOD_DTM = DATE_FORMAT(NOW(), '%Y%m%d%H%i%S')
+			
+					WHERE 
+						VOD_IDX = #{vodIdx}
+						AND	VOD_CD=#{vodCd}
+
+		]]>
+	</update>
+
+	<select id="selectMngVodDataDataIdx" parameterType="hashmap" resultType="hashmap">
+		<![CDATA[
+			SELECT DATA_CD, DATA_IDX  FROM 	PPM_PRDT_VOD_DATA WHERE DATA_IDX = 						
+				(
+				SELECT 
+					MAX(DATA_IDX)
+			
+					
+					FROM 
+						PPM_PRDT_VOD_DATA 
+						
+						WHERE 
+							SYS_REG_IDX = #{mngLoginIdx}
+					)
+		]]>
+	</select>
+
+	<select id="selectMngVodDataIdx" parameterType="hashmap" resultType="hashmap">
+		<![CDATA[
+			SELECT 
+				MAX(VOD_IDX) VOD_IDX,
+				MAX(VOD_CD) VOD_CD
+				
+				FROM 
+					PPM_PRDT_VOD
+					
+					WHERE 
+						SYS_REG_IDX = #{mngLoginIdx}
+
+		]]>
+	</select>
+	
+	<update id="DeleteMngVodDataData" parameterType="hashmap">
+		<![CDATA[
+			UPDATE 
+				PPM_PRDT_VOD_DATA
+			
+					SET
+						DATA_USE_YN='N', 
+						SYS_MOD_IDX=#{mngLoginIdx}, 
+						SYS_MOD_DTM=DATE_FORMAT(NOW(), '%Y%m%d%H%i%S')
+						
+						WHERE 
+							DATA_IDX=#{dataIdx}
+
+
+		]]>
+	</update>
+	
+	<update id="deleteMngVodGarbageData" parameterType="hashmap">
+		<![CDATA[
+			UPDATE 
+				PPM_PRDT_VOD_DATA
+			
+					SET
+						DATA_USE_YN='N', 
+						SYS_MOD_IDX=#{mngLoginIdx}, 
+						SYS_MOD_DTM=DATE_FORMAT(NOW(), '%Y%m%d%H%i%S')
+						
+						WHERE 
+							(VOD_IDX=0 OR VOD_IDX IS NULL)
+							AND SYS_MOD_IDX=#{mngLoginIdx}
+
+
+		]]>
+	</update>
+	
+		<!-- 로그인 체크 -->
+	<select id="selectMngVodList_Excel" parameterType="hashmap" resultType="hashmap">
+		<![CDATA[
+				]]>
+			<if test="status not in {'LIST'}">
+				<![CDATA[
+SELECT
+ 
+	CONVERT( REPLACE(CONVERT(C.NUM_DESC, CHAR),'.0',''), UNSIGNED ) AS 'ㄱ_No',
+	MASTER_NM AS 'ㄴ_마스터명',
+	P_CODE_NM AS 'ㄷ_상품코드',
+	M_CODE_NM AS 'ㄹ_상품코드',
+	VOD_CD AS 'ㅁ_강의코드',
+		
+	VOD_NM AS 'ㅂ_강의명',
+	VOD_CNT_REAL AS 'ㅅ_영상수',
+	SYS_REG_DTM AS 'ㅇ_등록일' ,
+	VOD_PROG AS 'ㅈ_업로드상태'
+	
+	
+	
+	
+	FROM (
+  SELECT B.*, (@rownumB:=@rownumB+1) as NUM_ASC FROM(  
+    SELECT A.*, (@rownumA:=@rownumA+1) as NUM_DESC FROM (
+				]]>
+			</if>
+		<![CDATA[
+			
+			    SELECT 
+			    	VOD_IDX, 
+			    	PPV.CATE_IDX,
+			    	(SELECT PU.USER_NM FROM PPM_USER PU WHERE PU.USER_IDX IN (SELECT PC.USER_IDX FROM PPM_CATE PC WHERE PC.CATE_IDX = PPV.CATE_IDX) ) MASTER_NM,
+			    	VOD_CD, 
+			    	VOD_NM, 
+			    	P_CODE.CODE_NM AS P_CODE_NM,
+			    	M_CODE.CODE_NM AS M_CODE_NM,
+			    	VOD_PROG_CD, 
+			    	IFNULL( (SELECT CODE_NM FROM PPM_CODE PC WHERE PC.CODE_ID = VOD_PROG_CD), '확인중' ) VOD_PROG, 
+			    	VOD_STAT_CD, 
+			    	IFNULL( (SELECT CODE_NM FROM PPM_CODE PC WHERE PC.CODE_ID = VOD_STAT_CD), '확인중' ) VOD_STAT, 
+			    	VOD_CNT, 
+			    	(SELECT COUNT(*) FROM PPM_PRDT_VOD_DATA PPVD  WHERE PPVD.VOD_IDX = PPV.VOD_IDX AND PPVD.DATA_USE_YN = 'Y') VOD_CNT_REAL,
+			    	
+			    	PPV.SYS_REG_IDX, 
+			    	DATE_FORMAT(PPV.SYS_REG_DTM, '%Y-%m-%d') SYS_REG_DTM,
+			    	PPV.SYS_MOD_IDX, 
+			    	DATE_FORMAT(PPV.SYS_MOD_DTM, '%Y-%m-%d %H:%i:%S') SYS_MOD_DTM
+			    	
+				FROM 
+					PPM_PRDT_VOD PPV
+						LEFT JOIN PPM_CATE PC ON PPV.CATE_IDX = PC.CATE_IDX
+						LEFT JOIN PPM_CODE P_CODE ON SUBSTR(PC.CODE_ID,1,5) = P_CODE.CODE_ID
+						LEFT JOIN PPM_CODE M_CODE ON PC.CODE_ID = M_CODE.CODE_ID
+				WHERE
+					VOD_USE_YN = 'Y'
+		]]>
+			<if test='mngLoginType not in {"A"}'>
+				<![CDATA[
+					AND PPV.SYS_REG_IDX = #{mngLoginIdx }
+				]]>
+			</if>
+				<if test="vodSelectStat not in {null, ''}">
+					<![CDATA[
+					AND VOD_PROG_CD LIKE '%${vodSelectStat}%'	
+					]]>
+				</if>
+				<if test="vodSelectNm not in {null, ''}">
+					<![CDATA[
+					AND VOD_IDX = #{vodSelectNm}  
+					]]>
+				</if>
+				<if test="vodTitl not in {null, ''}">
+					<![CDATA[
+					AND (VOD_NM LIKE '%${vodTitl}%' || VOD_CD LIKE '%${vodTitl}%' || PPV.CATE_IDX IN (SELECT CATE_IDX
+																FROM PPM_CATE PC 
+																	WHERE PC.USER_IDX 
+																		IN 
+																		
+																		(SELECT PU.USER_IDX 
+																			FROM PPM_USER PU 
+																				WHERE USER_NM LIKE '%${vodTitl}%' 
+																					AND USER_TYPE = 'M' 
+																					AND USER_USE_YN = 'Y') ) )
+					]]>
+				</if>
+			<if test="status not in {'LIST'}">
+				<![CDATA[
+						) A JOIN (SELECT @rownumA:=0) rownumA
+  ) B JOIN (SELECT @rownumB:=0) rownumB ORDER BY VOD_IDX DESC
+) C 
+				]]>
+			</if>
+		<![CDATA[
+		]]>
+	</select>
+	
+	
+</mapper>

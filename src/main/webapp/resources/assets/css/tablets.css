@@ -1,0 +1,73 @@
+@charset "utf-8";
+
+@media screen
+and (min-device-width : 800px)
+and (max-device-width : 1200px) {
+	/* SNS 버튼 위치 */
+/* 	.tablets_footer_sns{margin-top: 5px;margin-left: 100px;} 210520 수정 */
+	.tablets_footer_sns{float: right; margin-top: 5px;}
+	.footer_sns li:last-child a{margin-right: 0;} /* 210520 수정 */
+	.tablets_mo_gnb{width: 40%;}
+	
+	/* 탑 바로가기 버튼 */
+	.tablets_top_btn{width: 60px;height: 60px;position: relative;}
+	.tablets_alert_content{    height: 25%;}
+	
+	/* 로그인 버튼 */
+	#naverIdLogin_loginButton{left: 155px !important;top: -10px;}
+	.tablets_google_btn{padding-left:10px;}
+	
+	/* 팝업 */
+	.tablets_register_popup_content{    height: auto;    top: 215px;padding:10px 15px 20px;}
+	.tablets_register_popup_content2{    height: auto;    top: 155px;padding-bottom:25px;}
+	.tablets_rp_box_item{margin-top: 0px;display:flow-root;}
+	.tablets_rp_label{margin-bottom: 0px !important;float: left; width: 60px;}
+	.tablets_popup_bottom{margin-top: 10px;}
+	.tablets_rp_box{    padding: 0 15px 15px !important;}
+	
+	/* FAQ 네비게이션 */
+	.tablets_breadcrumb{bottom:60px;}
+	
+	/* 메인 마스터카드 이미지 */
+	.tablets_mf_thumb{}
+	
+	/* 상품신청팝업 */
+	.tablets_apply_popup_content{height:70% !important;}
+	.tablets_acb_list{}
+	.tablets_now_coaching{height: auto !important}
+	.tables_asd_date_box{left: 20px;width: 100%;}
+	
+	/* 장바구니 목록 */
+	.tablets_payment_img img{width: 200px;height: 200px;max-width: none;}
+	
+	/* 1:1문의 */
+	.tablets_mltd_state{bottom: 20px !important;left: 104px !important;}
+	.tablets_mltd_state_day {top: 20px;right: 6%;}
+	    
+/* -------------- -------------- -------------- -------------- -------------- -------------- -------------- -------------- -------------- */
+.tablet_review_content{ height: auto!important }
+.tablet_mf_tag_box{height: auto;}
+
+/* 전체팝업 스크롤 */
+.tablet_popup_content{	overflow-y: auto; }
+
+.tablet_popup_interest_free .popup_container{ position: absolute; margin-top: 0;  transform: translateX(-50%) translateY(-50%); }
+
+.tablet_linkMainDiv .mnc_name { bottom: -80px; }
+.tablet_linkMainDiv .linkMainA { top: 210px; left: -35px !important; }
+
+.tablet_linkMainDiv {    top: 70px !important;}
+
+/* 내정보관리 */
+.tablet_register_item { padding-right: 0!important; }
+
+.list-title{ margin-top: 50px; }
+
+.tablets_apply_popup_content{max-height: unset;}
+
+.form_check input[type="checkbox"] ~ .tablet_form_check_mark{ margin-top: -15.5px; }
+.tablet_form_check_mark + span{
+	display:none;
+}
+
+}

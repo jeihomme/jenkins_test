@@ -1,0 +1,141 @@
+@charset "utf-8";
+/* nanum-pen-script-regular - korean */
+@font-face {
+  font-family: 'Nanum Pen Script';
+  font-style: normal;
+  font-weight: 400;
+  src: url('../../resources/fonts/nanum-pen-script-v14-korean-regular.eot'); /* IE9 Compat Modes */
+  src: local('Nanum Pen'), local('NanumPen'),
+       url('../../resources/fonts/nanum-pen-script-v14-korean-regular.eot?#iefix') format('embedded-opentype'), /* IE6-IE8 */
+       url('../../resources/fonts/nanum-pen-script-v14-korean-regular.woff2') format('woff2'), /* Super Modern Browsers */
+       url('../../resources/fonts/nanum-pen-script-v14-korean-regular.woff') format('woff'), /* Modern Browsers */
+       url('../../resources/fonts/nanum-pen-script-v14-korean-regular.ttf') format('truetype'), /* Safari, Android, iOS */
+       url('../../resources/fonts/nanum-pen-script-v14-korean-regular.svg#NanumPenScript') format('svg'); /* Legacy iOS */
+}
+/* noto-sans-kr-100 - korean */
+@font-face {
+  font-family: 'Noto Sans KR';
+  font-style: normal;
+  font-weight: 100;
+  src: url('../../resources/fonts/noto-sans-kr-v11-korean-100.eot'); /* IE9 Compat Modes */
+  src: local('Noto Sans KR Thin'), local('NotoSansKR-Thin'),
+       url('../../resources/fonts/noto-sans-kr-v11-korean-100.eot?#iefix') format('embedded-opentype'), /* IE6-IE8 */
+       url('../../resources/fonts/noto-sans-kr-v11-korean-100.woff2') format('woff2'), /* Super Modern Browsers */
+       url('../../resources/fonts/noto-sans-kr-v11-korean-100.woff') format('woff'), /* Modern Browsers */
+       url('../../resources/fonts/noto-sans-kr-v11-korean-100.ttf') format('truetype'), /* Safari, Android, iOS */
+       url('../../resources/fonts/noto-sans-kr-v11-korean-100.svg#NotoSansKR') format('svg'); /* Legacy iOS */
+}
+/* noto-sans-kr-300 - korean */
+@font-face {
+  font-family: 'Noto Sans KR';
+  font-style: normal;
+  font-weight: 300;
+  src: url('../../resources/fonts/noto-sans-kr-v11-korean-300.eot'); /* IE9 Compat Modes */
+  src: local('Noto Sans KR Light'), local('NotoSansKR-Light'),
+       url('../../resources/fonts/noto-sans-kr-v11-korean-300.eot?#iefix') format('embedded-opentype'), /* IE6-IE8 */
+       url('../../resources/fonts/noto-sans-kr-v11-korean-300.woff2') format('woff2'), /* Super Modern Browsers */
+       url('../../resources/fonts/noto-sans-kr-v11-korean-300.woff') format('woff'), /* Modern Browsers */
+       url('../../resources/fonts/noto-sans-kr-v11-korean-300.ttf') format('truetype'), /* Safari, Android, iOS */
+       url('../../resources/fonts/noto-sans-kr-v11-korean-300.svg#NotoSansKR') format('svg'); /* Legacy iOS */
+}
+/* noto-sans-kr-regular - korean */
+@font-face {
+  font-family: 'Noto Sans KR';
+  font-style: normal;
+  font-weight: 400;
+  src: url('../../resources/fonts/noto-sans-kr-v11-korean-regular.eot'); /* IE9 Compat Modes */
+  src: local('Noto Sans KR Regular'), local('NotoSansKR-Regular'),
+       url('../../resources/fonts/noto-sans-kr-v11-korean-regular.eot?#iefix') format('embedded-opentype'), /* IE6-IE8 */
+       url('../../resources/fonts/noto-sans-kr-v11-korean-regular.woff2') format('woff2'), /* Super Modern Browsers */
+       url('../../resources/fonts/noto-sans-kr-v11-korean-regular.woff') format('woff'), /* Modern Browsers */
+       url('../../resources/fonts/noto-sans-kr-v11-korean-regular.ttf') format('truetype'), /* Safari, Android, iOS */
+       url('../../resources/fonts/noto-sans-kr-v11-korean-regular.svg#NotoSansKR') format('svg'); /* Legacy iOS */
+}
+/* noto-sans-kr-500 - korean */
+@font-face {
+  font-family: 'Noto Sans KR';
+  font-style: normal;
+  font-weight: 500;
+  src: url('../../resources/fonts/noto-sans-kr-v11-korean-500.eot'); /* IE9 Compat Modes */
+  src: local('Noto Sans KR Medium'), local('NotoSansKR-Medium'),
+       url('../../resources/fonts/noto-sans-kr-v11-korean-500.eot?#iefix') format('embedded-opentype'), /* IE6-IE8 */
+       url('../../resources/fonts/noto-sans-kr-v11-korean-500.woff2') format('woff2'), /* Super Modern Browsers */
+       url('../../resources/fonts/noto-sans-kr-v11-korean-500.woff') format('woff'), /* Modern Browsers */
+       url('../../resources/fonts/noto-sans-kr-v11-korean-500.ttf') format('truetype'), /* Safari, Android, iOS */
+       url('../../resources/fonts/noto-sans-kr-v11-korean-500.svg#NotoSansKR') format('svg'); /* Legacy iOS */
+}
+/* noto-sans-kr-700 - korean */
+@font-face {
+  font-family: 'Noto Sans KR';
+  font-style: normal;
+  font-weight: 700;
+  src: url('../../resources/fonts/noto-sans-kr-v11-korean-700.eot'); /* IE9 Compat Modes */
+  src: local('Noto Sans KR Bold'), local('NotoSansKR-Bold'),
+       url('../../resources/fonts/noto-sans-kr-v11-korean-700.eot?#iefix') format('embedded-opentype'), /* IE6-IE8 */
+       url('../../resources/fonts/noto-sans-kr-v11-korean-700.woff2') format('woff2'), /* Super Modern Browsers */
+       url('../../resources/fonts/noto-sans-kr-v11-korean-700.woff') format('woff'), /* Modern Browsers */
+       url('../../resources/fonts/noto-sans-kr-v11-korean-700.ttf') format('truetype'), /* Safari, Android, iOS */
+       url('../../resources/fonts/noto-sans-kr-v11-korean-700.svg#NotoSansKR') format('svg'); /* Legacy iOS */
+}
+/* noto-sans-kr-900 - korean */
+@font-face {
+  font-family: 'Noto Sans KR';
+  font-style: normal;
+  font-weight: 900;
+  src: url('../../resources/fonts/noto-sans-kr-v11-korean-900.eot'); /* IE9 Compat Modes */
+  src: local('Noto Sans KR Black'), local('NotoSansKR-Black'),
+       url('../../resources/fonts/noto-sans-kr-v11-korean-900.eot?#iefix') format('embedded-opentype'), /* IE6-IE8 */
+       url('../../resources/fonts/noto-sans-kr-v11-korean-900.woff2') format('woff2'), /* Super Modern Browsers */
+       url('../../resources/fonts/noto-sans-kr-v11-korean-900.woff') format('woff'), /* Modern Browsers */
+       url('../../resources/fonts/noto-sans-kr-v11-korean-900.ttf') format('truetype'), /* Safari, Android, iOS */
+       url('../../resources/fonts/noto-sans-kr-v11-korean-900.svg#NotoSansKR') format('svg'); /* Legacy iOS */
+}
+/* nanum-square */
+@font-face {
+ font-family: 'NanumSquare';
+ font-weight: 400;
+ src: url('../../resources/fonts/NanumSquareR.eot');
+ src: url('../../resources/NanumSquareR.eot?#iefix') format('embedded-opentype'),
+      url('../../resources/NanumSquareR.woff') format('woff'),
+      url('../../resources/NanumSquareR.ttf') format('truetype');
+}
+@font-face {
+ font-family: 'NanumSquare';
+ font-weight: 700;
+ src: url('../../resources/fonts/NanumSquareB.eot');
+ src: url('../../resources/fonts/NanumSquareB.eot?#iefix') format('embedded-opentype'),
+      url('../../resources/fonts/NanumSquareB.woff') format('woff'),
+      url('../../resources/fonts/NanumSquareB.ttf') format('truetype');
+}
+@font-face {
+ font-family: 'NanumSquare';
+ font-weight: 800;
+ src: url('../../resources/fonts/NanumSquareEB.eot');
+ src: url('../../resources/fonts/NanumSquareEB.eot?#iefix') format('embedded-opentype'),
+      url('../../resources/fonts/NanumSquareEB.woff') format('woff'),
+      url('../../resources/fonts/NanumSquareEB.ttf') format('truetype');
+}
+@font-face {
+ font-family: 'NanumSquare';
+ font-weight: 300;
+ src: url('../../resources/fonts/NanumSquareL.eot');
+ src: url('../../resources/fonts/NanumSquareL.eot?#iefix') format('embedded-opentype'),
+      url('../../resources/fonts/NanumSquareL.woff') format('woff'),
+      url('../../resources/fonts/NanumSquareL.ttf') format('truetype');
+}
+@import url('https://fonts.googleapis.com/css?family=Noto+Sans+KR:100,300,400,500,700,900|Open+Sans:400,700');
+@import url('https://fonts.googleapis.com/css?family=Nanum+Pen+Script&display=swap');
+/* reset */
+html, body, div, span, iframe, h1, h2, h3, h4, h5, h6, p, a, address, em, img, strong,
+b, i, dl, dt, dd, ol, ul, li, fieldset, form, label, legend, table, tr, th, td,
+article, aside, footer, header, nav, section{margin: 0; padding: 0; border: 0; font-size: 100%; font: inherit; vertical-align: baseline}
+article, aside, footer, header, nav, section {display: block}
+ol, ul {list-style-type: none}
+table {border-collapse: collapse; border-spacing: 0}
+body {line-height:1}
+a {margin:0; padding:0; font-size:100%; vertical-align:baseline; background:transparent; text-decoration: none; color: #000}
+a:visited, a:hover{color: #000}
+img{border: none; -ms-interpolation-mode: bicubic}
+input, select {vertical-align:middle; border: 1px solid #ccc}
+textarea{border: 1px solid #ccc}
+body, th, td, input, select, textarea, button, a{font-family: 'Noto Sans KR', sans-serif;}
